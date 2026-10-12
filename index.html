@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RakaatSense</title><meta name="description" content="AI prayer assistant: rakat counter, movement check, dhikr, qibla.">
+<meta name="theme-color" content="#0E7C4A"><link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.svg"><link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/style.css">
+</head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="lgBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1DB86E"/><stop offset="1" stop-color="#0A6B40"/></linearGradient></defs></svg>
+<div id="splash"><div class="sp"><span data-logo></span><b>Rakaat<span>Sense</span></b></div></div>
+<div class="toast" id="toast" role="status" aria-live="assertive" hidden></div>
+<main class="app">
+
+<section id="home" class="tab on">
+  <div class="hello">
+    <div class="who"><span data-logo></span><div><small class="brand">RakaatSense</small><b data-i="hello"></b><small id="dates"></small></div></div>
+    <div class="tools"><label class="lang"><span data-ic="globe" data-s="18"></span><select id="lang" aria-label="Language"></select></label>
+      <button class="icon" id="bell" data-ia="bell" data-ic="bell" data-s="20"></button></div>
+  </div>
+  <div class="banner"><small data-i="ban.s"></small><h2 data-i="ban.h"></h2><button class="pill dark" data-go="dz" data-i="ban.b"></button><div class="deco" id="deco"></div></div>
+  <div class="menu">
+    <button data-go="rk"><span data-ic="ruku" data-s="30"></span><em data-i="m.rk"></em></button><button data-go="dz"><span data-ic="beads" data-s="30"></span><em data-i="m.dz"></em></button>
+    <button data-go="cam"><span data-ic="scan" data-s="30"></span><em data-i="m.cam"></em></button><button data-go="qb"><span data-ic="compass" data-s="30"></span><em data-i="m.qb"></em></button>
+  </div>
+  <div class="card times"><button class="loc" id="loc" data-ia="tm.tap"><span data-ic="pin" data-s="16"></span><span id="locTxt" data-i="tm.load"></span></button><h3 data-i="tm.title"></h3><div class="next"><span id="nextName">—</span> <b id="nextTime">--:--</b> <small id="countdown"></small></div>
+    <div class="tgrid" id="tgrid"></div>
+    <div class="sum"><div><b id="hStreak">0</b><small data-i="s.streak"></small></div><div><b id="hDz">0</b><small data-i="s.dz"></small></div><div><b id="hDone">0/5</b><small data-i="s.pr"></small></div></div></div>
+</section>
+
+<section id="rk" class="tab">
+  <h2 class="ttl" data-i="rk.title"></h2>
+  <div class="pills" id="pPills"></div>
+  <div class="pills sm" id="pockets"><button class="pill on" data-m="shirt" data-i="rk.shirt"></button><button class="pill" data-m="pants" data-i="rk.pants"></button></div>
+  <div class="circle big" id="cBig"><small data-i="rk.ruku"></small><b id="ruku">0</b><span id="rukuT">/ 2</span></div>
+  <div class="circle sm" id="cSm"><small data-i="rk.sujud"></small><b id="sujud">0</b><span id="sujudT">/ 4</span></div>
+  <p class="status" id="phase" data-i="rk.intro"></p>
+  <div class="meter"><i id="ang"></i></div><small class="mute"><span data-i="rk.tilt"></span> <span id="angTxt">0</span>° · <span data-i="rk.rakaat"></span> <b id="rakaat">0</b></small>
+  <div class="row"><button class="btn ghost" id="minus" data-ic="minus" aria-label="−1"></button><button class="btn" id="cStart" data-i="rk.start"></button><button class="btn ghost" id="plus" aria-label="+1">+1</button></div>
+  <p class="mute small" data-i="rk.hint"></p>
+</section>
+
+<section id="dz" class="tab">
+  <div class="dz-head"><button class="icon flip" id="back" data-ia="dz.back" data-ic="back" hidden></button><h2 class="ttl" id="dzTitle" data-i="dz.title"></h2><button class="icon" id="sumBtn" data-ic="chart" data-s="20"></button></div>
+  <div id="dzMain">
+    <div class="chips" id="chips"></div>
+    <button class="pill gold" id="pack" data-i="dz.pack"></button>
+    <div class="dz-top"><span><span data-i="dz.set"></span>: <b id="dSet">1</b></span><span><span data-i="dz.tgt"></span>: <b id="dTgt">33</b></span></div>
+    <div class="arab" id="arab"></div><div class="tr" id="tr"></div><div class="timer" id="dTime">0:00:00</div>
+    <div class="num" id="dNum">000</div>
+    <button class="tap" id="tap" data-ia="dz.tap"><span data-ic="beads" data-s="72"></span></button>
+    <div class="row3"><button class="icon" id="dReset" data-ia="dz.reset" data-ic="reset" data-s="20"></button><button class="icon" id="dUndo" data-ia="dz.undo" data-ic="minus" data-s="20"></button></div>
+  </div>
+  <div id="dzSum" hidden>
+    <div class="card"><div class="pills sm" id="rng"><button class="pill on" data-r="day" data-i="dz.day"></button><button class="pill" data-r="week" data-i="dz.week"></button><button class="pill" data-r="month" data-i="dz.month"></button><button class="pill" data-r="year" data-i="dz.year"></button></div>
+      <svg id="bars" viewBox="0 0 320 150"></svg>
+      <div class="sum"><div><b id="sTot">0</b><small data-i="dz.total"></small></div><div><b id="sDay">0</b><small data-i="dz.today"></small></div></div></div>
+    <div id="sList"></div>
+  </div>
+</section>
+
+<section id="cam" class="tab">
+  <h2 class="ttl" data-i="cam.title"></h2>
+  <p class="mute small" data-i="cam.hint"></p>
+  <div class="cambox"><video id="video" playsinline muted></video><canvas id="ov"></canvas><div id="posture" class="badge" data-i="cam.ready"></div></div>
+  <div class="row"><div class="mini"><b id="score">–</b><small data-i="cam.score"></small></div><div class="mini"><b id="errs">0</b><small data-i="cam.fix"></small></div></div>
+  <button class="btn" id="camBtn" data-i="cam.start"></button>
+  <p class="mute small" data-i="cam.note"></p>
+</section>
+
+<section id="qb" class="tab">
+  <h2 class="ttl" data-i="qb.title"></h2>
+  <svg id="compass" viewBox="0 -8 200 208"><circle cx="100" cy="100" r="92" class="ring"/><g id="dial"><text x="100" y="26" class="n" id="qN">U</text><g id="kaaba"><line x1="100" y1="100" x2="100" y2="38" stroke="#C9A23F" stroke-width="3" stroke-linecap="round"/><rect x="91" y="14" width="18" height="18" rx="3" fill="#15382b" stroke="#C9A23F" stroke-width="2"/><path d="M91 20h18" stroke="#C9A23F" stroke-width="2"/></g></g><path d="M92 -4h16l-8 13z" fill="#0E7C4A"/><circle cx="100" cy="100" r="6" fill="#0E7C4A"/></svg>
+  <p class="status" id="qTxt" data-i="qb.intro"></p>
+  <button class="btn" id="qBtn" data-i="qb.start"></button>
+</section>
+</main>
+
+<nav class="nav" id="nav"><button data-go="home" class="on"><span data-ic="home"></span><span data-i="nav.home"></span></button><button data-go="rk"><span data-ic="ruku"></span><span data-i="m.rk"></span></button><button data-go="dz"><span data-ic="beads"></span><span data-i="m.dz"></span></button><button data-go="cam"><span data-ic="scan"></span><span data-i="nav.cam"></span></button><button data-go="qb"><span data-ic="compass"></span><span data-i="m.qb"></span></button></nav>
+<script type="module" src="/src/main.js"></script>
+</body></html>
