@@ -1,6 +1,17 @@
 export const $ = (id) => document.getElementById(id), z = (n) => String(n).padStart(2, '0');
 export const dayKey = (d = new Date()) => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
-export const store = { get: (k, f) => { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+/* Penyimpanan. Kunci global (bahasa, daftar akun, sesi) dipakai bersama; data ibadah dipisah per akun. Tamu memakai kunci lama (tanpa awalan). */
+const GLOBAL = ['rs.lang', 'rs.users', 'rs.session'];
+const raw = {
+  get: (k, f) => { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del: (k) => { try { localStorage.removeItem(k); } catch {} },
+};
+export const gstore = raw;
+export const session = () => raw.get('rs.session', null);
+export const logout = () => { raw.del('rs.session'); location.reload(); };
+const ns = (k) => { const s = session(); return GLOBAL.includes(k) || !s || s.id === 'guest' ? k : `u.${s.id}.${k}`; };
+export const store = { get: (k, f) => raw.get(ns(k), f), set: (k, v) => raw.set(ns(k), v) };
 let tt, ac;
 export function toast(msg, ok) { const t = $('toast'); t.textContent = msg; t.className = 'toast' + (ok ? ' ok' : ''); t.hidden = false; clearTimeout(tt); tt = setTimeout(() => (t.hidden = true), 5000); }
 export function speak(s, l = 'id') { if ('speechSynthesis' in window) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(s); u.lang = { id: 'id-ID', en: 'en-US', ar: 'ar-SA', ms: 'ms-MY' }[l] || 'en-US'; speechSynthesis.speak(u); } }

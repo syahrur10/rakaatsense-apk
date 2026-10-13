@@ -75,6 +75,47 @@ const MS = { ...ID, 'ban.h': 'Mula Zikir\nHari Ini', 'ban.b': 'Mula sekarang', '
   'po.stand': 'Berdiri', 'po.sit': 'Duduk', 'po.trans': 'Peralihan', 'po.none': 'Badan tidak kelihatan',
   'e.knee': 'lutut belum lurus', 'e.upright': 'badan belum tegak', 'e.rlow': 'rukuk belum sempurna, belakang belum rata', 'e.rhigh': 'rukuk terlalu membongkok', 'e.head': 'kepala jangan lebih rendah daripada belakang', 'e.rknee': 'jangan bengkokkan lutut semasa rukuk', 'e.elbow': 'siku jangan melekat pada lantai', 'e.hip': 'punggung belum diangkat semasa sujud', 'e.sitback': 'belakang belum tegak semasa duduk',
   'qb.title': 'Arah Kiblat', 'qb.intro': "Tekan mula, kemudian pusing telefon sehingga ikon Kaabah di atas.", 'qb.start': 'Mula kompas', 'qb.ok': 'Arah kiblat tepat', 'qb.deg': 'Kiblat {d}° dari utara. Pusing ke arah ikon Kaabah.', 'qb.err': 'Penderia kompas tiada atau kebenaran ditolak.' };
+/* ---- Teks tambahan: sapaan, login, kompas ---- */
+Object.assign(ID, {
+  'g.salam': "Assalamu'alaikum, {n}", 'g.morning': 'Selamat pagi, apa kabar hari ini?', 'g.noon': 'Selamat siang, apa kabar?', 'g.afternoon': 'Selamat sore, apa kabar?', 'g.night': 'Selamat malam, apa kabar?', 'g.guest': 'Sahabat',
+  'au.tag': 'Teman ibadah harianmu', 'au.in': 'Masuk', 'au.up': 'Daftar', 'au.name': 'Nama lengkap', 'au.email': 'Email', 'au.pass': 'Kata sandi', 'au.go.in': 'Masuk', 'au.go.up': 'Buat akun', 'au.guest': 'Lanjut tanpa akun', 'au.show': 'Tampilkan kata sandi', 'au.hide': 'Sembunyikan kata sandi', 'au.note': 'Akun dan data ibadahmu tersimpan di perangkat ini.',
+  'au.ph.name': 'Nama kamu', 'au.ph.mail': 'nama@email.com', 'au.ph.pass': 'Minimal 6 karakter',
+  'au.e.name': 'Isi nama dengan minimal 2 huruf.', 'au.e.mail': 'Format email belum benar.', 'au.e.short': 'Kata sandi minimal 6 karakter.', 'au.e.exist': 'Email ini sudah terdaftar. Silakan masuk.', 'au.e.bad': 'Email atau kata sandi salah.', 'au.e.crypto': 'Browser belum mendukung. Buka aplikasi lewat HTTPS.',
+  'au.out': 'Keluar', 'au.outq': 'Keluar dari akun ini?',
+  'dir.0': 'Utara', 'dir.1': 'Timur Laut', 'dir.2': 'Timur', 'dir.3': 'Tenggara', 'dir.4': 'Selatan', 'dir.5': 'Barat Daya', 'dir.6': 'Barat', 'dir.7': 'Barat Laut',
+  'qb.you': 'Arahmu', 'qb.kib': 'Kiblat', 'qb.right': 'Putar ke kanan {d}°', 'qb.left': 'Putar ke kiri {d}°',
+  'qb.intro': "Tekan mulai, lalu putar HP hingga penanda Ka'bah sejajar dengan panah hijau di atas.",
+});
+Object.assign(EN, {
+  'g.salam': "Assalamu'alaikum, {n}", 'g.morning': 'Good morning, how are you today?', 'g.noon': 'Good day, how are you?', 'g.afternoon': 'Good afternoon, how are you?', 'g.night': 'Good evening, how are you?', 'g.guest': 'Friend',
+  'au.tag': 'Your daily prayer companion', 'au.in': 'Sign in', 'au.up': 'Sign up', 'au.name': 'Full name', 'au.email': 'Email', 'au.pass': 'Password', 'au.go.in': 'Sign in', 'au.go.up': 'Create account', 'au.guest': 'Continue without an account', 'au.show': 'Show password', 'au.hide': 'Hide password', 'au.note': 'Your account and prayer data are stored on this device.',
+  'au.ph.name': 'Your name', 'au.ph.mail': 'name@email.com', 'au.ph.pass': 'At least 6 characters',
+  'au.e.name': 'Enter a name with at least 2 letters.', 'au.e.mail': 'That email address looks wrong.', 'au.e.short': 'Password must be at least 6 characters.', 'au.e.exist': 'This email is already registered. Please sign in.', 'au.e.bad': 'Wrong email or password.', 'au.e.crypto': 'This browser is not supported. Open the app over HTTPS.',
+  'au.out': 'Sign out', 'au.outq': 'Sign out of this account?',
+  'dir.0': 'North', 'dir.1': 'Northeast', 'dir.2': 'East', 'dir.3': 'Southeast', 'dir.4': 'South', 'dir.5': 'Southwest', 'dir.6': 'West', 'dir.7': 'Northwest',
+  'qb.you': 'You face', 'qb.kib': 'Qibla', 'qb.right': 'Turn right {d}°', 'qb.left': 'Turn left {d}°',
+  'qb.intro': 'Tap start, then turn your phone until the Kaaba marker lines up with the green arrow at the top.',
+});
+Object.assign(AR, {
+  'g.salam': 'السلام عليكم، {n}', 'g.morning': 'صباح الخير، كيف حالك اليوم؟', 'g.noon': 'نهارك سعيد، كيف حالك؟', 'g.afternoon': 'طاب عصرك، كيف حالك؟', 'g.night': 'مساء الخير، كيف حالك؟', 'g.guest': 'صديقي',
+  'au.tag': 'رفيقك اليومي في العبادة', 'au.in': 'دخول', 'au.up': 'حساب جديد', 'au.name': 'الاسم الكامل', 'au.email': 'البريد الإلكتروني', 'au.pass': 'كلمة المرور', 'au.go.in': 'تسجيل الدخول', 'au.go.up': 'إنشاء الحساب', 'au.guest': 'المتابعة بدون حساب', 'au.show': 'إظهار كلمة المرور', 'au.hide': 'إخفاء كلمة المرور', 'au.note': 'يُحفظ حسابك وبيانات عبادتك على هذا الجهاز.',
+  'au.ph.name': 'اسمك', 'au.ph.mail': 'name@email.com', 'au.ph.pass': '6 أحرف على الأقل',
+  'au.e.name': 'أدخل اسمًا من حرفين على الأقل.', 'au.e.mail': 'صيغة البريد الإلكتروني غير صحيحة.', 'au.e.short': 'كلمة المرور 6 أحرف على الأقل.', 'au.e.exist': 'هذا البريد مسجل مسبقًا. سجّل الدخول.', 'au.e.bad': 'البريد أو كلمة المرور غير صحيحة.', 'au.e.crypto': 'المتصفح غير مدعوم. افتح التطبيق عبر HTTPS.',
+  'au.out': 'تسجيل الخروج', 'au.outq': 'هل تريد تسجيل الخروج من هذا الحساب؟',
+  'dir.0': 'شمال', 'dir.1': 'شمال شرق', 'dir.2': 'شرق', 'dir.3': 'جنوب شرق', 'dir.4': 'جنوب', 'dir.5': 'جنوب غرب', 'dir.6': 'غرب', 'dir.7': 'شمال غرب',
+  'qb.you': 'اتجاهك', 'qb.kib': 'القبلة', 'qb.right': 'أدر إلى اليمين {d}°', 'qb.left': 'أدر إلى اليسار {d}°',
+  'qb.intro': 'اضغط ابدأ ثم أدر هاتفك حتى يصطف رمز الكعبة مع السهم الأخضر في الأعلى.',
+});
+Object.assign(MS, {
+  'g.salam': "Assalamu'alaikum, {n}", 'g.morning': 'Selamat pagi, apa khabar hari ini?', 'g.noon': 'Selamat tengah hari, apa khabar?', 'g.afternoon': 'Selamat petang, apa khabar?', 'g.night': 'Selamat malam, apa khabar?', 'g.guest': 'Sahabat',
+  'au.tag': 'Teman ibadah harian anda', 'au.in': 'Log masuk', 'au.up': 'Daftar', 'au.name': 'Nama penuh', 'au.email': 'E-mel', 'au.pass': 'Kata laluan', 'au.go.in': 'Log masuk', 'au.go.up': 'Cipta akaun', 'au.guest': 'Teruskan tanpa akaun', 'au.show': 'Tunjuk kata laluan', 'au.hide': 'Sembunyi kata laluan', 'au.note': 'Akaun dan data ibadah anda disimpan pada peranti ini.',
+  'au.ph.name': 'Nama anda', 'au.ph.mail': 'nama@emel.com', 'au.ph.pass': 'Sekurang-kurangnya 6 aksara',
+  'au.e.name': 'Isi nama sekurang-kurangnya 2 huruf.', 'au.e.mail': 'Format e-mel tidak betul.', 'au.e.short': 'Kata laluan sekurang-kurangnya 6 aksara.', 'au.e.exist': 'E-mel ini sudah berdaftar. Sila log masuk.', 'au.e.bad': 'E-mel atau kata laluan salah.', 'au.e.crypto': 'Pelayar tidak disokong. Buka aplikasi melalui HTTPS.',
+  'au.out': 'Log keluar', 'au.outq': 'Log keluar daripada akaun ini?',
+  'dir.0': 'Utara', 'dir.1': 'Timur Laut', 'dir.2': 'Timur', 'dir.3': 'Tenggara', 'dir.4': 'Selatan', 'dir.5': 'Barat Daya', 'dir.6': 'Barat', 'dir.7': 'Barat Laut',
+  'qb.you': 'Arah anda', 'qb.kib': 'Kiblat', 'qb.right': 'Pusing ke kanan {d}°', 'qb.left': 'Pusing ke kiri {d}°',
+  'qb.intro': 'Tekan mula, kemudian pusing telefon sehingga penanda Kaabah sejajar dengan anak panah hijau di atas.',
+});
 export const LANGS = { id: ['Bahasa Indonesia', ID], en: ['English', EN], ar: ['العربية', AR], ms: ['Bahasa Melayu', MS] };
 const saved = (() => { try { return localStorage.getItem('rs.lang'); } catch { return null; } })();
 let cur = LANGS[saved] ? saved : ({ id: 'id', ms: 'ms', ar: 'ar' }[(navigator.language || 'en').slice(0, 2)] || 'en');
@@ -85,5 +126,6 @@ export function apply() {
   const h = document.documentElement; h.lang = cur; h.dir = cur === 'ar' ? 'rtl' : 'ltr'; document.title = 'RakaatSense';
   document.querySelectorAll('[data-i]:not([data-i=""])').forEach((e) => (e.textContent = t(e.dataset.i)));
   document.querySelectorAll('[data-ia]').forEach((e) => e.setAttribute('aria-label', t(e.dataset.ia)));
+  document.querySelectorAll('[data-ph]').forEach((e) => e.setAttribute('placeholder', t(e.dataset.ph)));
 }
 export function setLang(l) { cur = l; try { localStorage.setItem('rs.lang', l); } catch {} apply(); hooks.forEach((f) => f()); }

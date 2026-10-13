@@ -25,3 +25,9 @@ npx cap sync && npx cap open android
 ```
 Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-assets/assets/` ke folder `assets/`, lalu `npx capacitor-assets generate --android`.
 Izin di AndroidManifest: CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, INTERNET, HIGH_SAMPLING_RATE_SENSORS.
+
+## v4: login, sapaan, kompas baru
+- **Login** (`src/auth.js`): daftar/masuk dengan email + kata sandi, atau **Lanjut tanpa akun**. Akun disimpan **di perangkat** (localStorage); kata sandi di-hash PBKDF2-SHA256 + salt. Data ibadah (jadwal ditandai, streak, dzikir) dipisah per akun. Karena tanpa server, akun tidak ikut berpindah antar-HP. Untuk sinkron antar-perangkat, ganti `auth.js` dengan backend (mis. Supabase/Firebase).
+- **Sapaan beranda**: "Assalamu'alaikum, {nama}" + salam sesuai waktu (pagi/siang/sore/malam) dalam 4 bahasa.
+- **Kompas kiblat**: 4 mata angin (Utara/Timur/Selatan/Barat) yang selalu tegak terbaca, skala derajat, penanda Ka'bah di bingkai, arah HP & arah kiblat (mis. 295° Barat Laut), petunjuk "Putar ke kanan/kiri N°", getar saat tepat.
+- Struktur: `main.js` = gerbang login, `app.js` = aplikasi utama.
