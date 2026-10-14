@@ -77,6 +77,10 @@ const MS = { ...ID, 'ban.h': 'Mula Zikir\nHari Ini', 'ban.b': 'Mula sekarang', '
   'qb.title': 'Arah Kiblat', 'qb.intro': "Tekan mula, kemudian pusing telefon sehingga ikon Kaabah di atas.", 'qb.start': 'Mula kompas', 'qb.ok': 'Arah kiblat tepat', 'qb.deg': 'Kiblat {d}° dari utara. Pusing ke arah ikon Kaabah.', 'qb.err': 'Penderia kompas tiada atau kebenaran ditolak.' };
 /* ---- Teks tambahan: sapaan, login, kompas ---- */
 Object.assign(ID, {
+  'au.or': 'atau dengan email', 'au.google': 'Lanjut dengan Google', 'au.fb': 'Lanjut dengan Facebook', 'au.gh': 'Lanjut dengan GitHub', 'au.forgot': 'Lupa kata sandi?',
+  'au.reset.ok': 'Tautan atur ulang kata sandi sudah dikirim ke email kamu. Cek juga folder spam.', 'au.e.resetmail': 'Isi email di atas dulu, lalu ketuk Lupa kata sandi.', 'au.e.noreset': 'Atur ulang kata sandi hanya tersedia di mode online.',
+  'au.e.net': 'Tidak ada koneksi internet. Coba lagi.', 'au.e.many': 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.', 'au.e.diff': 'Email ini sudah terdaftar dengan metode masuk lain. Pakai metode yang sama seperti saat daftar.',
+  'au.e.cfg': 'Metode masuk ini belum diaktifkan oleh pengembang.', 'au.e.gen': 'Gagal masuk. Coba lagi.', 'au.note.cloud': 'Akunmu aman di server dan bisa dipakai di perangkat mana pun.',
   'g.salam': "Assalamu'alaikum, {n}", 'g.morning': 'Selamat pagi, apa kabar hari ini?', 'g.noon': 'Selamat siang, apa kabar?', 'g.afternoon': 'Selamat sore, apa kabar?', 'g.night': 'Selamat malam, apa kabar?', 'g.guest': 'Sahabat',
   'au.tag': 'Teman ibadah harianmu', 'au.in': 'Masuk', 'au.up': 'Daftar', 'au.name': 'Nama lengkap', 'au.email': 'Email', 'au.pass': 'Kata sandi', 'au.go.in': 'Masuk', 'au.go.up': 'Buat akun', 'au.guest': 'Lanjut tanpa akun', 'au.show': 'Tampilkan kata sandi', 'au.hide': 'Sembunyikan kata sandi', 'au.note': 'Akun dan data ibadahmu tersimpan di perangkat ini.',
   'au.ph.name': 'Nama kamu', 'au.ph.mail': 'nama@email.com', 'au.ph.pass': 'Minimal 6 karakter',
@@ -87,6 +91,10 @@ Object.assign(ID, {
   'qb.intro': "Tekan mulai, lalu putar HP hingga penanda Ka'bah sejajar dengan panah hijau di atas.",
 });
 Object.assign(EN, {
+  'au.or': 'or with email', 'au.google': 'Continue with Google', 'au.fb': 'Continue with Facebook', 'au.gh': 'Continue with GitHub', 'au.forgot': 'Forgot password?',
+  'au.reset.ok': 'A password reset link was sent to your email. Check your spam folder too.', 'au.e.resetmail': 'Enter your email above first, then tap Forgot password.', 'au.e.noreset': 'Password reset is only available in online mode.',
+  'au.e.net': 'No internet connection. Please try again.', 'au.e.many': 'Too many attempts. Wait a moment and try again.', 'au.e.diff': 'This email is registered with another sign-in method. Use the same method you signed up with.',
+  'au.e.cfg': 'This sign-in method has not been enabled by the developer.', 'au.e.gen': 'Sign-in failed. Please try again.', 'au.note.cloud': 'Your account is stored securely on the server and works on any device.',
   'g.salam': "Assalamu'alaikum, {n}", 'g.morning': 'Good morning, how are you today?', 'g.noon': 'Good day, how are you?', 'g.afternoon': 'Good afternoon, how are you?', 'g.night': 'Good evening, how are you?', 'g.guest': 'Friend',
   'au.tag': 'Your daily prayer companion', 'au.in': 'Sign in', 'au.up': 'Sign up', 'au.name': 'Full name', 'au.email': 'Email', 'au.pass': 'Password', 'au.go.in': 'Sign in', 'au.go.up': 'Create account', 'au.guest': 'Continue without an account', 'au.show': 'Show password', 'au.hide': 'Hide password', 'au.note': 'Your account and prayer data are stored on this device.',
   'au.ph.name': 'Your name', 'au.ph.mail': 'name@email.com', 'au.ph.pass': 'At least 6 characters',
@@ -97,6 +105,10 @@ Object.assign(EN, {
   'qb.intro': 'Tap start, then turn your phone until the Kaaba marker lines up with the green arrow at the top.',
 });
 Object.assign(AR, {
+  'au.or': 'أو بالبريد الإلكتروني', 'au.google': 'المتابعة عبر Google', 'au.fb': 'المتابعة عبر Facebook', 'au.gh': 'المتابعة عبر GitHub', 'au.forgot': 'نسيت كلمة المرور؟',
+  'au.reset.ok': 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك. تحقق من البريد غير الهام أيضًا.', 'au.e.resetmail': 'أدخل بريدك أعلاه أولًا ثم اضغط نسيت كلمة المرور.', 'au.e.noreset': 'إعادة تعيين كلمة المرور متاحة في الوضع المتصل فقط.',
+  'au.e.net': 'لا يوجد اتصال بالإنترنت. حاول مرة أخرى.', 'au.e.many': 'محاولات كثيرة. انتظر قليلًا ثم حاول مجددًا.', 'au.e.diff': 'هذا البريد مسجل بطريقة دخول أخرى. استخدم الطريقة نفسها التي سجلت بها.',
+  'au.e.cfg': 'لم يفعّل المطوّر طريقة الدخول هذه بعد.', 'au.e.gen': 'فشل تسجيل الدخول. حاول مرة أخرى.', 'au.note.cloud': 'حسابك محفوظ بأمان على الخادم ويعمل على أي جهاز.',
   'g.salam': 'السلام عليكم، {n}', 'g.morning': 'صباح الخير، كيف حالك اليوم؟', 'g.noon': 'نهارك سعيد، كيف حالك؟', 'g.afternoon': 'طاب عصرك، كيف حالك؟', 'g.night': 'مساء الخير، كيف حالك؟', 'g.guest': 'صديقي',
   'au.tag': 'رفيقك اليومي في العبادة', 'au.in': 'دخول', 'au.up': 'حساب جديد', 'au.name': 'الاسم الكامل', 'au.email': 'البريد الإلكتروني', 'au.pass': 'كلمة المرور', 'au.go.in': 'تسجيل الدخول', 'au.go.up': 'إنشاء الحساب', 'au.guest': 'المتابعة بدون حساب', 'au.show': 'إظهار كلمة المرور', 'au.hide': 'إخفاء كلمة المرور', 'au.note': 'يُحفظ حسابك وبيانات عبادتك على هذا الجهاز.',
   'au.ph.name': 'اسمك', 'au.ph.mail': 'name@email.com', 'au.ph.pass': '6 أحرف على الأقل',
@@ -107,6 +119,10 @@ Object.assign(AR, {
   'qb.intro': 'اضغط ابدأ ثم أدر هاتفك حتى يصطف رمز الكعبة مع السهم الأخضر في الأعلى.',
 });
 Object.assign(MS, {
+  'au.or': 'atau dengan e-mel', 'au.google': 'Teruskan dengan Google', 'au.fb': 'Teruskan dengan Facebook', 'au.gh': 'Teruskan dengan GitHub', 'au.forgot': 'Lupa kata laluan?',
+  'au.reset.ok': 'Pautan tetapan semula kata laluan telah dihantar ke e-mel anda. Semak juga folder spam.', 'au.e.resetmail': 'Isi e-mel di atas dahulu, kemudian ketik Lupa kata laluan.', 'au.e.noreset': 'Tetapan semula kata laluan hanya tersedia dalam mod dalam talian.',
+  'au.e.net': 'Tiada sambungan internet. Cuba lagi.', 'au.e.many': 'Terlalu banyak percubaan. Tunggu sebentar dan cuba lagi.', 'au.e.diff': 'E-mel ini didaftarkan dengan kaedah log masuk lain. Gunakan kaedah yang sama semasa mendaftar.',
+  'au.e.cfg': 'Kaedah log masuk ini belum diaktifkan oleh pembangun.', 'au.e.gen': 'Log masuk gagal. Cuba lagi.', 'au.note.cloud': 'Akaun anda disimpan dengan selamat pada pelayan dan boleh digunakan pada mana-mana peranti.',
   'g.salam': "Assalamu'alaikum, {n}", 'g.morning': 'Selamat pagi, apa khabar hari ini?', 'g.noon': 'Selamat tengah hari, apa khabar?', 'g.afternoon': 'Selamat petang, apa khabar?', 'g.night': 'Selamat malam, apa khabar?', 'g.guest': 'Sahabat',
   'au.tag': 'Teman ibadah harian anda', 'au.in': 'Log masuk', 'au.up': 'Daftar', 'au.name': 'Nama penuh', 'au.email': 'E-mel', 'au.pass': 'Kata laluan', 'au.go.in': 'Log masuk', 'au.go.up': 'Cipta akaun', 'au.guest': 'Teruskan tanpa akaun', 'au.show': 'Tunjuk kata laluan', 'au.hide': 'Sembunyi kata laluan', 'au.note': 'Akaun dan data ibadah anda disimpan pada peranti ini.',
   'au.ph.name': 'Nama anda', 'au.ph.mail': 'nama@emel.com', 'au.ph.pass': 'Sekurang-kurangnya 6 aksara',

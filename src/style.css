@@ -30,7 +30,7 @@ html[lang=ar] body{font-family:'Noto Sans Arabic','Plus Jakarta Sans',sans-serif
 .greet{margin:.9rem 0 1.1rem}
 .greet h1{font-size:1.4rem;font-weight:800;line-height:1.2;color:var(--g3);overflow-wrap:anywhere}
 .greet p{font-weight:600;color:var(--g2);margin-top:.2rem}
-.greet small{display:block;margin-top:.3rem;font-size:.78rem}
+.greet small{display:block;margin-top:.3rem;font-size:.78rem}.greet small span{display:block}.greet small .hj{margin-top:.1rem;font-weight:600;color:var(--g2)}
 
 /* banner */
 .banner{position:relative;overflow:hidden;background:var(--grad);color:#fff;border-radius:26px;padding:1.4rem;margin-bottom:1rem;box-shadow:0 12px 30px rgba(14,124,74,.28)}
@@ -158,3 +158,11 @@ video,#ov{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--g1);outline-offset:2px}
 [dir=rtl] .flip .ic,[dir=rtl] #logout .ic{transform:scaleX(-1)}[dir=rtl] .circle,[dir=rtl] .num,[dir=rtl] .timer{direction:ltr}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- Login sosial ---- */
+.soc{display:grid;gap:.6rem;margin-bottom:.2rem}
+.sbtn{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;height:50px;border:1.5px solid var(--line);border-radius:16px;background:#fff;color:var(--text);font:700 .95rem 'Plus Jakarta Sans','Noto Sans Arabic',sans-serif;cursor:pointer;transition:background .15s,border-color .15s}
+.sbtn:hover{background:var(--card2);border-color:var(--g1)}.sbtn:disabled{opacity:.55;cursor:wait}.sbtn svg{width:22px;height:22px;flex:none}
+.or{display:flex;align-items:center;gap:.8rem;margin:1rem 0;color:var(--mute);font-size:.8rem;font-weight:600}.or:before,.or:after{content:"";flex:1;height:1px;background:var(--line)}
+.au-link{display:block;margin:-.2rem 0 .9rem;margin-inline-start:auto;background:none;border:0;padding:.2rem;color:var(--g2);font:700 .85rem 'Plus Jakarta Sans','Noto Sans Arabic',sans-serif;cursor:pointer}
+.au-ok{background:#E8F7EF;color:var(--g3);border-radius:12px;padding:.6rem .8rem;font-weight:600;font-size:.88rem;margin:0 0 .85rem}

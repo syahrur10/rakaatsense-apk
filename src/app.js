@@ -22,7 +22,22 @@ function setGreet() {
   $('logout').setAttribute('aria-label', t(guest ? 'au.in' : 'au.out'));
 }
 $('logout').onclick = () => { if (session()?.id === 'guest' || confirm(t('au.outq'))) logout(); };
-function setDates() { const L = lang(), d = new Date(); let s = d.toLocaleDateString(L, { weekday: 'long', day: 'numeric', month: 'long' }); try { s += ' · ' + new Intl.DateTimeFormat(L + '-u-ca-islamic', { dateStyle: 'medium' }).format(d); } catch {} $('dates').textContent = s; setGreet(); }
+const HJ = {
+  id: ['Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir', 'Jumadil Awal', 'Jumadil Akhir', 'Rajab', 'Syakban', 'Ramadan', 'Syawal', 'Zulkaidah', 'Zulhijah'],
+  ms: ['Muharram', 'Safar', 'Rabiulawal', 'Rabiulakhir', 'Jamadilawal', 'Jamadilakhir', 'Rejab', 'Syaaban', 'Ramadan', 'Syawal', 'Zulkaedah', 'Zulhijjah'],
+};
+function hijri(d, L) {
+  try {
+    const f = new Intl.DateTimeFormat(L + '-u-ca-islamic', { day: 'numeric', month: 'numeric', year: 'numeric' }), P = Object.fromEntries(f.formatToParts(d).map((x) => [x.type, x.value]));
+    if (HJ[L] && +P.month >= 1 && +P.month <= 12) return `${P.day} ${HJ[L][+P.month - 1]} ${P.year} H`;
+    return new Intl.DateTimeFormat(L + '-u-ca-islamic', { dateStyle: 'long' }).format(d);
+  } catch { return ''; }
+}
+function setDates() {
+  const L = lang(), d = new Date(), el = $('dates'), line = (txt, cls) => { const s = document.createElement('span'); if (cls) s.className = cls; s.textContent = txt; return s; };
+  el.replaceChildren(line(d.toLocaleDateString(L, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })), line(hijri(d, L), 'hj'));
+  setGreet();
+}
 
 /* ---- Navigasi ---- */
 function go(id) { document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id === 'home') renderHome(); }

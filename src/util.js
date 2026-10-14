@@ -9,7 +9,7 @@ const raw = {
 };
 export const gstore = raw;
 export const session = () => raw.get('rs.session', null);
-export const logout = () => { raw.del('rs.session'); location.reload(); };
+export const logout = () => { raw.del('rs.session'); const done = () => location.reload(); if (import.meta.env.VITE_FIREBASE_API_KEY) import('./firebase.js').then((m) => m.signOut()).catch(() => {}).finally(done); else done(); };
 const ns = (k) => { const s = session(); return GLOBAL.includes(k) || !s || s.id === 'guest' ? k : `u.${s.id}.${k}`; };
 export const store = { get: (k, f) => raw.get(ns(k), f), set: (k, v) => raw.set(ns(k), v) };
 let tt, ac;
