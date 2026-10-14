@@ -47,3 +47,15 @@ Izin di AndroidManifest: CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, I
 5. `npm install` lalu `npm run dev` / `npm run build`.
 
 > **APK (Capacitor)**: popup login Google/Facebook tidak jalan di WebView. Untuk APK pasang `@capacitor-firebase/authentication` (atau pakai versi web/PWA). Login email+sandi tetap jalan di APK.
+
+## v6: peran Admin & Pengguna + perbaikan pesan "Metode masuk ini belum diaktifkan"
+**Kenapa pesan itu muncul?** Tombol Google/Facebook/GitHub butuh Firebase. Kalau 4 kunci `VITE_FIREBASE_*` belum diisi (atau penyedia belum di-*Enable* di Firebase Console), tombolnya menampilkan pesan itu. Sekarang tombol sosial **disembunyikan otomatis** kalau belum aktif, dan hanya penyedia di `VITE_SOCIAL_PROVIDERS` yang tampil.
+
+**Login dua peran**: di layar login pilih **Pengguna** atau **Admin**. Admin punya ikon perisai di beranda → **Panel Admin** (jumlah pengguna, pencarian, daftar akun; mode lokal bisa hapus akun). Akun biasa yang memilih "Admin" ditolak.
+
+**Akun admin**: email `syahrurbaja@gmail.com`.
+- *Mode lokal* (tanpa Firebase): admin sudah tertanam (hanya hash PBKDF2, bukan kata sandi asli) → langsung bisa masuk, tanpa setup.
+- *Mode online* (Firebase): buat akunnya sekali dengan `ADMIN_PASSWORD='sandi-admin' npm run create-admin` (butuh `.env` terisi & Email/Password aktif), atau tambahkan manual di Firebase Console → Authentication → Users → Add user. Siapa pun dengan email di `VITE_ADMIN_EMAILS` otomatis jadi admin, jadi **buat akun admin sebelum aplikasi dipublikasikan**.
+- Daftar pengguna di Panel Admin (online): aktifkan **Firestore Database** (Build → Firestore → Create database), lalu tempel isi `firestore.rules` di tab **Rules** → Publish.
+
+> Catatan keamanan: pembatasan admin di sisi aplikasi hanya pembatas tampilan. Data sensitif harus dilindungi lewat aturan server (Firestore rules di atas).

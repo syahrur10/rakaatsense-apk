@@ -3,9 +3,9 @@
 import { $, gstore } from './util.js';
 import { t, LANGS, lang, setLang, apply } from './i18n.js';
 import { mount, beads } from './icons.js';
+import { ONLINE, SOCIAL, isAdminMail, LOCAL_ADMIN } from './config.js';
 
-const ONLINE = !!import.meta.env.VITE_FIREBASE_API_KEY;
-let mode = 'in', fb = null;
+let mode = 'in', role = 'user', fb = null;
 const getFb = async () => (fb ||= await import('./firebase.js'));
 
 /* ---- mode lokal (cadangan) ---- */
@@ -16,9 +16,11 @@ async function hash(pw, salt) {
   const key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
   return b64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, key, 256)));
 }
-const users = () => gstore.get('rs.users', {});
+/** Akun lokal. Admin bawaan selalu ada dan tidak bisa ditimpa/dihapus dari penyimpanan. */
+const stored = () => gstore.get('rs.users', {});
+const users = () => ({ ...stored(), [LOCAL_ADMIN.email]: LOCAL_ADMIN });
 
-const enter = (id, name) => { gstore.set('rs.session', { id, name }); location.reload(); };
+const enter = (id, name, r = 'user') => { gstore.set('rs.session', { id, name, role: r }); location.reload(); };
 const msg = (id, k) => { const e = $(id); if (!k) { e.hidden = true; delete e.dataset.i; return; } e.dataset.i = k; e.textContent = t(k); e.hidden = false; };
 const err = (k) => { msg('auOk'); msg('auErr', k); };
 const busy = (b) => document.querySelectorAll('#auth button').forEach((x) => (x.disabled = b));
@@ -30,8 +32,17 @@ const CODES = {
 };
 const fail = (e) => err(e?.code in CODES ? CODES[e.code] : 'au.e.gen');
 
+function setRole(r) {
+  role = r; const admin = r === 'admin';
+  $('rUser').classList.toggle('on', !admin); $('rAdmin').classList.toggle('on', admin);
+  $('rUser').setAttribute('aria-selected', !admin); $('rAdmin').setAttribute('aria-selected', admin);
+  $('auSeg').hidden = admin; $('auAdminHint').hidden = !admin; $('auGuest').hidden = admin;
+  $('socBox').hidden = admin || !SOCIAL.length;
+  document.querySelector('.au-note').hidden = admin;
+  setMode('in');
+}
 function setMode(m) {
-  mode = m; err();
+  mode = role === 'admin' ? 'in' : m; m = mode; err();
   $('tIn').classList.toggle('on', m === 'in'); $('tUp').classList.toggle('on', m === 'up');
   $('tIn').setAttribute('aria-selected', m === 'in'); $('tUp').setAttribute('aria-selected', m === 'up');
   $('fName').hidden = m === 'in'; $('auForgot').hidden = m === 'up';
@@ -48,26 +59,30 @@ async function submit(ev) {
   try {
     if (ONLINE) {
       const m = await getFb(), u = mode === 'up' ? await m.signUp(name, mail, pw) : await m.signIn(mail, pw);
-      return enter(u.id, u.name);
+      if (role === 'admin' && !u.admin) { await m.signOut(); return err('au.e.notadmin'); }
+      await Promise.race([m.register(u).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]); // catat ke daftar pengguna (panel admin)
+      return enter(u.id, u.name, role === 'admin' ? 'admin' : 'user');
     }
     if (!globalThis.crypto?.subtle) return err('au.e.crypto');
     const U = users();
     if (mode === 'up') {
-      if (U[mail]) return err('au.e.exist');
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      U[mail] = { name, salt: b64(salt), hash: await hash(pw, salt), at: Date.now() };
-      gstore.set('rs.users', U); enter(mail, name);
+      if (U[mail] || isAdminMail(mail)) return err('au.e.exist');
+      const salt = crypto.getRandomValues(new Uint8Array(16)), S = stored();
+      S[mail] = { name, role: 'user', salt: b64(salt), hash: await hash(pw, salt), at: Date.now(), last: Date.now() };
+      gstore.set('rs.users', S); enter(mail, name, 'user');
     } else {
       const u = U[mail];
       if (!u || (await hash(pw, unb64(u.salt))) !== u.hash) return err('au.e.bad');
-      enter(mail, u.name);
+      if (role === 'admin' && u.role !== 'admin') return err('au.e.notadmin');
+      if (u.role !== 'admin') { const S = stored(); if (S[mail]) { S[mail].last = Date.now(); gstore.set('rs.users', S); } }
+      enter(mail, u.name, role === 'admin' ? 'admin' : 'user');
     }
   } catch (e) { fail(e); } finally { busy(false); }
 }
 async function social(p) {
   err(); if (!ONLINE) return err('au.e.cfg');
   busy(true);
-  try { const u = await (await getFb()).social(p); if (u) enter(u.id, u.name); } catch (e) { fail(e); } finally { busy(false); }
+  try { const m = await getFb(), u = await m.social(p); if (u) { await Promise.race([m.register(u).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]); enter(u.id, u.name, 'user'); } } catch (e) { fail(e); } finally { busy(false); }
 }
 async function forgot() {
   err(); const mail = $('aMail').value.trim().toLowerCase();
@@ -82,6 +97,8 @@ export function initAuth() {
   $('authLang').onchange = (e) => { setLang(e.target.value); $('lang') && ($('lang').value = e.target.value); };
   $('authDeco').innerHTML = beads();
   $('tIn').onclick = () => setMode('in'); $('tUp').onclick = () => setMode('up');
+  $('rUser').onclick = () => setRole('user'); $('rAdmin').onclick = () => setRole('admin');
+  document.querySelectorAll('.sbtn').forEach((b) => (b.hidden = !SOCIAL.includes(b.dataset.p))); // tombol sosial hanya muncul bila memang aktif
   $('auForm').onsubmit = submit; $('auForgot').onclick = forgot;
   document.querySelectorAll('.sbtn').forEach((b) => (b.onclick = () => social(b.dataset.p)));
   $('auGuest').onclick = () => enter('guest', '');
@@ -90,6 +107,6 @@ export function initAuth() {
     $('aEye').dataset.ia = show ? 'au.hide' : 'au.show'; $('aEye').dataset.ic = show ? 'eyeoff' : 'eye'; mount($('auth')); apply();
   };
   document.querySelector('.au-note').dataset.i = ONLINE ? 'au.note.cloud' : 'au.note';
-  mount(); apply(); setMode('in');
-  if (ONLINE) getFb().then((m) => m.redirectResult()).then((u) => u && enter(u.id, u.name)).catch(fail); // hasil login sosial via redirect
+  mount(); apply(); setRole('user');
+  if (ONLINE) getFb().then((m) => m.redirectResult()).then((u) => u && enter(u.id, u.name, 'user')).catch(fail); // hasil login sosial via redirect
 }

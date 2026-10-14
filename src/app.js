@@ -1,5 +1,5 @@
 /** app.js — navigasi, bahasa, jadwal shalat, beranda, penghitung rakaat (sensor), koreksi gerakan (kamera). */
-import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout } from './util.js';
+import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout, isAdmin } from './util.js';
 import { t, lang, setLang, apply, hooks, LANGS } from './i18n.js';
 import { ic, mount, beads } from './icons.js';
 import { createCounter } from './counter.js';
@@ -18,7 +18,7 @@ function setGreet() {
   const s = session() || {}, h = new Date().getHours(), guest = s.id === 'guest';
   const part = h < 4 ? 'night' : h < 10 ? 'morning' : h < 15 ? 'noon' : h < 18 ? 'afternoon' : 'night';
   $('greet').textContent = t('g.salam', { n: (s.name || '').split(' ')[0] || t('g.guest') });
-  $('greet2').textContent = t('g.' + part);
+  $('greet2').textContent = (isAdmin() ? t('au.r.admin') + ' · ' : '') + t('g.' + part);
   $('logout').setAttribute('aria-label', t(guest ? 'au.in' : 'au.out'));
 }
 $('logout').onclick = () => { if (session()?.id === 'guest' || confirm(t('au.outq'))) logout(); };
@@ -40,7 +40,9 @@ function setDates() {
 }
 
 /* ---- Navigasi ---- */
-function go(id) { document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id === 'home') renderHome(); }
+let adm = null; // panel admin dimuat hanya untuk admin
+if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
+function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 $('bell').onclick = async () => toast(t(('Notification' in window && (await Notification.requestPermission()) === 'granted') ? 'n.on' : 'n.off'), true);
 

@@ -1,3 +1,4 @@
+import { ONLINE, LOCAL_ADMIN } from './config.js';
 export const $ = (id) => document.getElementById(id), z = (n) => String(n).padStart(2, '0');
 export const dayKey = (d = new Date()) => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
 /* Penyimpanan. Kunci global (bahasa, daftar akun, sesi) dipakai bersama; data ibadah dipisah per akun. Tamu memakai kunci lama (tanpa awalan). */
@@ -9,7 +10,9 @@ const raw = {
 };
 export const gstore = raw;
 export const session = () => raw.get('rs.session', null);
-export const logout = () => { raw.del('rs.session'); const done = () => location.reload(); if (import.meta.env.VITE_FIREBASE_API_KEY) import('./firebase.js').then((m) => m.signOut()).catch(() => {}).finally(done); else done(); };
+export const logout = () => { raw.del('rs.session'); const done = () => location.reload(); if (ONLINE) import('./firebase.js').then((m) => m.signOut()).catch(() => {}).finally(done); else done(); };
+/** Admin sah: mode online → peran dari sesi (diverifikasi ulang di main.js); mode lokal → harus akun admin bawaan. */
+export const isAdmin = () => { const s = session(); return !!s && s.role === 'admin' && (ONLINE || s.id === LOCAL_ADMIN.email); };
 const ns = (k) => { const s = session(); return GLOBAL.includes(k) || !s || s.id === 'guest' ? k : `u.${s.id}.${k}`; };
 export const store = { get: (k, f) => raw.get(ns(k), f), set: (k, v) => raw.set(ns(k), v) };
 let tt, ac;
