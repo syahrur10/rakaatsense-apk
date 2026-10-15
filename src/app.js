@@ -1,5 +1,5 @@
 /** app.js — navigasi, bahasa, jadwal shalat, beranda, penghitung rakaat (sensor), koreksi gerakan (kamera). */
-import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout, isAdmin } from './util.js';
+import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout, isAdmin, syncStats } from './util.js';
 import { t, lang, setLang, apply, hooks, LANGS } from './i18n.js';
 import { ic, mount, beads } from './icons.js';
 import { createCounter } from './counter.js';
@@ -117,4 +117,4 @@ $('camBtn').onclick = async () => {
 };
 
 hooks.push(() => { setDates(); renderHome(); pills(); refresh(); });
-setPrayer('subuh'); renderHome(); loadTimes();
+setPrayer('subuh'); renderHome(); loadTimes(); syncStats(1500);

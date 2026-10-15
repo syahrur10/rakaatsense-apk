@@ -1,15 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Daftar pengguna untuk panel admin.
-    // - Tiap pengguna hanya boleh menulis dokumen miliknya sendiri (field dibatasi).
-    // - Hanya admin (email di bawah) yang boleh membaca semua dokumen.
+    // Dokumen pengguna: users/{uid}  (name, email, created, lastLogin, stats, role)
+    // - Pengguna hanya boleh menulis dokumennya sendiri, TANPA bisa mengubah field "role".
+    // - Admin = email utama di bawah ATAU pengguna ber-role "admin". Admin boleh membaca semua & mengubah peran.
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'syahrurbaja@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin'));
+    }
     match /users/{uid} {
-      allow create, update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['name', 'email', 'created', 'lastLogin']);
-      allow read: if request.auth != null
-        && (request.auth.uid == uid || request.auth.token.email == 'syahrurbaja@gmail.com');
-      allow delete: if false;
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'created', 'lastLogin', 'stats']);
+      allow update: if request.auth != null && (
+        (request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'email', 'created', 'lastLogin', 'stats']))
+        || isAdmin());
+      allow delete: if isAdmin() && request.auth.uid != uid;
     }
   }
 }

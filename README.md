@@ -48,14 +48,18 @@ Izin di AndroidManifest: CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, I
 
 > **APK (Capacitor)**: popup login Google/Facebook tidak jalan di WebView. Untuk APK pasang `@capacitor-firebase/authentication` (atau pakai versi web/PWA). Login email+sandi tetap jalan di APK.
 
-## v6: peran Admin & Pengguna + perbaikan pesan "Metode masuk ini belum diaktifkan"
-**Kenapa pesan itu muncul?** Tombol Google/Facebook/GitHub butuh Firebase. Kalau 4 kunci `VITE_FIREBASE_*` belum diisi (atau penyedia belum di-*Enable* di Firebase Console), tombolnya menampilkan pesan itu. Sekarang tombol sosial **disembunyikan otomatis** kalau belum aktif, dan hanya penyedia di `VITE_SOCIAL_PROVIDERS` yang tampil.
+## v6: peran Admin & Pengguna + Panel Admin
+**Kenapa pesan "Metode masuk ini belum diaktifkan" muncul?** Tombol Google/Facebook/GitHub butuh Firebase. Kalau 4 kunci `VITE_FIREBASE_*` belum diisi (atau penyedia belum di-*Enable*), tombolnya menampilkan pesan itu. Sekarang tombol sosial **disembunyikan otomatis** bila belum aktif; hanya penyedia di `VITE_SOCIAL_PROVIDERS` yang tampil.
 
-**Login dua peran**: di layar login pilih **Pengguna** atau **Admin**. Admin punya ikon perisai di beranda → **Panel Admin** (jumlah pengguna, pencarian, daftar akun; mode lokal bisa hapus akun). Akun biasa yang memilih "Admin" ditolak.
+**Login satu layar**: semua orang masuk lewat form yang sama. Peran (admin/pengguna) ditentukan oleh akunnya. Admin melihat ikon perisai di beranda → **Panel Admin**:
+- daftar semua pengguna (nama, email, tanggal daftar, terakhir masuk) + pencarian + statistik;
+- ketuk pengguna → **data ibadahnya** (streak, shalat hari ini, total dzikir, tabel 7 hari);
+- tombol **Jadikan admin / Jadikan pengguna biasa**. Admin utama dan akun sendiri tidak bisa diubah. Mode lokal juga bisa **hapus akun**.
 
-**Akun admin**: email `syahrurbaja@gmail.com`.
-- *Mode lokal* (tanpa Firebase): admin sudah tertanam (hanya hash PBKDF2, bukan kata sandi asli) → langsung bisa masuk, tanpa setup.
-- *Mode online* (Firebase): buat akunnya sekali dengan `ADMIN_PASSWORD='sandi-admin' npm run create-admin` (butuh `.env` terisi & Email/Password aktif), atau tambahkan manual di Firebase Console → Authentication → Users → Add user. Siapa pun dengan email di `VITE_ADMIN_EMAILS` otomatis jadi admin, jadi **buat akun admin sebelum aplikasi dipublikasikan**.
-- Daftar pengguna di Panel Admin (online): aktifkan **Firestore Database** (Build → Firestore → Create database), lalu tempel isi `firestore.rules` di tab **Rules** → Publish.
+**Akun admin utama**: `syahrurbaja@gmail.com`.
+- *Mode lokal* (tanpa Firebase): sudah tertanam (hanya hash PBKDF2) → langsung bisa masuk.
+- *Mode online* (Firebase): buat sekali dengan `ADMIN_PASSWORD='sandi-admin' npm run create-admin`, atau Firebase Console → Authentication → Users → Add user. Buat akun ini **sebelum** aplikasi dipublikasikan.
+- Panel Admin online butuh **Firestore Database** (Build → Firestore Database → Create database) lalu tempel isi `firestore.rules` di tab **Rules** → Publish. Peran admin tambahan disimpan di dokumen `users/{uid}.role` dan hanya admin yang boleh mengubahnya (dijaga aturan server). Data ibadah pengguna dikirim berupa ringkasan 30 hari; tamu tidak dikirim.
+- Jika mengganti email admin utama, ubah juga di `VITE_ADMIN_EMAILS`, `src/config.js` (`LOCAL_ADMIN`), dan `firestore.rules`.
 
-> Catatan keamanan: pembatasan admin di sisi aplikasi hanya pembatas tampilan. Data sensitif harus dilindungi lewat aturan server (Firestore rules di atas).
+> Mode lokal: akun & data hanya ada di perangkat itu, jadi Panel Admin hanya melihat pengguna di perangkat yang sedang dipakai. Untuk data lintas perangkat, pakai mode online.

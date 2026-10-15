@@ -5,7 +5,7 @@ import { t, LANGS, lang, setLang, apply } from './i18n.js';
 import { mount, beads } from './icons.js';
 import { ONLINE, SOCIAL, isAdminMail, LOCAL_ADMIN } from './config.js';
 
-let mode = 'in', role = 'user', fb = null;
+let mode = 'in', fb = null;
 const getFb = async () => (fb ||= await import('./firebase.js'));
 
 /* ---- mode lokal (cadangan) ---- */
@@ -32,17 +32,8 @@ const CODES = {
 };
 const fail = (e) => err(e?.code in CODES ? CODES[e.code] : 'au.e.gen');
 
-function setRole(r) {
-  role = r; const admin = r === 'admin';
-  $('rUser').classList.toggle('on', !admin); $('rAdmin').classList.toggle('on', admin);
-  $('rUser').setAttribute('aria-selected', !admin); $('rAdmin').setAttribute('aria-selected', admin);
-  $('auSeg').hidden = admin; $('auAdminHint').hidden = !admin; $('auGuest').hidden = admin;
-  $('socBox').hidden = admin || !SOCIAL.length;
-  document.querySelector('.au-note').hidden = admin;
-  setMode('in');
-}
 function setMode(m) {
-  mode = role === 'admin' ? 'in' : m; m = mode; err();
+  mode = m; err();
   $('tIn').classList.toggle('on', m === 'in'); $('tUp').classList.toggle('on', m === 'up');
   $('tIn').setAttribute('aria-selected', m === 'in'); $('tUp').setAttribute('aria-selected', m === 'up');
   $('fName').hidden = m === 'in'; $('auForgot').hidden = m === 'up';
@@ -59,9 +50,7 @@ async function submit(ev) {
   try {
     if (ONLINE) {
       const m = await getFb(), u = mode === 'up' ? await m.signUp(name, mail, pw) : await m.signIn(mail, pw);
-      if (role === 'admin' && !u.admin) { await m.signOut(); return err('au.e.notadmin'); }
-      await Promise.race([m.register(u).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]); // catat ke daftar pengguna (panel admin)
-      return enter(u.id, u.name, role === 'admin' ? 'admin' : 'user');
+      return enter(u.id, u.name, await roleAfter(m, u)); // peran ditentukan akun (admin/pengguna), bukan pilihan di layar
     }
     if (!globalThis.crypto?.subtle) return err('au.e.crypto');
     const U = users();
@@ -73,16 +62,20 @@ async function submit(ev) {
     } else {
       const u = U[mail];
       if (!u || (await hash(pw, unb64(u.salt))) !== u.hash) return err('au.e.bad');
-      if (role === 'admin' && u.role !== 'admin') return err('au.e.notadmin');
-      if (u.role !== 'admin') { const S = stored(); if (S[mail]) { S[mail].last = Date.now(); gstore.set('rs.users', S); } }
-      enter(mail, u.name, role === 'admin' ? 'admin' : 'user');
+      { const S = stored(); if (S[mail]) { S[mail].last = Date.now(); gstore.set('rs.users', S); } }
+      enter(mail, u.name, u.role === 'admin' ? 'admin' : 'user');
     }
   } catch (e) { fail(e); } finally { busy(false); }
+}
+/** Catat ke daftar pengguna (Firestore) dan ambil peran terbaru dari server; admin utama (VITE_ADMIN_EMAILS) selalu admin. */
+async function roleAfter(m, u) {
+  const r = await Promise.race([m.register(u).catch(() => null), new Promise((x) => setTimeout(() => x(null), 3000))]);
+  return u.admin || r === 'admin' ? 'admin' : 'user';
 }
 async function social(p) {
   err(); if (!ONLINE) return err('au.e.cfg');
   busy(true);
-  try { const m = await getFb(), u = await m.social(p); if (u) { await Promise.race([m.register(u).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]); enter(u.id, u.name, 'user'); } } catch (e) { fail(e); } finally { busy(false); }
+  try { const m = await getFb(), u = await m.social(p); if (u) enter(u.id, u.name, await roleAfter(m, u)); } catch (e) { fail(e); } finally { busy(false); }
 }
 async function forgot() {
   err(); const mail = $('aMail').value.trim().toLowerCase();
@@ -97,7 +90,6 @@ export function initAuth() {
   $('authLang').onchange = (e) => { setLang(e.target.value); $('lang') && ($('lang').value = e.target.value); };
   $('authDeco').innerHTML = beads();
   $('tIn').onclick = () => setMode('in'); $('tUp').onclick = () => setMode('up');
-  $('rUser').onclick = () => setRole('user'); $('rAdmin').onclick = () => setRole('admin');
   document.querySelectorAll('.sbtn').forEach((b) => (b.hidden = !SOCIAL.includes(b.dataset.p))); // tombol sosial hanya muncul bila memang aktif
   $('auForm').onsubmit = submit; $('auForgot').onclick = forgot;
   document.querySelectorAll('.sbtn').forEach((b) => (b.onclick = () => social(b.dataset.p)));
@@ -107,6 +99,7 @@ export function initAuth() {
     $('aEye').dataset.ia = show ? 'au.hide' : 'au.show'; $('aEye').dataset.ic = show ? 'eyeoff' : 'eye'; mount($('auth')); apply();
   };
   document.querySelector('.au-note').dataset.i = ONLINE ? 'au.note.cloud' : 'au.note';
-  mount(); apply(); setRole('user');
-  if (ONLINE) getFb().then((m) => m.redirectResult()).then((u) => u && enter(u.id, u.name, 'user')).catch(fail); // hasil login sosial via redirect
+  $('socBox').hidden = !SOCIAL.length;
+  mount(); apply(); setMode('in');
+  if (ONLINE) getFb().then((m) => m.redirectResult()).then(async (u) => u && enter(u.id, u.name, await roleAfter(await getFb(), u))).catch(fail); // hasil login sosial via redirect
 }

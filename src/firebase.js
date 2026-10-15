@@ -35,16 +35,23 @@ export const signOut = () => (auth ? fbSignOut(auth) : Promise.resolve());
 /** Dipanggil saat status login berubah (null = sudah keluar / sesi habis). */
 export const watch = (cb) => onAuthStateChanged(auth, cb);
 
-/* ---- Daftar pengguna (Firestore) ---- */
+/* ---- Daftar pengguna & peran (Firestore, koleksi "users") ---- */
 const fs = async () => { const m = await import('firebase/firestore'); return { m, db: m.getFirestore(app) }; };
-/** Catat pengguna yang baru masuk agar muncul di panel admin. Gagal diam-diam bila Firestore belum aktif. */
+/** Catat pengguna yang baru masuk, lalu kembalikan perannya ('admin' | 'user'). Peran hanya bisa diubah admin (lihat firestore.rules). */
 export async function register(u) {
-  const { m, db } = await fs();
-  await m.setDoc(m.doc(db, 'users', u.id), { name: u.name, email: u.email, created: u.created, lastLogin: Date.now() }, { merge: true });
+  const { m, db } = await fs(), ref = m.doc(db, 'users', u.id);
+  let role = 'user';
+  try { const d = await m.getDoc(ref); if (d.exists()) role = d.data().role || 'user'; } catch {}
+  await m.setDoc(ref, { name: u.name, email: u.email, created: u.created, lastLogin: Date.now() }, { merge: true });
+  return u.admin ? 'admin' : role;
 }
-/** Hanya admin yang boleh membaca (diatur di firestore.rules). */
+export async function getRole(uid) { const { m, db } = await fs(); const d = await m.getDoc(m.doc(db, 'users', uid)); return d.exists() ? d.data().role || 'user' : 'user'; }
+/** Ringkasan data ibadah milik sendiri (dibaca admin di panel). */
+export async function pushStats(uid, stats) { const { m, db } = await fs(); await m.setDoc(m.doc(db, 'users', uid), { stats }, { merge: true }); }
+/** Hanya admin yang boleh membaca semua & mengubah peran (diatur di firestore.rules). */
 export async function listUsers() {
   const { m, db } = await fs();
-  const snap = await m.getDocs(m.query(m.collection(db, 'users'), m.orderBy('lastLogin', 'desc'), m.limit(300)));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const snap = await m.getDocs(m.query(m.collection(db, 'users'), m.limit(500)));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
 }
+export async function setRole(uid, role) { const { m, db } = await fs(); await m.updateDoc(m.doc(db, 'users', uid), { role }); }

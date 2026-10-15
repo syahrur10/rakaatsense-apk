@@ -169,10 +169,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 
 /* ---- v6: peran (admin/pengguna) + panel admin ---- */
 [hidden]{display:none!important}
-.role{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.9rem}
-.role button{display:flex;align-items:center;justify-content:center;gap:.45rem;border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:.7rem;font:700 .92rem 'Plus Jakarta Sans','Noto Sans Arabic',sans-serif;color:var(--g2);cursor:pointer}
-.role button.on{border-color:var(--g1);background:var(--mint);color:var(--g3);box-shadow:0 0 0 3px rgba(29,184,110,.14)}
-.au-hint{background:var(--mint);color:var(--g3);border-radius:12px;padding:.6rem .8rem;font-weight:600;font-size:.85rem;margin:0 0 1rem}
 .adm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:.4rem 0 .8rem}
 .adm-stats>div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:.8rem .4rem;text-align:center;box-shadow:var(--shadow)}
 .adm-stats b{display:block;font-size:1.5rem;color:var(--g3)}.adm-stats small{font-size:.72rem}
@@ -184,3 +180,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .ubadge{display:inline-block;font-size:.68rem;font-weight:800;border-radius:99px;padding:.1rem .5rem;margin-inline-start:.4rem;background:var(--mint);color:var(--g3);vertical-align:middle}
 .ubadge.adm{background:#FFF3D1;color:#8A6A0A}
 .udel{flex:none;width:36px;height:36px;box-shadow:none;color:#B3262B}
+.udet-head{display:flex;align-items:center;gap:.9rem;margin:.2rem 0 1rem}.udet-head .uav{width:56px;height:56px;font-size:1.4rem}
+.udet-head h3{margin:0}.udet-head small{display:block}
+.dots{display:flex;gap:4px;margin-inline-start:auto}.dots i{width:12px;height:12px;border-radius:50%;background:#dbe9e1}.dots i.on{background:var(--g1)}
+.dr{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.88rem}.dr:last-child{border-bottom:0}.dr b{min-width:3.2rem;text-align:end}
+.dr span:first-child{min-width:5.5rem}
+.abtn{margin-top:.6rem}.abtn.ghost{background:#fff;color:var(--g3);border:1.5px solid var(--line);box-shadow:none}.abtn.danger{color:#B3262B}
+.urow.clk{cursor:pointer}.uchev{opacity:.45;display:grid}

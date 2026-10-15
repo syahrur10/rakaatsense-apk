@@ -7,7 +7,7 @@ if (s) {
   if (s.id !== 'guest' && ONLINE) // sesi cloud: bila server bilang sudah keluar/kedaluwarsa → kembali ke layar login; peran admin dicek ulang
     import('./firebase.js').then((m) => m.watch((u) => {
       if (!u) { gstore.del('rs.session'); location.reload(); }
-      else if (s.role === 'admin' && !isAdminMail(u.email)) { gstore.set('rs.session', { ...s, role: 'user' }); location.reload(); }
+      else if (s.role === 'admin' && !isAdminMail(u.email)) m.getRole(u.uid).catch(() => 'user').then((r) => { if (r !== 'admin') { gstore.set('rs.session', { ...s, role: 'user' }); location.reload(); } });
     }));
 } else { document.body.classList.add('locked'); import('./auth.js').then((m) => m.initAuth()); }
 setTimeout(() => $('splash').classList.add('off'), 1300);
