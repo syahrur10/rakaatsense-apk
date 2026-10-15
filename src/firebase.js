@@ -1,8 +1,8 @@
-/** firebase.js — login sungguhan (Firebase Authentication): Email+Sandi, Google, Facebook, GitHub. Akun tersimpan di server, bisa dipakai di HP/browser mana pun.
+/** firebase.js — login sungguhan (Firebase Authentication): Email+Sandi dan Google. Akun tersimpan di server, bisa dipakai di HP/browser mana pun.
  *  Firestore dipakai untuk daftar pengguna yang dilihat admin (koleksi "users"). */
-import { initializeApp } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import {
-  getAuth, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, signOut as fbSignOut, onAuthStateChanged,
 } from 'firebase/auth';
 import { ONLINE, isAdminMail } from './config.js';
@@ -12,7 +12,7 @@ const cfg = { apiKey: e.VITE_FIREBASE_API_KEY, authDomain: e.VITE_FIREBASE_AUTH_
 export const configured = ONLINE;
 const app = configured ? initializeApp(cfg) : null;
 const auth = app ? getAuth(app) : null;
-const PROV = { google: () => new GoogleAuthProvider(), facebook: () => new FacebookAuthProvider(), github: () => new GithubAuthProvider() };
+const PROV = { google: () => new GoogleAuthProvider() };
 const who = (u) => ({
   id: u.uid, email: (u.email || '').toLowerCase(), name: u.displayName || (u.email || '').split('@')[0] || '',
   admin: isAdminMail(u.email), created: u.metadata?.creationTime ? Date.parse(u.metadata.creationTime) : Date.now(),
@@ -55,3 +55,14 @@ export async function listUsers() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
 }
 export async function setRole(uid, role) { const { m, db } = await fs(); await m.updateDoc(m.doc(db, 'users', uid), { role }); }
+/** Admin membuat akun baru (pengguna/admin) TANPA keluar dari sesi admin: akun dibuat lewat instance Firebase kedua, lalu perannya dicatat di Firestore. */
+export async function createUser(name, mail, pw, role) {
+  const sec = initializeApp(cfg, 'create-' + Date.now()), a = getAuth(sec);
+  try {
+    const { user } = await createUserWithEmailAndPassword(a, mail, pw);
+    await updateProfile(user, { displayName: name });
+    const { m, db } = await fs();
+    await m.setDoc(m.doc(db, 'users', user.uid), { name, email: mail.toLowerCase(), created: Date.now(), lastLogin: 0, role });
+    return user.uid;
+  } finally { await fbSignOut(a).catch(() => {}); await deleteApp(sec).catch(() => {}); }
+}

@@ -48,18 +48,20 @@ Izin di AndroidManifest: CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, I
 
 > **APK (Capacitor)**: popup login Google/Facebook tidak jalan di WebView. Untuk APK pasang `@capacitor-firebase/authentication` (atau pakai versi web/PWA). Login email+sandi tetap jalan di APK.
 
-## v6: peran Admin & Pengguna + Panel Admin
-**Kenapa pesan "Metode masuk ini belum diaktifkan" muncul?** Tombol Google/Facebook/GitHub butuh Firebase. Kalau 4 kunci `VITE_FIREBASE_*` belum diisi (atau penyedia belum di-*Enable*), tombolnya menampilkan pesan itu. Sekarang tombol sosial **disembunyikan otomatis** bila belum aktif; hanya penyedia di `VITE_SOCIAL_PROVIDERS` yang tampil.
+## Login Google + Email, Admin & Pengguna
+Login hanya **Google** dan **Email+Kata sandi** (Facebook/GitHub dihapus). Tanpa kunci Firebase, aplikasi jalan di **mode lokal** (akun di perangkat; tombol Google menampilkan pesan "belum disambungkan"). Admin utama bawaan: `syahrurbaja@gmail.com`.
 
-**Login satu layar**: semua orang masuk lewat form yang sama. Peran (admin/pengguna) ditentukan oleh akunnya. Admin melihat ikon perisai di beranda → **Panel Admin**:
-- daftar semua pengguna (nama, email, tanggal daftar, terakhir masuk) + pencarian + statistik;
-- ketuk pengguna → **data ibadahnya** (streak, shalat hari ini, total dzikir, tabel 7 hari);
-- tombol **Jadikan admin / Jadikan pengguna biasa**. Admin utama dan akun sendiri tidak bisa diubah. Mode lokal juga bisa **hapus akun**.
+### Panel Admin (ikon perisai di beranda)
+Daftar pengguna + pencarian + statistik · ketuk pengguna → data ibadahnya (streak, shalat, dzikir 7 hari) · **Jadikan admin / pengguna biasa** · **+ Tambah akun** (buat akun Pengguna atau Admin dengan email & kata sandi) · mode lokal juga bisa hapus akun.
 
-**Akun admin utama**: `syahrurbaja@gmail.com`.
-- *Mode lokal* (tanpa Firebase): sudah tertanam (hanya hash PBKDF2) → langsung bisa masuk.
-- *Mode online* (Firebase): buat sekali dengan `ADMIN_PASSWORD='sandi-admin' npm run create-admin`, atau Firebase Console → Authentication → Users → Add user. Buat akun ini **sebelum** aplikasi dipublikasikan.
-- Panel Admin online butuh **Firestore Database** (Build → Firestore Database → Create database) lalu tempel isi `firestore.rules` di tab **Rules** → Publish. Peran admin tambahan disimpan di dokumen `users/{uid}.role` dan hanya admin yang boleh mengubahnya (dijaga aturan server). Data ibadah pengguna dikirim berupa ringkasan 30 hari; tamu tidak dikirim.
-- Jika mengganti email admin utama, ubah juga di `VITE_ADMIN_EMAILS`, `src/config.js` (`LOCAL_ADMIN`), dan `firestore.rules`.
+### Mengaktifkan login sungguhan (Firebase, gratis)
+1. console.firebase.google.com → **Add project** (Analytics boleh dimatikan).
+2. **Build → Authentication → Get started → Sign-in method**: aktifkan **Email/Password** dan **Google** (isi support email → Save).
+3. **Authentication → Settings → Authorized domains** → Add domain: `rakaatsense-apk.vercel.app` (tanpa https://).
+4. **Project settings (ikon gerigi) → Your apps → ikon Web `</>`** → daftarkan app → salin `apiKey`, `authDomain`, `projectId`, `appId`.
+5. **Vercel → Project → Settings → Environment Variables**, tambah 4 variabel: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` → **Redeploy**.
+6. **Build → Firestore Database → Create database** (production mode) → tab **Rules** → tempel isi `firestore.rules` → **Publish**.
+7. Buat akun admin: Authentication → Users → **Add user** (email admin + sandi), atau `ADMIN_PASSWORD='sandi' npm run create-admin`. Lakukan **sebelum** aplikasi dibagikan.
+Akun mode lokal tidak ikut pindah ke Firebase.
 
-> Mode lokal: akun & data hanya ada di perangkat itu, jadi Panel Admin hanya melihat pengguna di perangkat yang sedang dipakai. Untuk data lintas perangkat, pakai mode online.
+Jika mengganti email admin utama, ubah juga di `VITE_ADMIN_EMAILS`, `src/config.js` (`LOCAL_ADMIN`) dan `firestore.rules`.

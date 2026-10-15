@@ -8,8 +8,6 @@ export const ONLINE = !!(e.VITE_FIREBASE_API_KEY && e.VITE_FIREBASE_AUTH_DOMAIN 
 export const ADMIN_EMAILS = (e.VITE_ADMIN_EMAILS || 'syahrurbaja@gmail.com').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 export const isAdminMail = (m) => ADMIN_EMAILS.includes((m || '').trim().toLowerCase());
 
-/** Tombol login sosial yang ditampilkan (hanya mode online). Isi VITE_SOCIAL_PROVIDERS, mis. "google,github". Bawaan: google. */
-export const SOCIAL = ONLINE ? (e.VITE_SOCIAL_PROVIDERS || 'google').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean) : [];
 
 /** Akun admin bawaan untuk MODE LOKAL. Yang disimpan hanya salt + hash PBKDF2-SHA256 (bukan kata sandi asli). */
 export const LOCAL_ADMIN = {

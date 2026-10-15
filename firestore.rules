@@ -12,8 +12,9 @@ service cloud.firestore {
     }
     match /users/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow create: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['name', 'email', 'created', 'lastLogin', 'stats']);
+      allow create: if request.auth != null && (
+        (request.auth.uid == uid && request.resource.data.keys().hasOnly(['name', 'email', 'created', 'lastLogin', 'stats']))
+        || isAdmin());
       allow update: if request.auth != null && (
         (request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'email', 'created', 'lastLogin', 'stats']))
         || isAdmin());

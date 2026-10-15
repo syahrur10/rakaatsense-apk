@@ -187,3 +187,4 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .dr span:first-child{min-width:5.5rem}
 .abtn{margin-top:.6rem}.abtn.ghost{background:#fff;color:var(--g3);border:1.5px solid var(--line);box-shadow:none}.abtn.danger{color:#B3262B}
 .urow.clk{cursor:pointer}.uchev{opacity:.45;display:grid}
+#aDetail{margin-top:.9rem}#aDetail>.mute.small{margin:.5rem 0 1rem}#aDetail>.au-err{margin:0 0 .8rem}#aAdd{margin:.5rem 0 .9rem}

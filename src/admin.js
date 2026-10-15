@@ -4,6 +4,7 @@ import { $, dayKey, gstore, session, toast } from './util.js';
 import { t, lang, hooks } from './i18n.js';
 import { ic, mount } from './icons.js';
 import { ONLINE, LOCAL_ADMIN, isAdminMail } from './config.js';
+import { b64, hash } from './pwhash.js';
 
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'], WEEK = 7 * 864e5;
 let rows = [], openId = null;
@@ -15,7 +16,7 @@ const mainAdmin = (u) => (ONLINE ? isAdminMail(u.email) : u.email === LOCAL_ADMI
 
 async function load() {
   if (!ONLINE) {
-    const S = gstore.get('rs.users', {}), mk = (id, u) => ({ id, name: u.name, email: id, role: u.role || 'user', created: u.at || 0, last: u.last || u.at || 0, data: { log: gstore.get(`u.${id}.rs.log`, {}), dz: gstore.get(`u.${id}.rs.dz`, {}) } });
+    const S = gstore.get('rs.users', {}), mk = (id, u) => ({ id, name: u.name, email: id, role: u.role || 'user', created: u.at || 0, last: u.last ?? u.at ?? 0, data: { log: gstore.get(`u.${id}.rs.log`, {}), dz: gstore.get(`u.${id}.rs.dz`, {}) } });
     rows = [mk(LOCAL_ADMIN.email, { name: LOCAL_ADMIN.name, role: 'admin' }), ...Object.entries(S).map(([id, u]) => mk(id, u))];
     return msg(t('adm.local'));
   }
@@ -81,10 +82,37 @@ function detail(u) {
   else box.append(el('p', 'mute small', t(mainAdmin(u) ? 'adm.main' : 'adm.self')));
   if (!ONLINE && !locked) { const b = el('button', 'btn abtn ghost danger', t('adm.del')); b.type = 'button'; b.onclick = () => remove(u); box.append(b); }
 }
+/* ---- tambah akun (pengguna / admin) ---- */
+const ERR = { 'auth/email-already-in-use': 'au.e.exist', 'auth/weak-password': 'au.e.short', 'auth/invalid-email': 'au.e.mail', 'auth/network-request-failed': 'au.e.net', 'auth/operation-not-allowed': 'au.e.cfg', 'permission-denied': 'adm.fail' };
+function addForm() {
+  openId = null; $('aMain').hidden = true; $('aDetail').hidden = false; $('admTitle').textContent = t('adm.addttl'); scrollTo(0, 0);
+  const box = $('aDetail'); box.replaceChildren(); let role = 'user';
+  const inp = (type, ph, ac) => { const i = el('input', 'adm-search'); i.type = type; i.placeholder = ph; i.autocomplete = ac; i.autocapitalize = 'none'; i.spellcheck = false; return i; };
+  const name = inp('text', t('au.ph.name'), 'off'), mail = inp('email', t('au.ph.mail'), 'off'), pw = inp('text', t('adm.pass'), 'off');
+  const pills = el('div', 'row'), bu = el('button', 'pill on', t('au.r.user')), ba = el('button', 'pill', t('au.r.admin')); bu.type = ba.type = 'button';
+  const pick = (r) => { role = r; bu.classList.toggle('on', r === 'user'); ba.classList.toggle('on', r === 'admin'); }; bu.onclick = () => pick('user'); ba.onclick = () => pick('admin');
+  pills.append(el('b', '', t('adm.role')), bu, ba);
+  const err = el('p', 'au-err'), go = el('button', 'btn', t('adm.create')); err.hidden = true; go.type = 'button';
+  const fail = (k) => { err.textContent = t(k); err.hidden = false; };
+  go.onclick = async () => {
+    err.hidden = true; const n = name.value.trim().replace(/\s+/g, ' '), m = mail.value.trim().toLowerCase(), p = pw.value;
+    if (n.length < 2) return fail('au.e.name'); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)) return fail('au.e.mail'); if (p.length < 6) return fail('au.e.short');
+    go.disabled = true;
+    try {
+      if (ONLINE) await (await import('./firebase.js')).createUser(n, m, p, role);
+      else {
+        const S = gstore.get('rs.users', {}); if (S[m] || m === LOCAL_ADMIN.email) return fail('au.e.exist');
+        const salt = crypto.getRandomValues(new Uint8Array(16)); S[m] = { name: n, role, salt: b64(salt), hash: await hash(p, salt), at: Date.now(), last: 0 }; gstore.set('rs.users', S);
+      }
+      toast(t('adm.added', { n: m }), true); render();
+    } catch (e) { fail(ERR[e?.code] || 'au.e.gen'); } finally { go.disabled = false; }
+  };
+  box.append(name, mail, pw, pills, el('p', 'mute small', t('adm.addinfo')), err, go);
+}
 function closeDetail() { openId = null; $('aDetail').hidden = true; $('aMain').hidden = false; $('admTitle').textContent = t('adm.title'); }
 
 export async function render() { closeDetail(); msg('…'); await load(); paint(); }
-$('aSearch').oninput = paint; $('admRefresh').onclick = render;
+$('aSearch').oninput = paint; $('aAdd').onclick = addForm; $('admRefresh').onclick = render;
 $('admBack').onclick = () => (openId ? closeDetail() : document.querySelector('#nav [data-go="home"]').click());
 hooks.push(() => { if ($('adm').classList.contains('on')) { paint(); const u = rows.find((x) => x.id === openId); u ? detail(u) : closeDetail(); } });
 mount($('adm'));

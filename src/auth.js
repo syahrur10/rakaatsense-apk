@@ -1,21 +1,15 @@
-/** auth.js — login sungguhan. Mode online (Firebase Auth): Email+Sandi, Google, Facebook, GitHub, lupa sandi; akun tersimpan di server.
- *  Mode cadangan (jika kunci Firebase belum diisi di .env): akun lokal di perangkat (PBKDF2), tombol sosial menampilkan pesan "belum diaktifkan". */
+/** auth.js — login sungguhan. Mode online (Firebase Auth): Email+Sandi dan Google, lupa sandi; akun tersimpan di server.
+ *  Mode cadangan (jika kunci Firebase belum diisi di .env): akun lokal di perangkat (PBKDF2), tombol Google menampilkan pesan "belum diaktifkan". */
 import { $, gstore } from './util.js';
 import { t, LANGS, lang, setLang, apply } from './i18n.js';
 import { mount, beads } from './icons.js';
-import { ONLINE, SOCIAL, isAdminMail, LOCAL_ADMIN } from './config.js';
+import { ONLINE, isAdminMail, LOCAL_ADMIN } from './config.js';
+import { b64, unb64, hash } from './pwhash.js';
 
 let mode = 'in', fb = null;
 const getFb = async () => (fb ||= await import('./firebase.js'));
 
 /* ---- mode lokal (cadangan) ---- */
-const enc = new TextEncoder();
-const b64 = (u8) => btoa(String.fromCharCode(...u8));
-const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
-async function hash(pw, salt) {
-  const key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
-  return b64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, key, 256)));
-}
 /** Akun lokal. Admin bawaan selalu ada dan tidak bisa ditimpa/dihapus dari penyimpanan. */
 const stored = () => gstore.get('rs.users', {});
 const users = () => ({ ...stored(), [LOCAL_ADMIN.email]: LOCAL_ADMIN });
@@ -73,7 +67,7 @@ async function roleAfter(m, u) {
   return u.admin || r === 'admin' ? 'admin' : 'user';
 }
 async function social(p) {
-  err(); if (!ONLINE) return err('au.e.cfg');
+  err(); if (!ONLINE) return err('au.e.nogoogle');
   busy(true);
   try { const m = await getFb(), u = await m.social(p); if (u) enter(u.id, u.name, await roleAfter(m, u)); } catch (e) { fail(e); } finally { busy(false); }
 }
@@ -90,7 +84,6 @@ export function initAuth() {
   $('authLang').onchange = (e) => { setLang(e.target.value); $('lang') && ($('lang').value = e.target.value); };
   $('authDeco').innerHTML = beads();
   $('tIn').onclick = () => setMode('in'); $('tUp').onclick = () => setMode('up');
-  document.querySelectorAll('.sbtn').forEach((b) => (b.hidden = !SOCIAL.includes(b.dataset.p))); // tombol sosial hanya muncul bila memang aktif
   $('auForm').onsubmit = submit; $('auForgot').onclick = forgot;
   document.querySelectorAll('.sbtn').forEach((b) => (b.onclick = () => social(b.dataset.p)));
   $('auGuest').onclick = () => enter('guest', '');
@@ -99,7 +92,6 @@ export function initAuth() {
     $('aEye').dataset.ia = show ? 'au.hide' : 'au.show'; $('aEye').dataset.ic = show ? 'eyeoff' : 'eye'; mount($('auth')); apply();
   };
   document.querySelector('.au-note').dataset.i = ONLINE ? 'au.note.cloud' : 'au.note';
-  $('socBox').hidden = !SOCIAL.length;
   mount(); apply(); setMode('in');
   if (ONLINE) getFb().then((m) => m.redirectResult()).then(async (u) => u && enter(u.id, u.name, await roleAfter(await getFb(), u))).catch(fail); // hasil login sosial via redirect
 }
