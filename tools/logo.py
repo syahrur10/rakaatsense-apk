@@ -1,59 +1,80 @@
-"""Sumber logo RakaatSense: siluet orang sedang SUJUD (tampak samping) di atas sajadah + bulan sabit. Hasilkan SVG & PNG.
+"""Sumber logo RakaatSense v8: orang BERJUBAH & bersorban sedang SUJUD (tampak samping) di bawah lengkung mihrab emas,
+bulan sabit emas, di atas sajadah berumbai. Tanpa titik sendi. Hasilkan SVG, PNG, aset Android, dan sinkronkan logo() di src/icons.js.
 Jalankan dari root project: python3 tools/logo.py   (butuh: pip install playwright && playwright install chromium)"""
-import asyncio, os
+import asyncio, os, re
 from playwright.async_api import async_playwright
 
-GREEN_A, GREEN_B = "#1DB86E", "#0A6B40"
 CRES = "M49.31 43.50A13.5 13.5 0 1 0 61.73 61.49A11 11 0 1 1 49.31 43.50Z"
 STAR = "M60.50,41.90 L61.38,44.29 L63.92,44.39 L61.93,45.96 L62.62,48.41 L60.50,47.00 L58.38,48.41 L59.07,45.96 L57.08,44.39 L59.62,44.29Z"
+ROBE = "M18 77.5C14 77.5 14 70.6 18.2 70.6L26 70.2C27 64 24 56 25 49C26.5 42 34 40 39 43C47 47 55 52 62.5 57C66.5 59.5 68.5 62.3 66.3 65L38.5 77.5Z"
+SLEEVE = "M60 59C61.5 64 63.5 70 69 74.2"
+TURBAN = "M73.6 69C72.8 63.4 78.4 60.8 83.2 62.4C86.8 63.6 88 66.8 87.5 69.4C85.6 67.6 83.6 66.8 81.6 66.6C78.6 66.4 75.8 67.4 73.6 69Z"
 
-def art(transform="", mono=False):
-    """Gambar logo v7 (kanvas 100x100): orang SUJUD tampak samping di bawah lengkung mihrab + bulan sabit, di atas sajadah.
-    mono=True -> semua hitam (ikon monokrom Android 13+)."""
-    c = lambda x: "#000" if mono else x
-    glow = "" if mono else '<circle cx="50" cy="52" r="40" fill="url(#gl)"/>'
-    arch = "" if mono else '<path d="M20 86V54C20 38 36 30 50 12C64 30 80 38 80 54V86Z" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".28" stroke-width="1.6" stroke-linejoin="round"/>'
-    dots = "" if mono else '<g fill="#F2CD6B" fill-opacity=".95"><circle cx="32" cy="46" r="1.7"/><circle cx="55" cy="58.5" r="1.7"/><circle cx="33" cy="73.5" r="1.7"/></g>'
+def defs(p="rs"):
+    return f'''<defs><linearGradient id="{p}Bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22C57A"/><stop offset=".55" stop-color="#0F8A52"/><stop offset="1" stop-color="#075A35"/></linearGradient><radialGradient id="{p}Gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="{p}Ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".20"/><stop offset="1" stop-color="#fff" stop-opacity=".03"/></linearGradient><linearGradient id="{p}Au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".5" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A93A"/></linearGradient><linearGradient id="{p}Ro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFEFDD"/></linearGradient><linearGradient id="{p}Sl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E3F6EB"/><stop offset="1" stop-color="#B9E3CC"/></linearGradient><pattern id="{p}Pt" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5L7.6 4.4L10.5 6L7.6 7.6L6 10.5L4.4 7.6L1.5 6L4.4 4.4Z" fill="none" stroke="#fff" stroke-width=".35"/></pattern><radialGradient id="{p}Fd" cx=".5" cy=".5" r=".6"><stop offset=".25" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="{p}Mk"><rect width="100" height="100" fill="url(#{p}Fd)"/></mask></defs>'''
+
+def art(p="rs", transform="", mono=False):
+    """Gambar logo v8 (kanvas 100x100). mono=True -> semua hitam (ikon monokrom Android 13+)."""
+    if mono:
+        return f'''<g {transform}><g transform="translate(50 24) scale(.74)"><path d="{CRES}" fill="#000" transform="translate(-49 -43)"/></g>
+<rect x="8" y="77.5" width="84" height="7" rx="3.5" fill="#000"/><circle cx="14" cy="74.2" r="3.3" fill="#000"/><path d="{ROBE}" fill="#000"/>
+<path d="{SLEEVE}" fill="none" stroke="#000" stroke-width="6.6" stroke-linecap="round"/><ellipse cx="73.5" cy="75.6" rx="4.6" ry="2" fill="#000"/><circle cx="80.5" cy="70" r="7.3" fill="#000"/></g>'''
     return f'''<g {transform}>
-{glow}{arch}
-<g transform="translate(50 23) scale(.72)"><path d="{CRES}" fill="{c('#F2CD6B')}" transform="translate(-49 -43)"/><path d="{STAR}" fill="{c('#fff')}" transform="translate(-49 -43)"/></g>
-<rect x="9" y="77.5" width="82" height="6.5" rx="3.25" fill="{c('#F2CD6B')}"/>
-<rect x="30" y="79.3" width="40" height="1.6" rx=".8" fill="#0A6B40" fill-opacity="{0 if mono else .35}"/>
-<g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="{c('#fff')}">
-<path d="M33 73.5H15" stroke-width="8"/><path d="M33 73.5L32 47" stroke-width="10.5"/><path d="M32 47L55 59" stroke-width="12"/><path d="M55 59L76 67" stroke-width="6"/>
-<path d="M58 62L63 71.5L70 73.5" stroke-width="5.5" stroke="{c('#CDEFDB')}"/></g>
-<circle cx="79" cy="69" r="7.2" fill="{c('#fff')}"/>{dots}
+<rect width="100" height="100" fill="url(#{p}Pt)" opacity=".10" mask="url(#{p}Mk)"/>
+<circle cx="50" cy="50" r="42" fill="url(#{p}Gl)"/>
+<path d="M18 82V54C18 37 35 29 50 9C65 29 82 37 82 54V82Z" fill="url(#{p}Ar)" stroke="#F2CD6B" stroke-opacity=".55" stroke-width="1.1" stroke-linejoin="round"/>
+<path d="M22.5 82V55C22.5 40.5 37 33 50 16C63 33 77.5 40.5 77.5 55V82Z" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width=".8" stroke-linejoin="round"/>
+<g class="moon" transform="translate(50 24) scale(.74)"><path d="{CRES}" fill="url(#{p}Au)" transform="translate(-49 -43)"/><path d="{STAR}" fill="#fff" transform="translate(-49 -43)"/></g>
+<ellipse cx="55" cy="79" rx="38" ry="2.6" fill="#043d23" opacity=".28"/>
+<rect x="8" y="77.5" width="84" height="7" rx="3.5" fill="url(#{p}Au)"/>
+<rect x="8" y="77.5" width="84" height="1.6" rx=".8" fill="#fff" opacity=".35"/>
+<path d="M14 81h72" stroke="#9A6F14" stroke-opacity=".35" stroke-width=".7" stroke-dasharray="1.6 1.6"/>
+<path d="M50 78.7l2 2.2-2 2.2-2-2.2z" fill="#9A6F14" fill-opacity=".45"/>
+<ellipse cx="14" cy="74.2" rx="3.2" ry="3.3" fill="#D8F0E2"/>
+<path d="{ROBE}" fill="url(#{p}Ro)"/>
+<path d="M60.5 60C62 65 64 70 69.5 74" fill="none" stroke="#0A6B40" stroke-opacity=".22" stroke-width="8.4" stroke-linecap="round"/>
+<path d="{SLEEVE}" fill="none" stroke="url(#{p}Sl)" stroke-width="6.6" stroke-linecap="round"/>
+<path d="M61 63C62.4 66 64 68.5 66 70.5" fill="none" stroke="#0A6B40" stroke-opacity=".2" stroke-width=".9" stroke-linecap="round"/>
+<path d="M65.6 71.6l4.2 3.2" stroke="url(#{p}Au)" stroke-width="2.2" stroke-linecap="round"/>
+<ellipse cx="73.5" cy="75.6" rx="4.6" ry="2" fill="#fff"/>
+<g fill="none" stroke="#0A6B40" stroke-opacity=".22" stroke-width=".9" stroke-linecap="round"><path d="M29 46C28 54 30 62 29 70"/><path d="M34 45C33.5 53 35.5 61 34.5 69"/><path d="M43 49C49 53 54 56 59 59.5"/><path d="M40 55C44 57 48 59 52 61"/></g>
+<path d="M21.5 70.4V77.5" stroke="url(#{p}Au)" stroke-width="1.6" stroke-linecap="round"/>
+<circle cx="80.5" cy="70" r="7.3" fill="#BFE6D0"/>
+<path d="{TURBAN}" fill="#fff"/>
+<path d="M73.8 68.6C76.6 66.8 80.2 66.4 83 67C85 67.4 86.4 68.4 87.3 69.6" fill="none" stroke="url(#{p}Au)" stroke-width="1.7" stroke-linecap="round"/>
+<path d="M77 62.8C79 64.6 80 66 80.6 67.2M81 62.2C83 63.8 84.2 65.6 84.6 67.4" fill="none" stroke="#0A6B40" stroke-opacity=".22" stroke-width=".8" stroke-linecap="round"/>
 </g>'''
 
-DEFS = f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{GREEN_A}"/><stop offset="1" stop-color="{GREEN_B}"/></linearGradient><radialGradient id="gl"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>'
+T = lambda s: f'transform="translate(50 50) scale({s}) translate(-50 -48)"'
 
 def svg(kind):
-    if kind == "full":      # ikon kotak membulat (favicon / PWA)
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" rx="24" fill="url(#g)"/>{art()}</svg>'
-    if kind == "square":    # tanpa sudut membulat (dipotong sistem / maskable)
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.78) translate(-50 -48)\"")}</svg>'
-    if kind == "bg":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/></svg>'
-    if kind == "fg":        # adaptive foreground, area aman 66%
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}{art("transform=\"translate(50 50) scale(.56) translate(-50 -48)\"")}</svg>'
-    if kind == "mono":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{art("transform=\"translate(50 50) scale(.56) translate(-50 -48)\"", mono=True)}</svg>'
-    if kind == "round":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<circle cx="50" cy="50" r="50" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.78) translate(-50 -48)\"")}</svg>'
-    if kind == "splash":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.42) translate(-50 -48)\"")}</svg>'
+    D, X = defs(), 'xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"'
+    if kind == "full":   return f'<svg {X}>{D}<rect width="100" height="100" rx="24" fill="url(#rsBg)"/>{art()}</svg>'
+    if kind == "square": return f'<svg {X}>{D}<rect width="100" height="100" fill="url(#rsBg)"/>{art(transform=T(.78))}</svg>'
+    if kind == "bg":     return f'<svg {X}>{D}<rect width="100" height="100" fill="url(#rsBg)"/></svg>'
+    if kind == "fg":     return f'<svg {X}>{D}{art(transform=T(.56))}</svg>'
+    if kind == "mono":   return f'<svg {X}>{art(transform=T(.56), mono=True)}</svg>'
+    if kind == "round":  return f'<svg {X}>{D}<circle cx="50" cy="50" r="50" fill="url(#rsBg)"/>{art(transform=T(.78))}</svg>'
+    if kind == "splash": return f'<svg {X}>{D}<rect width="100" height="100" fill="url(#rsBg)"/>{art(transform=T(.42))}</svg>'
 
-async def render(page, svg_text, size, out, transparent=False, w=None, h=None):
-    w, h = w or size, h or size
-    html = f'<html><body style="margin:0;background:{"transparent" if transparent else "#fff"}"><div style="width:{w}px;height:{h}px;display:grid;place-items:center">{svg_text}</div></body></html>'
-    await page.set_viewport_size({"width": w, "height": h})
+def inline():
+    """logo() untuk di dalam aplikasi (gradien ikut di dalam SVG, tidak bergantung index.html)."""
+    return f'<svg class="logo" viewBox="0 0 100 100" aria-hidden="true">{defs()}<rect width="100" height="100" rx="24" fill="url(#rsBg)"/>{art()}</svg>'
+
+async def render(page, svg_text, size, out, transparent=False):
+    html = f'<html><body style="margin:0;background:{"transparent" if transparent else "#fff"}"><div style="width:{size}px;height:{size}px;display:grid;place-items:center">{svg_text}</div></body></html>'
+    await page.set_viewport_size({"width": size, "height": size})
     await page.set_content(html)
-    await page.evaluate("s=>{const e=document.querySelector('svg');e.setAttribute('width',s[0]);e.setAttribute('height',s[1])}", [size, size])
+    await page.evaluate("s=>{const e=document.querySelector('svg');e.setAttribute('width',s);e.setAttribute('height',s)}", size)
     await page.screenshot(path=out, omit_background=transparent)
 
 async def main():
     os.makedirs("public", exist_ok=True)
     open("public/icon.svg", "w").write(svg("full"))
+    # sinkronkan logo() di src/icons.js
+    src = open("src/icons.js", encoding="utf-8").read()
+    src = re.sub(r"export const logo = \(\) => `.*?`;", lambda m: "export const logo = () => `" + inline() + "`;", src, count=1, flags=re.S)
+    open("src/icons.js", "w", encoding="utf-8").write(src)
     async with async_playwright() as p:
         b = await p.chromium.launch(); pg = await b.new_page()
         await render(pg, svg("full"), 512, "public/icon-512.png", True)
@@ -62,7 +83,7 @@ async def main():
         # ---- aset Android (Capacitor) ----
         A = "android-assets"; R = A + "/res"
         os.makedirs(A + "/assets", exist_ok=True)
-        await render(pg, svg("square").replace('translate(50 50) scale(.78) translate(-50 -48)', 'translate(50 50) scale(.8) translate(-50 -48)'), 1024, A + "/assets/icon-only.png")
+        await render(pg, svg("square").replace(T(.78), T(.8)), 1024, A + "/assets/icon-only.png")
         await render(pg, svg("fg"), 1024, A + "/assets/icon-foreground.png", True)
         await render(pg, svg("bg"), 1024, A + "/assets/icon-background.png")
         await render(pg, svg("splash"), 2732, A + "/assets/splash.png")
