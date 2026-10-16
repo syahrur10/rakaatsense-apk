@@ -13,25 +13,54 @@ _OLD_TURBAN = "M73.6 69C72.8 63.4 78.4 60.8 83.2 62.4C86.8 63.6 88 66.8 87.5 69.
 def defs(p="rs"):
     return f'''<defs><linearGradient id="{p}Bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22C57A"/><stop offset=".55" stop-color="#0F8A52"/><stop offset="1" stop-color="#075A35"/></linearGradient><radialGradient id="{p}Gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="{p}Ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".20"/><stop offset="1" stop-color="#fff" stop-opacity=".03"/></linearGradient><linearGradient id="{p}Au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".5" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A93A"/></linearGradient><linearGradient id="{p}Ro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFEFDD"/></linearGradient><linearGradient id="{p}Rb" gradientUnits="userSpaceOnUse" x1="16" y1="44" x2="70" y2="78"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C9EBD9"/></linearGradient><linearGradient id="{p}Sl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E3F6EB"/><stop offset="1" stop-color="#B9E3CC"/></linearGradient><pattern id="{p}Pt" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5L7.6 4.4L10.5 6L7.6 7.6L6 10.5L4.4 7.6L1.5 6L4.4 4.4Z" fill="none" stroke="#fff" stroke-width=".35"/></pattern><radialGradient id="{p}Fd" cx=".5" cy=".5" r=".6"><stop offset=".25" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="{p}Mk"><rect width="100" height="100" fill="url(#{p}Fd)"/></mask></defs>'''
 
+import math
+
+def hull(x1, y1, r1, x2, y2, r2):
+    """Bentuk meruncing (stadium) antara dua lingkaran: dasar untuk anggota badan yang organik."""
+    dx, dy = x2 - x1, y2 - y1; d = math.hypot(dx, dy)
+    if d <= abs(r1 - r2) + 1e-6:
+        x, y, r = (x1, y1, r1) if r1 >= r2 else (x2, y2, r2)
+        return f"M{x-r:.2f} {y:.2f}a{r} {r} 0 1 0 {2*r:.2f} 0a{r} {r} 0 1 0 {-2*r:.2f} 0Z"
+    a = math.atan2(dy, dx); be = math.acos((r1 - r2) / d)
+    P = lambda cx, cy, r, ang: (cx + r * math.cos(ang), cy + r * math.sin(ang))
+    t1, t2 = P(x1, y1, r1, a + be), P(x2, y2, r2, a + be)
+    u1, u2 = P(x1, y1, r1, a - be), P(x2, y2, r2, a - be)
+    l2 = 1 if 2 * be > math.pi else 0; l1 = 1 if 2 * be < math.pi else 0
+    return (f"M{t1[0]:.2f} {t1[1]:.2f}L{t2[0]:.2f} {t2[1]:.2f}A{r2} {r2} 0 {l2} 0 {u2[0]:.2f} {u2[1]:.2f}"
+            f"L{u1[0]:.2f} {u1[1]:.2f}A{r1} {r1} 0 {l1} 0 {t1[0]:.2f} {t1[1]:.2f}Z")
+
+def limb(*pts):
+    """Rantai bentuk meruncing dari titik-titik (x, y, radius) -> satu path."""
+    return "".join(hull(*pts[i], *pts[i + 1]) for i in range(len(pts) - 1))
+
+# kerangka orang sujud menghadap kanan (permukaan sajadah y=77.5)
+HIP, KNEE, ANK = (33, 47, 7.4), (38.5, 72.5, 5.0), (20.5, 73.9, 3.6)
+MID, SHO, NECK = (45.5, 51.6, 7.0), (58.5, 59.6, 5.6), (73.0, 66.6, 3.0)
+HEAD = (80.5, 70.8, 6.7)
+
 def figure(p, mono=False):
-    """Orang berjubah sujud menghadap kanan. Anggota badan = garis tebal bersambung (bahu, pinggul, lutut menyatu mulus)."""
+    """Orang berjubah sujud: paha-betis meruncing, punggung melengkung, lengan menekuk, kepala bersongkok (peci)."""
+    body = limb(KNEE, HIP) + limb(KNEE, ANK) + limb(HIP, MID, SHO, NECK)
+    arm = limb((57.8, 60.8, 3.9), (60.6, 69.4, 3.4), (67.6, 74.5, 2.9))
     if mono:
-        return """<g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 73.7H36" stroke-width="7.6"/><path d="M35 72.2C34.6 64.5 34 56 33.4 48" stroke-width="10.6"/><path d="M33.4 48C44 49.5 52 54 58 60.2" stroke-width="12"/><path d="M58 60.5L73 67.6" stroke-width="6.4"/><path d="M58.5 61L60.5 70L68.5 75.3" stroke-width="6.2"/></g><circle cx="79.5" cy="70.4" r="6.9" fill="#000"/>"""
-    return f"""<g fill="none" stroke="url(#{p}Rb)" stroke-linecap="round" stroke-linejoin="round">
-<path d="M17.5 73.7H36" stroke-width="7.6"/><path d="M35 72.2C34.6 64.5 34 56 33.4 48" stroke-width="10.6"/><path d="M33.4 48C44 49.5 52 54 58 60.2" stroke-width="12"/><path d="M58 60.5L73 67.6" stroke-width="6.4"/></g>
-<ellipse cx="14.6" cy="74.3" rx="2.9" ry="3.2" fill="#E7C29B"/>
-<path d="M20.4 70.2V77.4" stroke="url(#{p}Au)" stroke-width="1.5" stroke-linecap="round"/>
-<g fill="none" stroke="#0A6B40" stroke-opacity=".2" stroke-width=".9" stroke-linecap="round"><path d="M30 50.5C29.4 58 30.6 65 30 71"/><path d="M35.5 49.5C35.6 57 36.6 64 36.3 70"/><path d="M42 51.5C47.5 53.5 52 56.5 56 60"/><path d="M38.5 56.5C43 57.5 47 59.5 50.5 62.5"/></g>
-<path d="M59 61.6L61 70.4L68.6 75.4" fill="none" stroke="#06502F" stroke-opacity=".26" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M58.5 61L60.5 70L68.5 75.3" fill="none" stroke="url(#{p}Sl)" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M62.6 70.6L67.6 74.2" stroke="url(#{p}Au)" stroke-width="2" stroke-linecap="round"/>
-<path d="M60 63C60.6 65.5 61.2 67.5 62 69" fill="none" stroke="#0A6B40" stroke-opacity=".2" stroke-width=".8" stroke-linecap="round"/>
-<ellipse cx="71.3" cy="75.9" rx="3.8" ry="1.7" fill="#E7C29B"/>
-<circle cx="79.5" cy="70.4" r="6.9" fill="#E7C29B"/>
-<circle cx="86.2" cy="74.2" r="1.3" fill="#E7C29B"/>
-<path d="M72.9 73.4C71.6 66.6 77.4 62.6 83.4 63.8C87 64.6 87.6 67.2 86.4 69.2C82.4 69.6 77.6 71 72.9 73.4Z" fill="#fff"/>
-<path d="M73 73.2C77.6 70.8 82.4 69.4 86.4 69" fill="none" stroke="url(#{p}Au)" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M76 65.2C77.4 66.6 77.8 68 77.6 69.4M80 64.2C81.6 65.4 82.2 67 82.2 68.4" fill="none" stroke="#0A6B40" stroke-opacity=".2" stroke-width=".8" stroke-linecap="round"/>"""
+        hx, hy, hr = HEAD
+        return f'<path d="{body}{arm}" fill="#000"/><circle cx="{hx}" cy="{hy}" r="{hr}" fill="#000"/><ellipse cx="72" cy="76" rx="4" ry="1.5" fill="#000"/>'
+    hx, hy, hr = HEAD
+    far = limb((61.5, 60.4, 3.5), (64.6, 69.6, 3.0), (71.5, 75, 2.5)) + limb((71.5, 75.6, 1.9), (77.5, 76, 1.5))
+    cap = (f"M85.2 75.4A{hr} {hr} 0 1 0 74.9 65.9C79 67.2 82.6 70.6 85.2 75.4Z")
+    return f"""<path d="{far}" fill="#7FBE9F"/>
+<path d="{limb(KNEE, HIP)}{limb(KNEE, ANK)}{limb(HIP, MID, SHO, NECK)}" fill="url(#{p}Rb)"/>
+<path d="{limb((20.5,73.9,2.9),(16.2,75.3,2.2))}" fill="#E7C29B"/>
+<path d="M23.4 70.6V77.4" stroke="url(#{p}Au)" stroke-width="1.5" stroke-linecap="round"/>
+<g fill="none" stroke="#0A6B40" stroke-opacity=".2" stroke-width=".9" stroke-linecap="round"><path d="M30 52C29.6 58.5 31 65 31.4 70.5"/><path d="M36 50.5C36.2 57 37.4 63 37.4 68"/><path d="M45 52C50 54 54 57 57 61"/><path d="M40 57.5C44 58.4 48 60.4 51.5 63.4"/></g>
+<path d="{limb((60.1,65.2,4.2),(60.6,69.4,4.4),(67.6,74.5,3.9))}" fill="#06502F" fill-opacity=".28"/>
+<path d="{arm}" fill="url(#{p}Sl)"/>
+<path d="M64.9 76L68.5 71" stroke="url(#{p}Au)" stroke-width="1.7" stroke-linecap="round"/>
+<path d="{limb((69.4,75.4,2.0),(75.2,75.9,1.6))}" fill="#E7C29B"/>
+<circle cx="{hx}" cy="{hy}" r="{hr}" fill="#E7C29B"/>
+<path d="M77.9 68.6C76.4 68.4 75.8 70.6 77.2 71.6" fill="none" stroke="#C99D74" stroke-width=".9" stroke-linecap="round"/>
+<path d="{cap}" fill="#1B2B24"/>
+<path d="M80 66.4C82.6 67.6 84.6 70 85.4 73" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width=".8" stroke-linecap="round"/>"""
 
 def art(p="rs", transform="", mono=False):
     """Gambar logo v8 (kanvas 100x100). mono=True -> semua hitam (ikon monokrom Android 13+)."""
@@ -106,4 +135,5 @@ async def main():
         xml = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n  <background android:drawable="@mipmap/ic_launcher_background"/>\n  <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n  <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>\n</adaptive-icon>\n'
         open(R + "/mipmap-anydpi-v26/ic_launcher.xml", "w").write(xml); open(R + "/mipmap-anydpi-v26/ic_launcher_round.xml", "w").write(xml)
         await b.close()
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
