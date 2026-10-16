@@ -166,17 +166,19 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 ## Logo & Ikon
 
-**v7:** siluet orang **sujud** tampak samping dengan proporsi lebih halus, di bawah **lengkung mihrab** bercahaya, bulan sabit + bintang di puncaknya, di atas sajadah emas berpola. Tiga titik emas di bahu, pinggul, dan lutut melambangkan pembacaan gerakan oleh sensor/AI; di splash dan layar masuk titik-titik itu berdenyut pelan.
+**v9:** sosok **sujud** digambar ulang dengan anatomi yang realistis namun tetap bergaya ilustrasi: pria berjubah putih dan berpeci, punggung miring ke bahu, siku terangkat, telapak tangan rata di sajadah, dahi dan hidung menyentuh sajadah, jari kaki menapak. Berada di dalam **mihrab** bercahaya di atas sajadah emas. **Bulan sabit + bintang kini jadi finial di puncak mihrab** (seperti kubah masjid), tidak lagi menempel di atas punggung, jadi tidak ada kesan sujud menghadap bulan.
 
-- Sumber tunggal: `tools/logo.py`. Jalankan `python3 tools/logo.py` (butuh `pip install playwright && playwright install chromium`) untuk membuat ulang `public/*` dan seluruh `android-assets/*` (launcher, adaptif, bulat, monokrom Android 13+, splash).
-- Logo di dalam aplikasi: fungsi `logo()` di `src/icons.js` (gradien didefinisikan di `index.html`). Jika desain di `tools/logo.py` diubah, sinkronkan juga `logo()`.
+**Animasi (splash & layar masuk)** menyatu dengan ilustrasi: garis mihrab tergambar, cahaya menyala, finial bulan muncul, sosok sujud turun lalu bernapas pelan; kilau bintang dan kilap sajadah berulang halus. Otomatis mati bila pengguna mengaktifkan *reduce motion*. Gaya animasi ada di akhir `src/style.css` (kelas `.ar .gl .fig .fb .moon .sk .sh`).
+
+- Sumber tunggal: `tools/logo.py`. Jalankan `python3 tools/logo.py` (butuh `pip install playwright && playwright install chromium`) untuk membuat ulang `public/*`, seluruh `android-assets/*` (launcher, adaptif, bulat, monokrom Android 13+, splash), **dan menyinkronkan `logo()` di `src/icons.js` secara otomatis** (id gradien dibuat unik per pemanggilan).
+- Ubah bentuk sosok lewat titik-titik kunci `BODY`, `ARM`, `HAND`, `FOOT`, `SKULL`, `PECI` di `tools/logo.py` (kurva halus dibuat otomatis oleh `sp()`); sudut kepala lewat `HEAD_ROT`.
 
 ---
 
 ## Struktur Proyek
 
 ```
-├─ index.html              # kerangka halaman + definisi gradien logo
+├─ index.html              # kerangka halaman
 ├─ src/
 │  ├─ main.js              # gerbang login
 │  ├─ app.js               # aplikasi utama (beranda, tab)
@@ -205,7 +207,8 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 | Versi | Perubahan utama |
 |---|---|
-| **v7** | Logo sujud didesain ulang (mihrab, sajadah berpola, titik sensor berdenyut), README dirombak + info akun admin |
+| **v9** | Logo & ikon: sosok sujud realistis (jubah, peci, tangan, kaki), bulan sabit jadi finial mihrab, animasi splash/masuk yang menyatu dengan logo |
+| v7 | Logo sujud didesain ulang (mihrab, sajadah berpola, titik sensor berdenyut), README dirombak + info akun admin |
 | v6 | Beranda fokus *Kalibrasi & Kamera AI*, skor gerakan kamera, navigasi bawah baru |
 | v5 | Login Firebase (Email, Google), tanggal Masehi + Hijriyah rapi |
 | v4 | Login lokal, sapaan beranda, kompas kiblat baru |

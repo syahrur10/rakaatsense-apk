@@ -218,6 +218,24 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .menu.two button{grid-auto-flow:column;justify-content:center;align-items:center;gap:.6rem;padding:.55rem .6rem}
 .menu.two button>span{width:42px;height:42px;border-radius:14px}
 
-/* logo v8: bulan sabit berdenyut lembut di splash & layar masuk */
-.sp .logo .moon,.au-top .logo .moon{animation:moonp 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
-@keyframes moonp{50%{opacity:.82;filter:drop-shadow(0 0 2.5px rgba(255,233,163,.9))}}
+/* logo v9: animasi menyatu dengan ilustrasi (splash & layar masuk).
+   Mihrab tergambar -> cahaya menyala -> bulan sabit finial muncul -> sosok sujud turun & bernapas pelan; kilau bintang & kilap sajadah berulang halus. */
+.sp .logo *,.au-top .logo *{transform-box:fill-box}
+.sp .logo .ar,.au-top .logo .ar{stroke-dasharray:1;stroke-dashoffset:1;animation:rsdraw 1.05s .05s cubic-bezier(.45,.05,.25,1) forwards}
+.sp .logo .gl,.au-top .logo .gl{transform-origin:50% 50%;animation:rsglin 1s ease-out both,rsglow 5.2s 1s ease-in-out infinite}
+.sp .logo .fig,.au-top .logo .fig{animation:rsrise .95s .3s cubic-bezier(.2,.8,.2,1) both}
+.sp .logo .fb,.au-top .logo .fb{transform-origin:50% 100%;animation:rsbr 4.6s 1.3s ease-in-out infinite}
+.sp .logo .moon,.au-top .logo .moon{transform-origin:50% 60%;animation:rsmoon .8s .65s cubic-bezier(.2,1.4,.4,1) both,moonp 3.2s 1.5s ease-in-out infinite}
+.sp .logo .sk,.au-top .logo .sk{transform-origin:50% 50%;opacity:0;animation:rstw 3.4s ease-in-out infinite}
+.sp .logo .s0,.au-top .logo .s0{animation-delay:.9s}.sp .logo .s1,.au-top .logo .s1{animation-delay:1.9s}.sp .logo .s2,.au-top .logo .s2{animation-delay:2.7s}
+.sp .logo .sh,.au-top .logo .sh{animation:rssh 6.5s 2s ease-in-out infinite}
+@keyframes rsdraw{to{stroke-dashoffset:0}}
+@keyframes rsglin{from{opacity:0;transform:scale(.7)}}
+@keyframes rsglow{50%{opacity:.78;transform:scale(1.06)}}
+@keyframes rsrise{from{opacity:0;transform:translateY(3px)}}
+@keyframes rsbr{50%{transform:scaleY(1.014)}}
+@keyframes rsmoon{from{opacity:0;transform:translateY(5px) scale(.5)}}
+@keyframes moonp{50%{opacity:.86;filter:drop-shadow(0 0 2.5px rgba(255,233,163,.9))}}
+@keyframes rstw{0%,100%{opacity:0;transform:scale(.4)}45%{opacity:.95;transform:scale(1)}70%{opacity:.2;transform:scale(.7)}}
+@keyframes rssh{0%{transform:translateX(0)}30%,100%{transform:translateX(150px)}}
+@media (prefers-reduced-motion:reduce){.sp .logo *,.au-top .logo *{animation:none!important}.sp .logo .ar,.au-top .logo .ar{stroke-dashoffset:0}.sp .logo .sk,.au-top .logo .sk{opacity:.8}}
