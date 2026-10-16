@@ -217,3 +217,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .menu.two{grid-template-columns:repeat(2,1fr)}
 .menu.two button{grid-auto-flow:column;justify-content:center;align-items:center;gap:.6rem;padding:.55rem .6rem}
 .menu.two button>span{width:42px;height:42px;border-radius:14px}
+
+/* logo v7: titik sendi berdenyut pelan di splash & layar masuk */
+.sp .logo g[fill-opacity] circle,.au-top .logo g[fill-opacity] circle{animation:jtp 1.8s ease-in-out infinite}
+.sp .logo g[fill-opacity] circle:nth-child(2),.au-top .logo g[fill-opacity] circle:nth-child(2){animation-delay:.3s}
+.sp .logo g[fill-opacity] circle:nth-child(3),.au-top .logo g[fill-opacity] circle:nth-child(3){animation-delay:.6s}
