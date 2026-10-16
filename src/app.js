@@ -1,10 +1,9 @@
 /** app.js — navigasi, bahasa, jadwal shalat, beranda, penghitung rakaat (sensor), koreksi gerakan (kamera). */
 import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout, isAdmin, syncStats } from './util.js';
 import { t, lang, setLang, apply, hooks, LANGS } from './i18n.js';
-import { ic, mount, beads } from './icons.js';
+import { ic, mount, scanDeco } from './icons.js';
 import { createCounter } from './counter.js';
 import { startPose, stopPose } from './pose.js';
-import { dzToday } from './dzikir.js';
 import './qibla.js';
 
 const PR = [{ id: 'subuh', k: 'Fajr', r: 2, i: 'sunrise' }, { id: 'dzuhur', k: 'Dhuhr', r: 4, i: 'sun' }, { id: 'ashar', k: 'Asr', r: 4, i: 'afternoon' }, { id: 'maghrib', k: 'Maghrib', r: 3, i: 'sunset' }, { id: 'isya', k: 'Isha', r: 4, i: 'moon' }];
@@ -13,7 +12,7 @@ const setBtn = (el, k) => { el.dataset.i = k; el.textContent = t(k); }, pName = 
 /* ---- Bahasa, ikon, splash ---- */
 $('lang').innerHTML = Object.entries(LANGS).map(([k, [n]]) => `<option value="${k}" title="${n}" ${k === lang() ? 'selected' : ''}>${k.toUpperCase()}</option>`).join('');
 $('lang').onchange = (e) => setLang(e.target.value);
-mount(); apply(); $('deco').innerHTML = beads();
+mount(); apply(); $('deco').innerHTML = scanDeco();
 function setGreet() {
   const s = session() || {}, h = new Date().getHours(), guest = s.id === 'guest';
   const part = h < 4 ? 'night' : h < 10 ? 'morning' : h < 15 ? 'noon' : h < 18 ? 'afternoon' : 'night';
@@ -63,7 +62,7 @@ function renderHome() {
   if (locInfo) { delete $('locTxt').dataset.i; $('locTxt').textContent = !locInfo.ok ? t('tm.def') : locInfo.name || (locInfo.failed ? t('tm.noname') : t('tm.find')); }
   $('tgrid').innerHTML = PR.map((p) => `<button class="tc ${nx.id === p.id ? 'next' : ''} ${today[p.id] ? 'done' : ''}" data-id="${p.id}" aria-pressed="${!!today[p.id]}" aria-label="${pName(p.id)}, ${t('mark')}"><span>${times[p.id] ? hm(times[p.id]) : '--:--'}</span>${ic(p.i, 26)}${pName(p.id)}</button>`).join('');
   let s = 0; for (let d = new Date(); ; d.setDate(d.getDate() - 1)) { const l = log[dayKey(d)]; if (l && PR.every((p) => l[p.id])) s++; else if (dayKey(d) === dayKey()) continue; else break; }
-  $('hStreak').textContent = s; $('hDz').textContent = dzToday(); $('hDone').textContent = PR.filter((p) => today[p.id]).length + '/5';
+  $('hStreak').textContent = s; { const c = store.get('rs.cam', null); $('hCam').textContent = c && c.score != null ? c.score + '%' : '–'; } $('hDone').textContent = PR.filter((p) => today[p.id]).length + '/5';
   setDates(); if (times.subuh) $('nextName').textContent = pName(nextPrayer().id);
 }
 $('tgrid').onclick = (e) => { const b = e.target.closest('.tc'); if (b) mark(b.dataset.id, !(store.get('rs.log', {})[dayKey()] || {})[b.dataset.id]); };
@@ -103,16 +102,17 @@ $('cStart').onclick = async () => {
 $('plus').onclick = () => { counter.adjust(1); refresh(true); }; $('minus').onclick = () => { counter.adjust(-1); finished = false; refresh(); };
 
 /* ---- Koreksi gerakan (kamera) ---- */
-let camOn = false, errs = 0;
+let camOn = false, errs = 0, lastScore = null, camSave = 0;
+const saveCam = () => { if (lastScore == null) return; store.set('rs.cam', { score: lastScore, at: Date.now() }); renderHome(); };
 $('camBtn').onclick = async () => {
-  if (camOn) { stopPose($('video')); camOn = false; setBtn($('camBtn'), 'cam.start'); return; }
-  setBtn($('camBtn'), 'cam.load'); errs = 0; $('errs').textContent = 0;
+  if (camOn) { stopPose($('video')); camOn = false; clearInterval(camSave); saveCam(); setBtn($('camBtn'), 'cam.start'); return; }
+  setBtn($('camBtn'), 'cam.load'); errs = 0; lastScore = null; $('errs').textContent = 0;
   try {
     await startPose($('video'), $('ov'), {
       posture: (n, bad) => { $('posture').dataset.i = 'po.' + n; $('posture').textContent = t('po.' + n); $('posture').classList.toggle('bad', bad); },
-      score: (s) => ($('score').textContent = s + '%'),
+      score: (s) => { lastScore = s; $('score').textContent = s + '%'; },
       error: (code) => { errs++; $('errs').textContent = errs; const s = t('cam.warn', { m: t('e.' + code) }); toast(s); speak(s, lang()); navigator.vibrate?.(200); },
-    }); camOn = true; setBtn($('camBtn'), 'rk.stop');
+    }); camOn = true; camSave = setInterval(saveCam, 8000); setBtn($('camBtn'), 'rk.stop');
   } catch { setBtn($('camBtn'), 'cam.start'); toast(t('cam.err')); }
 };
 

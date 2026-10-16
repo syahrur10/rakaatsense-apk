@@ -11,7 +11,7 @@ Koreksi gerakan kamera (MediaPipe Pose) · **Dzikir** (6 preset, paket setelah s
 - Kiblat: bearing great-circle ke Ka'bah + sensor orientasi.
 ## v3: tampilan terang + logo baru + nama lokasi
 - Tema putih + hijau zamrud (token warna di `:root` pada `src/style.css`).
-- Logo: mihrab (lengkung masjid) + bulan sabit + sajadah. Sumber di `tools/logo.py` (`python3 tools/logo.py` membuat ulang semua PNG/SVG).
+- Logo (v3, sudah diganti di v6): sumber di `tools/logo.py` (`python3 tools/logo.py` membuat ulang semua PNG/SVG).
 - Lokasi tampil sebagai nama asli, mis. **Genuksari, Genuk, Semarang** (kelurahan, kecamatan, kota), lewat reverse geocoding OpenStreetMap Nominatim, cadangan BigDataCloud. Hasil di-cache per ~100 m. Ketuk nama lokasi untuk memperbarui. Butuh internet.
 
 ## APK (Capacitor)
@@ -65,3 +65,15 @@ Daftar pengguna + pencarian + statistik · ketuk pengguna → data ibadahnya (st
 Akun mode lokal tidak ikut pindah ke Firebase.
 
 Jika mengganti email admin utama, ubah juga di `VITE_ADMIN_EMAILS`, `src/config.js` (`LOCAL_ADMIN`) dan `firestore.rules`.
+
+## v6: logo orang sujud + beranda fokus Kalibrasi & Kamera AI
+- **Logo/ikon APK baru**: siluet orang sedang **sujud** (tampak samping) di atas sajadah emas + bulan sabit, latar hijau zamrud. Sumber: `tools/logo.py` (`python3 tools/logo.py` membuat ulang `public/*` dan seluruh `android-assets/*`: ikon launcher, adaptif, bulat, monokrom, splash). Logo di dalam aplikasi ada di `src/icons.js` (`logo()`).
+- **Beranda** (`index.html`, `src/app.js`, `src/style.css`, `src/i18n.js`):
+  - Banner utama kini **“Kalibrasi & Koreksi Kamera”** dengan 2 tombol: *Kalibrasi sensor* dan *Buka kamera AI* (dekorasi kerangka sendi + garis pemindai).
+  - 2 kartu fitur besar: **Kalibrasi Sensor** dan **Koreksi Kamera AI**, plus strip 3 langkah (Kalibrasi 3 detik → Hitung otomatis → Koreksi kamera).
+  - **Dzikir** dan **Kiblat** menjadi pintasan sekunder di bawahnya (fitur dzikir tetap utuh).
+  - Ringkasan hari ini: statistik "dzikir hari ini" diganti **skor gerakan kamera terakhir** (disimpan di `rs.cam`, tampil sebagai `87%`).
+  - Navigasi bawah: Beranda · Kalibrasi · Koreksi (kamera) · Kiblat · Dzikir.
+  - Semua teks baru tersedia di 4 bahasa (ID/EN/AR/MS).
+- **Pasang ikon baru ke APK** (setelah `npx cap add android`): `cp -r android-assets/res/* android/app/src/main/res/ && npx cap sync`.
+

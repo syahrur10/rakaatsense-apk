@@ -1,4 +1,5 @@
-"""Sumber logo RakaatSense: mihrab (lengkungan masjid) + bulan sabit + sajadah. Hasilkan SVG & PNG."""
+"""Sumber logo RakaatSense: siluet orang sedang SUJUD (tampak samping) di atas sajadah + bulan sabit. Hasilkan SVG & PNG.
+Jalankan dari root project: python3 tools/logo.py   (butuh: pip install playwright && playwright install chromium)"""
 import asyncio, os
 from playwright.async_api import async_playwright
 
@@ -6,12 +7,16 @@ GREEN_A, GREEN_B = "#1DB86E", "#0A6B40"
 CRES = "M49.31 43.50A13.5 13.5 0 1 0 61.73 61.49A11 11 0 1 1 49.31 43.50Z"
 STAR = "M60.50,41.90 L61.38,44.29 L63.92,44.39 L61.93,45.96 L62.62,48.41 L60.50,47.00 L58.38,48.41 L59.07,45.96 L57.08,44.39 L59.62,44.29Z"
 
-def art(transform=""):
+def art(transform="", mono=False):
+    """Gambar logo (kanvas 100x100). mono=True -> semua hitam (untuk ikon monokrom Android 13+)."""
+    c = lambda x: "#000" if mono else x
     return f'''<g {transform}>
-<path d="M26 80V52C26 38 38 30 50 13C62 30 74 38 74 52V80Z" fill="#fff"/>
-<path d="M32 80V53C32 43 41 36.5 50 23C59 36.5 68 43 68 53V80Z" fill="#DDF4E6"/>
-<path d="{CRES}" fill="#0E7C4A"/><path d="{STAR}" fill="#E0A81E"/>
-<rect x="21" y="80" width="58" height="6" rx="3" fill="#F2CD6B"/></g>'''
+<g transform="translate(0 -35)"><path d="{CRES}" fill="{c('#F2CD6B')}"/><path d="{STAR}" fill="{c('#fff')}"/></g>
+<g transform="translate(0 -6)" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="{c('#fff')}">
+<path d="M20 80H46" stroke-width="9"/><path d="M46 80L42 52" stroke-width="12"/><path d="M42 52L66 66" stroke-width="12"/>
+<path d="M63 68L61 79.5H72" stroke-width="5.5" stroke="{c('#CDEFDB')}"/></g>
+<circle cx="80" cy="62" r="8" fill="{c('#fff')}"/>
+<rect x="12" y="80" width="76" height="6.5" rx="3.25" fill="{c('#F2CD6B')}"/></g>'''
 
 DEFS = f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{GREEN_A}"/><stop offset="1" stop-color="{GREEN_B}"/></linearGradient></defs>'
 
@@ -19,17 +24,17 @@ def svg(kind):
     if kind == "full":      # ikon kotak membulat (favicon / PWA)
         return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" rx="24" fill="url(#g)"/>{art()}</svg>'
     if kind == "square":    # tanpa sudut membulat (dipotong sistem / maskable)
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.78) translate(-50 -50)\"")}</svg>'
+        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.78) translate(-50 -48)\"")}</svg>'
     if kind == "bg":
         return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/></svg>'
     if kind == "fg":        # adaptive foreground, area aman 66%
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{art("transform=\"translate(50 50) scale(.62) translate(-50 -49.5)\"")}</svg>'
+        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{art("transform=\"translate(50 50) scale(.56) translate(-50 -48)\"")}</svg>'
     if kind == "mono":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g transform="translate(50 50) scale(.62) translate(-50 -49.5)"><path d="M26 80V52C26 38 38 30 50 13C62 30 74 38 74 52V80Z" fill="#000"/><rect x="21" y="80" width="58" height="6" rx="3" fill="#000"/></g></svg>'
+        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{art("transform=\"translate(50 50) scale(.56) translate(-50 -48)\"", mono=True)}</svg>'
     if kind == "round":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<circle cx="50" cy="50" r="50" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.78) translate(-50 -50)\"")}</svg>'
+        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<circle cx="50" cy="50" r="50" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.78) translate(-50 -48)\"")}</svg>'
     if kind == "splash":
-        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.3) translate(-50 -50)\"")}</svg>'
+        return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{DEFS}<rect width="100" height="100" fill="url(#g)"/>{art("transform=\"translate(50 50) scale(.42) translate(-50 -48)\"")}</svg>'
 
 async def render(page, svg_text, size, out, transparent=False, w=None, h=None):
     w, h = w or size, h or size
@@ -50,7 +55,7 @@ async def main():
         # ---- aset Android (Capacitor) ----
         A = "android-assets"; R = A + "/res"
         os.makedirs(A + "/assets", exist_ok=True)
-        await render(pg, svg("square").replace('translate(50 50) scale(.78) translate(-50 -50)', 'translate(50 50) scale(.8) translate(-50 -50)'), 1024, A + "/assets/icon-only.png")
+        await render(pg, svg("square").replace('translate(50 50) scale(.78) translate(-50 -48)', 'translate(50 50) scale(.8) translate(-50 -48)'), 1024, A + "/assets/icon-only.png")
         await render(pg, svg("fg"), 1024, A + "/assets/icon-foreground.png", True)
         await render(pg, svg("bg"), 1024, A + "/assets/icon-background.png")
         await render(pg, svg("splash"), 2732, A + "/assets/splash.png")

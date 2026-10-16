@@ -48,14 +48,20 @@
       <button class="icon" id="logout" data-ia="au.out" data-ic="logout" data-s="20"></button></div>
   </div>
   <div class="greet"><h1 id="greet"></h1><p id="greet2"></p><small id="dates"></small></div>
-  <div class="banner"><small data-i="ban.s"></small><h2 data-i="ban.h"></h2><button class="pill dark" data-go="dz" data-i="ban.b"></button><div class="deco" id="deco"></div></div>
-  <div class="menu">
-    <button data-go="rk"><span data-ic="ruku" data-s="30"></span><em data-i="m.rk"></em></button><button data-go="dz"><span data-ic="beads" data-s="30"></span><em data-i="m.dz"></em></button>
-    <button data-go="cam"><span data-ic="scan" data-s="30"></span><em data-i="m.cam"></em></button><button data-go="qb"><span data-ic="compass" data-s="30"></span><em data-i="m.qb"></em></button>
+  <div class="banner"><small data-i="ban.s"></small><h2 data-i="ban.h"></h2>
+    <div class="ban-btns"><button class="pill dark" data-go="rk" data-i="ban.b1"></button><button class="pill glass" data-go="cam" data-i="ban.b2"></button></div>
+    <div class="deco" id="deco"></div></div>
+  <div class="feat">
+    <button class="fcard" data-go="rk"><span class="fi" data-ic="calib" data-s="28"></span><span class="ft"><b data-i="f.rk.t"></b><small data-i="f.rk.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
+    <button class="fcard cam" data-go="cam"><span class="fi" data-ic="scan" data-s="28"></span><span class="ft"><b data-i="f.cam.t"></b><small data-i="f.cam.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
+  </div>
+  <div class="steps"><div><i>1</i><span data-i="st.1"></span></div><div><i>2</i><span data-i="st.2"></span></div><div><i>3</i><span data-i="st.3"></span></div></div>
+  <div class="menu two">
+    <button data-go="qb"><span data-ic="compass" data-s="26"></span><em data-i="m.qb"></em></button><button data-go="dz"><span data-ic="beads" data-s="26"></span><em data-i="m.dz"></em></button>
   </div>
   <div class="card times"><button class="loc" id="loc" data-ia="tm.tap"><span data-ic="pin" data-s="16"></span><span id="locTxt" data-i="tm.load"></span></button><h3 data-i="tm.title"></h3><div class="next"><span id="nextName">—</span> <b id="nextTime">--:--</b> <small id="countdown"></small></div>
     <div class="tgrid" id="tgrid"></div>
-    <div class="sum"><div><b id="hStreak">0</b><small data-i="s.streak"></small></div><div><b id="hDz">0</b><small data-i="s.dz"></small></div><div><b id="hDone">0/5</b><small data-i="s.pr"></small></div></div></div>
+    <div class="sum"><div><b id="hStreak">0</b><small data-i="s.streak"></small></div><div><b id="hCam">–</b><small data-i="s.cam"></small></div><div><b id="hDone">0/5</b><small data-i="s.pr"></small></div></div></div>
 </section>
 
 <section id="adm" class="tab">
@@ -127,6 +133,6 @@
 </section>
 </main>
 
-<nav class="nav" id="nav"><button data-go="home" class="on"><span data-ic="home"></span><span data-i="nav.home"></span></button><button data-go="rk"><span data-ic="ruku"></span><span data-i="m.rk"></span></button><button data-go="dz"><span data-ic="beads"></span><span data-i="m.dz"></span></button><button data-go="cam"><span data-ic="scan"></span><span data-i="nav.cam"></span></button><button data-go="qb"><span data-ic="compass"></span><span data-i="m.qb"></span></button></nav>
+<nav class="nav" id="nav"><button data-go="home" class="on"><span data-ic="home"></span><span data-i="nav.home"></span></button><button data-go="rk"><span data-ic="calib"></span><span data-i="nav.rk"></span></button><button data-go="cam"><span data-ic="scan"></span><span data-i="nav.cam"></span></button><button data-go="qb"><span data-ic="compass"></span><span data-i="m.qb"></span></button><button data-go="dz"><span data-ic="beads"></span><span data-i="m.dz"></span></button></nav>
 <script type="module" src="/src/main.js"></script>
 </body></html>
