@@ -152,7 +152,7 @@ const watch = initWatch({
   awake: keepAwake, sleep: () => { if (!counter.on) letSleep(); }, lock: () => pills(),
   saved: () => renderHome(), mark: () => { mark(lk(), true); pills(); },
 });
-$('camGuideBtn').onclick = () => openGuide('cam');
+$('camGuideBtn').onclick = () => openGuide(store.get('rs.cm', 'tegak') === 'datar' ? 'flat' : 'cam');
 
 hooks.push(() => { setDates(); renderHome(); pills(); refresh(); });
 setPrayer('subuh'); renderHome(); loadTimes(); syncStats(1500);

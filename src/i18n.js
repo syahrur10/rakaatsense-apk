@@ -303,7 +303,6 @@ Object.assign(ID, {
   "gd.fl.on": "Tertutup = sujud",
   "gd.fl.off": "Terang",
   "gd.fl.cnt": "Sujud {n} · Rakaat {m}",
->>>>>>> d3dbcd3ab9952e67eb5bf470fc9834ef83499245
   "cam.p.find": "Berdirilah di tempat shalat. Kepala, bahu, dan pinggul harus terlihat.",
   "cam.p.meas": "Tetap berdiri tegak, sedang mengukur posisi berdiri…",
   "cam.p.measb": "Mengukur {n}%",
@@ -415,7 +414,6 @@ Object.assign(EN, {
   "gd.fl.on": "Covered = prostration",
   "gd.fl.off": "Clear",
   "gd.fl.cnt": "Prostrations {n} · Rakaat {m}",
->>>>>>> d3dbcd3ab9952e67eb5bf470fc9834ef83499245
   "cam.p.find": "Stand where you pray. Your head, shoulders and hips must be visible.",
   "cam.p.meas": "Stand upright, measuring your standing position…",
   "cam.p.measb": "Measuring {n}%",
@@ -527,7 +525,6 @@ Object.assign(AR, {
   "gd.fl.on": "مغطّاة = سجود",
   "gd.fl.off": "مكشوفة",
   "gd.fl.cnt": "سجدات {n} · ركعات {m}",
->>>>>>> d3dbcd3ab9952e67eb5bf470fc9834ef83499245
   "cam.p.find": "قف في مكان الصلاة. يجب أن يظهر الرأس والكتفان والحوض.",
   "cam.p.meas": "ابقَ منتصبًا، جارٍ قياس وضع الوقوف…",
   "cam.p.measb": "قياس {n}%",

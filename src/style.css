@@ -369,5 +369,5 @@ body.watching .toast{display:none!important}
 
 /* Mode Datar: pratinjau hanya menampilkan kamera menghadap atas, tanpa titik badan */
 .cambox.flat canvas,.cambox.flat .cam-chips{display:none}
-.stage.fplace .sv svg{max-height:300px}.gd-mode{margin:.2rem 0 .9rem}
->>>>>>> d3dbcd3ab9952e67eb5bf470fc9834ef83499245
+.stage.fplace .sv svg{max-height:300px}
+.gd-tabs{grid-template-columns:repeat(5,1fr);gap:.25rem;padding-inline:.6rem}.gd-tabs button{font-size:.62rem;padding:.5rem .1rem;line-height:1.15;text-align:center}.gd-tabs button:nth-child(5).on{background:linear-gradient(135deg,#0E7C4A,#0A3D2B)}

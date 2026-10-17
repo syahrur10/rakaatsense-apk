@@ -416,7 +416,7 @@ function camAlertScene(box) {
 }
 
 /* ===== Halaman panduan ===== */
-let root = null, tab = 'shirt', players = [], open = false, camMode = store.get('rs.cm', 'tegak') === 'datar' ? 'datar' : 'tegak';
+let root = null, tab = 'shirt', players = [], open = false;
 const steps = (pre, n) => `<ol class="gd-steps">${Array.from({ length: n }, (_, i) => `<li><i>${i + 1}</i><span>${t(`${pre}.${i + 1}`)}</span></li>`).join('')}</ol>`;
 const stage = (cls, extra = '') => `<div class="stage ${cls}"><span class="stage-chip"></span><div class="sv"></div>${extra}</div>`;
 const tiltBox = '<div class="tilt"><span class="tl"></span><div class="tm"><i></i><u class="th"></u></div><b>0°</b><em></em></div>';
@@ -427,12 +427,11 @@ const legend = () => `<ul class="gd-legend">${[['●●', '', 'gd.cm.l1'], ['━
 
 function render() {
   players.forEach((p) => p.stop()); players = [];
-  const tabs = [['shirt', 'rk.shirt', 'shirt'], ['pants', 'rk.pants', 'pants'], ['how', 'gd.tab.how', 'help'], ['cam', 'gd.tab.cam', 'scan']];
+  const tabs = [['shirt', 'rk.shirt', 'shirt'], ['pants', 'rk.pants', 'pants'], ['how', 'gd.tab.how', 'help'], ['cam', 'cam.m.tegak', 'scan'], ['flat', 'cam.m.datar', 'eye']];
   let body;
-  const modeSeg = `<div class="seg gd-mode" role="tablist"><button type="button" data-cm="tegak" class="${camMode === 'tegak' ? 'on' : ''}">${t('cam.m.tegak')}</button><button type="button" data-cm="datar" class="${camMode === 'datar' ? 'on' : ''}">${t('cam.m.datar')}</button></div>`;
-  const alert = `<h3 class="gd-h"><i>${camMode === 'datar' ? 2 : 3}</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
-  if (tab === 'cam' && camMode === 'datar') body = `${modeSeg}<h3 class="gd-h"><i>1</i>${t('gd.fl.place')}</h3>${stage('fplace')}${steps('gd.fl', 5)}<div class="gd-tip">${t('gd.fl.tip')}</div>${alert}`;
-  else if (tab === 'cam') body = `${modeSeg}<h3 class="gd-h"><i>1</i>${t('gd.cm.place')}</h3>${stage('cplace')}${steps('gd.cm', 6)}<div class="gd-tip">${t('gd.cm.tip')}</div>
+  const alert = `<h3 class="gd-h"><i>${tab === 'flat' ? 2 : 3}</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
+  if (tab === 'flat') body = `<h3 class="gd-h"><i>1</i>${t('gd.fl.place')}</h3>${stage('fplace')}${steps('gd.fl', 5)}<div class="gd-tip">${t('gd.fl.tip')}</div>${alert}`;
+  else if (tab === 'cam') body = `<h3 class="gd-h"><i>1</i>${t('gd.cm.place')}</h3>${stage('cplace')}${steps('gd.cm', 6)}<div class="gd-tip">${t('gd.cm.tip')}</div>
     <h3 class="gd-h"><i>2</i>${t('gd.cm.how')}</h3>${stage('chow', camPanel())}<div class="gd-tip alt">${t('gd.cm.how.tip')}</div>
     <h3 class="gd-h"><i>3</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
   else if (tab === 'how') body = `<h3 class="gd-h"><i>▶</i>${t('gd.howt')}</h3>${stage('how', miniApp())}${steps('gd.h', 6)}<div class="gd-tip">${t('gd.h.tip')}</div><div class="gd-tip alt">${t('gd.h.sn')}</div>`;
@@ -444,7 +443,7 @@ function render() {
     <div class="gd-tabs" role="tablist">${tabs.map(([k, l, i]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}" class="${k === tab ? 'on' : ''}">${ic(i, 22)}<span>${t(l)}</span></button>`).join('')}</div>
     <div class="gd-wrap">${body}</div>`;
   const q = (c) => root.querySelector(c);
-  if (tab === 'cam' && camMode === 'datar') players.push(flatScene(q('.stage.fplace')), camAlertScene(q('.stage.calert')));
+  if (tab === 'flat') players.push(flatScene(q('.stage.fplace')), camAlertScene(q('.stage.calert')));
   else if (tab === 'cam') players.push(camPlaceScene(q('.stage.cplace')), camHowScene(q('.stage.chow')), camAlertScene(q('.stage.calert')));
   else if (tab === 'how') players.push(howScene(q('.stage.how')));
   else {
@@ -455,7 +454,7 @@ function render() {
 }
 function build() {
   root = document.createElement('div'); root.id = 'guide'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); document.body.append(root);
-  root.addEventListener('click', (e) => { if (e.target.closest('[data-gx]')) closeGuide(); const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; render(); } const m = e.target.closest('[data-cm]'); if (m) { camMode = m.dataset.cm; store.set('rs.cm', camMode); render(); } });
+  root.addEventListener('click', (e) => { if (e.target.closest('[data-gx]')) closeGuide(); const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; render(); } });
   document.addEventListener('keydown', (e) => { if (open && e.key === 'Escape') closeGuide(); });
   hooks.push(() => { if (open) render(); });
   document.addEventListener('visibilitychange', () => { if (open) { players.forEach((p) => p.stop()); players = []; if (!document.hidden) render(); } });
