@@ -317,6 +317,40 @@ function camPlaceScene(box) {
   p.start(); return p;
 }
 
+/** MODE DATAR: HP rebah di sejadah (±1 jengkal di depan dahi), kamera menghadap atas. Sujud = kamera tertutup kepala (pandangan kamera menggelap).
+ *  Memakai urutan gerak SIM yang sama dengan simulasi Mode Tegak; hitungan: 2 sujud = 1 rakaat. */
+function flatScene(box) {
+  const svg = S('svg', { 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
+  const draw = sideFigure(svg, 'cam'), under = S('g', {}); svg.insertBefore(under, svg.firstChild);
+  const id = 'gf' + Math.random().toString(36).slice(2, 7), defs = S('defs', {}, svg), lg = S('linearGradient', { id: id + 'g', x1: 0, y1: 1, x2: 0, y2: 0 }, defs);
+  S('stop', { offset: 0, 'stop-color': C.gold2, 'stop-opacity': 0.55 }, lg); S('stop', { offset: 1, 'stop-color': C.gold2, 'stop-opacity': 0.04 }, lg);
+  const cone = S('path', { d: 'M176 124L64 -36H288Z', fill: `url(#${id}g)` }, under);
+  const mk = S('g', {}, svg); // penanda dahi + jarak
+  S('path', { d: 'M156 139H176M156 135v8M176 135v8', stroke: C.shirtD, 'stroke-width': 1.2, 'stroke-dasharray': '3 2.5', fill: 'none', 'stroke-linecap': 'round' }, mk);
+  label(mk, 152, 143.5, t('gd.fl.fore'), 6.5, C.shirtD, 'end'); label(mk, 180, 143.5, t('gd.fl.gap'), 6.5, C.shirtD, 'start');
+  const ph = S('g', {}, svg); S('rect', { x: -14, y: -2.7, width: 28, height: 2.7, rx: 1.2, fill: C.dark, stroke: C.gold, 'stroke-width': 0.8 }, ph); S('rect', { x: -11, y: -2.2, width: 22, height: 0.7, rx: 0.3, fill: '#9AD9B8' }, ph); S('circle', { cx: -11.8, cy: -1.35, r: 0.9, fill: C.gold }, ph);
+  const pip = S('g', {}, svg), X = 192, Y = -32, W = 84, H = 70, cid = id + 'c';
+  S('rect', { x: X, y: Y, width: W, height: H, rx: 9 }, S('clipPath', { id: cid }, defs));
+  const inner = S('g', { 'clip-path': `url(#${cid})` }, pip); S('rect', { x: X, y: Y, width: W, height: H, fill: '#F6F1D8' }, inner); S('circle', { cx: X + W / 2, cy: Y + 14, r: 9, fill: '#fff' }, inner); S('circle', { cx: X + W / 2, cy: Y + 14, r: 15, fill: C.gold, opacity: 0.35 }, inner);
+  const head = S('ellipse', { cx: X + W / 2, cy: Y + H, rx: 31, ry: 25, fill: C.skinD }, inner), shade = S('rect', { x: X, y: Y, width: W, height: H, fill: '#101820' }, inner);
+  S('rect', { x: X, y: Y, width: W, height: H, rx: 9, fill: 'none', stroke: C.shirtD, 'stroke-width': 1.6 }, pip);
+  label(pip, X + 5, Y + 9, t('gd.fl.view'), 6, C.shirtD);
+  const badge = label(pip, X + W / 2, Y + H + 11, '', 7.2, C.shirtD, 'middle'), cnt = label(pip, X + W / 2, Y + H + 21, '', 6.6, C.pantsD, 'middle');
+  let lastTxt = '';
+  const pl = player(SIM, (st, now) => {
+    draw(st.pose, now);
+    const cur = st.st.p, prev = SIM[(st.i + SIM.length - 1) % SIM.length].p;
+    const dark = cur === 's' ? Math.min(1, st.k * 1.5) : prev === 's' ? Math.max(0, 1 - st.k * 1.6) : 0;
+    const fall = pl.still || st.i > 0 ? 1 : ease(tt(st.local, 0, 900));
+    ph.setAttribute('transform', `translate(188 ${(126.5 - (1 - fall) * 62).toFixed(1)}) rotate(${(-28 * (1 - fall)).toFixed(1)})`); ph.setAttribute('opacity', Math.min(1, fall * 4).toFixed(2));
+    cone.setAttribute('opacity', (1 - 0.8 * dark).toFixed(2)); mk.setAttribute('opacity', ease(tt(st.local + (st.i ? 9e3 : 0), 700, 1300)).toFixed(2));
+    shade.setAttribute('opacity', (dark * 0.93).toFixed(2)); head.setAttribute('transform', `translate(0 ${((1 - dark) * 38).toFixed(1)})`);
+    const done = SIM.slice(0, st.i).filter((x) => x.p === 's').length, sj = done + (cur === 's' && st.k > 0.6 ? 1 : 0), txt = `${dark > 0.5 ? 'on' : 'off'}|${sj}`;
+    if (txt !== lastTxt) { lastTxt = txt; badge.textContent = t(dark > 0.5 ? 'gd.fl.on' : 'gd.fl.off'); badge.setAttribute('fill', dark > 0.5 ? C.shirtD : C.gold2); cnt.textContent = t('gd.fl.cnt', { n: sj, m: Math.floor(done / 2) }); }
+  });
+  pl.start(); return pl;
+}
+
 /** Simulasi: orang bergerak (rakaat 1 → rakaat 2 selesai duduk → "lupa" berdiri lagi). Dihitung oleh mesin penghitung yang ASLI (rakaat.js). */
 const SIM = [
   { p: 'q', move: 0, hold: 1500 },
@@ -382,7 +416,7 @@ function camAlertScene(box) {
 }
 
 /* ===== Halaman panduan ===== */
-let root = null, tab = 'shirt', players = [], open = false;
+let root = null, tab = 'shirt', players = [], open = false, camMode = store.get('rs.cm', 'tegak') === 'datar' ? 'datar' : 'tegak';
 const steps = (pre, n) => `<ol class="gd-steps">${Array.from({ length: n }, (_, i) => `<li><i>${i + 1}</i><span>${t(`${pre}.${i + 1}`)}</span></li>`).join('')}</ol>`;
 const stage = (cls, extra = '') => `<div class="stage ${cls}"><span class="stage-chip"></span><div class="sv"></div>${extra}</div>`;
 const tiltBox = '<div class="tilt"><span class="tl"></span><div class="tm"><i></i><u class="th"></u></div><b>0°</b><em></em></div>';
@@ -395,7 +429,10 @@ function render() {
   players.forEach((p) => p.stop()); players = [];
   const tabs = [['shirt', 'rk.shirt', 'shirt'], ['pants', 'rk.pants', 'pants'], ['how', 'gd.tab.how', 'help'], ['cam', 'gd.tab.cam', 'scan']];
   let body;
-  if (tab === 'cam') body = `<h3 class="gd-h"><i>1</i>${t('gd.cm.place')}</h3>${stage('cplace')}${steps('gd.cm', 6)}<div class="gd-tip">${t('gd.cm.tip')}</div>
+  const modeSeg = `<div class="seg gd-mode" role="tablist"><button type="button" data-cm="tegak" class="${camMode === 'tegak' ? 'on' : ''}">${t('cam.m.tegak')}</button><button type="button" data-cm="datar" class="${camMode === 'datar' ? 'on' : ''}">${t('cam.m.datar')}</button></div>`;
+  const alert = `<h3 class="gd-h"><i>${camMode === 'datar' ? 2 : 3}</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
+  if (tab === 'cam' && camMode === 'datar') body = `${modeSeg}<h3 class="gd-h"><i>1</i>${t('gd.fl.place')}</h3>${stage('fplace')}${steps('gd.fl', 5)}<div class="gd-tip">${t('gd.fl.tip')}</div>${alert}`;
+  else if (tab === 'cam') body = `${modeSeg}<h3 class="gd-h"><i>1</i>${t('gd.cm.place')}</h3>${stage('cplace')}${steps('gd.cm', 6)}<div class="gd-tip">${t('gd.cm.tip')}</div>
     <h3 class="gd-h"><i>2</i>${t('gd.cm.how')}</h3>${stage('chow', camPanel())}<div class="gd-tip alt">${t('gd.cm.how.tip')}</div>
     <h3 class="gd-h"><i>3</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
   else if (tab === 'how') body = `<h3 class="gd-h"><i>▶</i>${t('gd.howt')}</h3>${stage('how', miniApp())}${steps('gd.h', 6)}<div class="gd-tip">${t('gd.h.tip')}</div><div class="gd-tip alt">${t('gd.h.sn')}</div>`;
@@ -407,7 +444,8 @@ function render() {
     <div class="gd-tabs" role="tablist">${tabs.map(([k, l, i]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}" class="${k === tab ? 'on' : ''}">${ic(i, 22)}<span>${t(l)}</span></button>`).join('')}</div>
     <div class="gd-wrap">${body}</div>`;
   const q = (c) => root.querySelector(c);
-  if (tab === 'cam') players.push(camPlaceScene(q('.stage.cplace')), camHowScene(q('.stage.chow')), camAlertScene(q('.stage.calert')));
+  if (tab === 'cam' && camMode === 'datar') players.push(flatScene(q('.stage.fplace')), camAlertScene(q('.stage.calert')));
+  else if (tab === 'cam') players.push(camPlaceScene(q('.stage.cplace')), camHowScene(q('.stage.chow')), camAlertScene(q('.stage.calert')));
   else if (tab === 'how') players.push(howScene(q('.stage.how')));
   else {
     players.push(placeScene(q('.stage.place'), tab)); const mv = q('.stage.move'); mv.querySelector('.tilt .tl').textContent = t('gd.tilt'); players.push(moveScene(mv, tab));
@@ -417,7 +455,7 @@ function render() {
 }
 function build() {
   root = document.createElement('div'); root.id = 'guide'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); document.body.append(root);
-  root.addEventListener('click', (e) => { if (e.target.closest('[data-gx]')) closeGuide(); const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; render(); } });
+  root.addEventListener('click', (e) => { if (e.target.closest('[data-gx]')) closeGuide(); const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; render(); } const m = e.target.closest('[data-cm]'); if (m) { camMode = m.dataset.cm; store.set('rs.cm', camMode); render(); } });
   document.addEventListener('keydown', (e) => { if (open && e.key === 'Escape') closeGuide(); });
   hooks.push(() => { if (open) render(); });
   document.addEventListener('visibilitychange', () => { if (open) { players.forEach((p) => p.stop()); players = []; if (!document.hidden) render(); } });
