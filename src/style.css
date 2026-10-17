@@ -369,4 +369,7 @@ body.watching .toast{display:none!important}
 
 /* Mode Datar: pratinjau hanya menampilkan kamera menghadap atas, tanpa titik badan */
 .cambox.flat canvas,.cambox.flat .cam-chips{display:none}
+<<<<<<< HEAD
 .stage.fplace .sv svg{max-height:300px}.gd-mode{margin:.2rem 0 .9rem}
+=======
+>>>>>>> 5a203af2bdd6654514620cdcb9f3f1e059e97575

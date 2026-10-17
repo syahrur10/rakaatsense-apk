@@ -290,6 +290,7 @@ Object.assign(ID, {
   "cam.f.find": "Rebahkan HP di sejadah, layar ke atas. Jangan tutupi kamera dan biarkan terang.",
   "cam.f.test": "Uji: sujud sekali, hitungan harus bertambah.",
   "cam.f.cal": "Berdiri tegak, jangan tutupi kamera",
+<<<<<<< HEAD
   "gd.fl.place": "Rebahkan HP di sejadah",
   "gd.fl.1": "Rebahkan HP di sejadah, layar menghadap ke atas dan kamera depan ke langit-langit. Tidak perlu penyangga.",
   "gd.fl.2": "Taruh sekitar satu jengkal di depan tempat dahi saat sujud. Jangan tepat di bawah dahi: dahi tetap menyentuh sejadah.",
@@ -303,6 +304,8 @@ Object.assign(ID, {
   "gd.fl.on": "Tertutup = sujud",
   "gd.fl.off": "Terang",
   "gd.fl.cnt": "Sujud {n} · Rakaat {m}",
+=======
+>>>>>>> 5a203af2bdd6654514620cdcb9f3f1e059e97575
   "cam.p.find": "Berdirilah di tempat shalat. Kepala, bahu, dan pinggul harus terlihat.",
   "cam.p.meas": "Tetap berdiri tegak, sedang mengukur posisi berdiri…",
   "cam.p.measb": "Mengukur {n}%",
@@ -401,6 +404,7 @@ Object.assign(EN, {
   "cam.f.find": "Lay the phone flat on the mat, screen up. Keep the camera uncovered and the room lit.",
   "cam.f.test": "Test: prostrate once, the count should rise.",
   "cam.f.cal": "Stand upright, do not cover the camera",
+<<<<<<< HEAD
   "gd.fl.place": "Lay the phone flat on the mat",
   "gd.fl.1": "Lay the phone flat on the prayer mat, screen up and the front camera facing the ceiling. No stand needed.",
   "gd.fl.2": "Place it about one hand-span ahead of where your forehead lands. Not right under the forehead: your forehead should touch the mat.",
@@ -414,6 +418,8 @@ Object.assign(EN, {
   "gd.fl.on": "Covered = prostration",
   "gd.fl.off": "Clear",
   "gd.fl.cnt": "Prostrations {n} · Rakaat {m}",
+=======
+>>>>>>> 5a203af2bdd6654514620cdcb9f3f1e059e97575
   "cam.p.find": "Stand where you pray. Your head, shoulders and hips must be visible.",
   "cam.p.meas": "Stand upright, measuring your standing position…",
   "cam.p.measb": "Measuring {n}%",
@@ -512,6 +518,7 @@ Object.assign(AR, {
   "cam.f.find": "ضع الهاتف مسطّحًا على السجادة والشاشة للأعلى. لا تغطِّ الكاميرا وأبقِ الغرفة مضاءة.",
   "cam.f.test": "اختبار: اسجد مرة، يجب أن يزيد العدد.",
   "cam.f.cal": "قف منتصبًا ولا تغطِّ الكاميرا",
+<<<<<<< HEAD
   "gd.fl.place": "ضع الهاتف مسطّحًا على السجادة",
   "gd.fl.1": "ضع الهاتف مسطّحًا على السجادة والشاشة للأعلى والكاميرا الأمامية نحو السقف. لا حاجة إلى حامل.",
   "gd.fl.2": "ضعه على بُعد شبر تقريبًا أمام موضع الجبهة. ليس تحت الجبهة تمامًا: يجب أن تلمس الجبهة السجادة.",
@@ -525,6 +532,8 @@ Object.assign(AR, {
   "gd.fl.on": "مغطّاة = سجود",
   "gd.fl.off": "مكشوفة",
   "gd.fl.cnt": "سجدات {n} · ركعات {m}",
+=======
+>>>>>>> 5a203af2bdd6654514620cdcb9f3f1e059e97575
   "cam.p.find": "قف في مكان الصلاة. يجب أن يظهر الرأس والكتفان والحوض.",
   "cam.p.meas": "ابقَ منتصبًا، جارٍ قياس وضع الوقوف…",
   "cam.p.measb": "قياس {n}%",

@@ -225,7 +225,11 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 | Versi | Perubahan utama |
 |---|---|
+<<<<<<< HEAD
 | **v1.6.0** | **Mode Datar** (plus panduan animasi di tab Kamera dengan pilihan Mode Tegak / Mode Datar) untuk Pemantau Rakaat: HP direbahkan di sejadah (layar ke atas, sedikit di depan tempat dahi), tanpa penyangga dan tanpa model AI; sujud dibaca dari kamera yang tertutup (`src/flat.js`). Mode sebelumnya dinamai **Mode Tegak**. Pilihan mode ada di layar Pantau |
+=======
+| **v1.6.0** | **Mode Datar** untuk Pemantau Rakaat: HP direbahkan di sejadah (layar ke atas, sedikit di depan tempat dahi), tanpa penyangga dan tanpa model AI; sujud dibaca dari kamera yang tertutup (`src/flat.js`). Mode sebelumnya dinamai **Mode Tegak**. Pilihan mode ada di layar Pantau |
+>>>>>>> 5a203af2bdd6654514620cdcb9f3f1e059e97575
 | **v1.5.0** | Kamera diubah total: dari koreksi gerakan menjadi **Pemantau Rakaat** (HP di depan sejadah, layar hitam, getar/bunyi pengingat bila rakaat janggal, ringkasan hasil). Tab **Kamera** baru di Panduan dengan 3 animasi (letak HP, simulasi hitungan, layar hitam & getaran). Teks 4 bahasa diperbarui |
 | **v1.4.1** | Animasi panduan dihaluskan: badan & anggota tubuh meruncing (bukan tabung), pose berbasis sudut sendi sehingga gerak melengkung, gerak berurutan (kaki → badan → lengan → kepala), napas, kedipan mata |
 | **v1.4** | Shalat sunnah dengan rakaat bisa diatur (maks. 4), kartu Saku Baju/Saku Celana yang berbeda dari pil nama shalat, panduan animasi (orang + HP di saku + cara pakai), layar tetap menyala saat menghitung |
