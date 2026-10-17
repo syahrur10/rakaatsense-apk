@@ -6,10 +6,6 @@ Jalankan dari root project: python3 tools/logo.py   (butuh: pip install playwrig
 import asyncio, os, re, math
 from playwright.async_api import async_playwright
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 CRES = "M49.31 43.50A13.5 13.5 0 1 0 61.73 61.49A11 11 0 1 1 49.31 43.50Z"   # bulan sabit bentuk C (asli)
 STAR = "M60.50,41.90 L61.38,44.29 L63.92,44.39 L61.93,45.96 L62.62,48.41 L60.50,47.00 L58.38,48.41 L59.07,45.96 L57.08,44.39 L59.62,44.29Z"
 MOON_T = "translate(50 6.9) scale(.45) translate(-49 -43)"
@@ -28,25 +24,6 @@ def sp(pts, closed=True, t=0.5):
         d += f"C{c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}"
     return d + ("Z" if closed else "")
 
-<<<<<<< HEAD
-=======
-=======
-# ---------------------------------------------------------------- util kurva
-def sp(pts, closed=True, t=0.5):
-    """Catmull-Rom -> kurva bezier kubik: titik kunci jadi siluet organik yang halus."""
-    n = len(pts); d = f"M{pts[0][0]:.2f} {pts[0][1]:.2f}"
-    for i in (range(n) if closed else range(n - 1)):
-        p0 = pts[(i - 1) % n] if (closed or i > 0) else pts[i]
-        p1, p2 = pts[i], pts[(i + 1) % n]
-        p3 = pts[(i + 2) % n] if (closed or i + 2 < n) else p2
-        k = t / 3
-        c1 = (p1[0] + (p2[0] - p0[0]) * k, p1[1] + (p2[1] - p0[1]) * k)
-        c2 = (p2[0] - (p3[0] - p1[0]) * k, p2[1] - (p3[1] - p1[1]) * k)
-        d += f"C{c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}"
-    return d + ("Z" if closed else "")
-
->>>>>>> d8ad076f73abecbf911a3e581a339e7e5bc61a0b
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 def crescent(cx, cy, R=6.0, r=5.0, off=2.7):
     """Bulan sabit menghadap ke ATAS (tanduk ke atas). Lingkaran luar R di (cx,cy), lingkaran dalam r digeser `off` ke atas."""
     d = off; a = (R * R - r * r + d * d) / (2 * d); h = math.sqrt(max(R * R - a * a, 0))
@@ -68,10 +45,6 @@ def spark(cx, cy, s):
 
 # ---------------------------------------------------------------- defs
 def defs(p="rs"):
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
     return f'''<defs><linearGradient id="{p}Bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22C57A"/><stop offset=".55" stop-color="#0F8A52"/><stop offset="1" stop-color="#075A35"/></linearGradient><radialGradient id="{p}Gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="{p}Ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient><linearGradient id="{p}Au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".5" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A93A"/></linearGradient><linearGradient id="{p}Ro" gradientUnits="userSpaceOnUse" x1="32" y1="42" x2="64" y2="78"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCF1E5"/></linearGradient><linearGradient id="{p}Rs" gradientUnits="userSpaceOnUse" x1="25" y1="55" x2="50" y2="78"><stop offset="0" stop-color="#D3EBDD"/><stop offset="1" stop-color="#A3D0B8"/></linearGradient><linearGradient id="{p}Pn" gradientUnits="userSpaceOnUse" x1="25" y1="66" x2="56" y2="78"><stop offset="0" stop-color="#3C7A62"/><stop offset="1" stop-color="#2B6350"/></linearGradient><linearGradient id="{p}Pt" gradientUnits="userSpaceOnUse" x1="32" y1="46" x2="56" y2="76"><stop offset="0" stop-color="#4C8F74"/><stop offset="1" stop-color="#2F6A55"/></linearGradient><linearGradient id="{p}Sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3CBA5"/><stop offset="1" stop-color="#DCA87E"/></linearGradient><linearGradient id="{p}Sd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9A57B"/><stop offset="1" stop-color="#C58F66"/></linearGradient><linearGradient id="{p}Cp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3F36"/><stop offset="1" stop-color="#141F1A"/></linearGradient><linearGradient id="{p}Sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><pattern id="{p}Pt" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5L7.6 4.4L10.5 6L7.6 7.6L6 10.5L4.4 7.6L1.5 6L4.4 4.4Z" fill="none" stroke="#fff" stroke-width=".35"/></pattern><radialGradient id="{p}Fd" cx=".5" cy=".5" r=".6"><stop offset=".25" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="{p}Mk"><rect width="100" height="100" fill="url(#{p}Fd)"/></mask><clipPath id="{p}Cr"><rect x="8" y="77.5" width="84" height="7" rx="3.5"/></clipPath></defs>'''
 
 # ---------------------------------------------------------------- sosok sujud
@@ -80,28 +53,11 @@ FOOT  = sp([(25.6,68.2),(27.6,68.4),(29,70.6),(29.8,74.4),(29.8,77.4),(25.2,77.5
 CALF  = sp([(26.6,70.2),(30.4,68),(39,68.8),(47,69.8),(53,71.4),(56,74),(55,76.8),(51,77.6),(38,77.6),(31,76.8),(27.2,74.6)])
 THIGH = sp([(30.0,54.5),(31.4,48.8),(36,45.4),(41.6,45.2),(46.4,48.4),(49.6,54),(52.4,61.4),(55.4,68.8),(56.6,73.2),(55,76.8),(51,77.6),(47.6,76),(46.6,72),(44.4,66.8),(40.2,62.4),(35,59.8),(31.2,58.2)])
 SHIRT = sp([(32.2,52.8),(31.4,49.6),(33.6,46.2),(37,44.2),(43,43.4),(49,45.2),(55,48.8),(60.6,52.4),(65.4,55.4),(70.4,58.4),(73.4,61.4),(72.6,65.6),(68,67.6),(62.5,67.6),(57,66.4),(52.4,62.8),(48.8,58.6),(42.4,56.8),(36,55)])
-<<<<<<< HEAD
-=======
-=======
-    return f'''<defs><linearGradient id="{p}Bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22C57A"/><stop offset=".55" stop-color="#0F8A52"/><stop offset="1" stop-color="#075A35"/></linearGradient><radialGradient id="{p}Gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="{p}Ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient><linearGradient id="{p}Au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".5" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A93A"/></linearGradient><linearGradient id="{p}Ro" gradientUnits="userSpaceOnUse" x1="32" y1="42" x2="64" y2="78"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCF1E5"/></linearGradient><linearGradient id="{p}Rs" gradientUnits="userSpaceOnUse" x1="25" y1="55" x2="50" y2="78"><stop offset="0" stop-color="#D3EBDD"/><stop offset="1" stop-color="#A3D0B8"/></linearGradient><linearGradient id="{p}Sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3CBA5"/><stop offset="1" stop-color="#DCA87E"/></linearGradient><linearGradient id="{p}Sd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9A57B"/><stop offset="1" stop-color="#C58F66"/></linearGradient><linearGradient id="{p}Cp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3F36"/><stop offset="1" stop-color="#141F1A"/></linearGradient><linearGradient id="{p}Sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><pattern id="{p}Pt" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5L7.6 4.4L10.5 6L7.6 7.6L6 10.5L4.4 7.6L1.5 6L4.4 4.4Z" fill="none" stroke="#fff" stroke-width=".35"/></pattern><radialGradient id="{p}Fd" cx=".5" cy=".5" r=".6"><stop offset=".25" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="{p}Mk"><rect width="100" height="100" fill="url(#{p}Fd)"/></mask><clipPath id="{p}Cr"><rect x="8" y="77.5" width="84" height="7" rx="3.5"/></clipPath></defs>'''
-
-# ---------------------------------------------------------------- sosok sujud
-# (permukaan sajadah y=77.5; menghadap kanan / kiblat)
-FOOT  = sp([(25.6,68.2),(27.6,68.4),(29,70.6),(29.8,74.4),(29.8,77.4),(25.2,77.5),(23,77.3),(22.6,75.2),(23.4,71.6)])
-CALF  = sp([(26.2,69.6),(31,68),(39,68),(47,69),(53,71.4),(56,74),(55,76.8),(51,77.6),(38,77.6),(31,77),(27.2,74.6)])
-DRAPE = sp([(26.4,70),(27.2,63),(28.6,56.5),(33,59.5),(40,65),(47,69.6),(46,71),(38,70),(31,69.4)])
-BODY  = sp([(28.8,57.4),(29.6,53),(32.4,47.6),(37.2,44.2),(43,43.4),(49,45.2),(55,48.8),(60.6,52.4),(65.4,55.4),(70.4,58.4),(74.2,62),(74.6,66),(69.5,67.4),(63.6,67),(58.4,66.6),(54.6,64.2),(51.2,61.2),(52.8,65.4),(55.8,69.2),(57,73.2),(55.4,76.6),(51.2,77.6),(48,75.2),(46,71.4),(40.6,67.4),(34.2,62.6)])
->>>>>>> d8ad076f73abecbf911a3e581a339e7e5bc61a0b
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 ARM   = sp([(58.8,60),(62.8,59.4),(66.2,62.6),(68,67.4),(70.8,71.4),(73.8,73.4),(74.6,77.3),(70.6,77.5),(66.6,75.6),(63.4,73),(61.4,69.2),(59.6,64.8)])
 CUFF  = sp([(72.6,72.8),(75.4,74.2),(75.6,77.5),(72.2,77.5),(72,74.2)])
 HAND  = sp([(73.6,74.4),(77,74),(80.6,74.8),(83,76.2),(82.2,77.5),(74,77.5)])
 # kepala: profil tegak digambar lalu diputar ke posisi sujud (ubun-ubun ke depan, dahi & hidung di sajadah)
 SKULL = sp([(-5.3,0.6),(-4.7,-3.8),(-1.6,-6.2),(2.6,-5.9),(4.9,-3.4),(5.5,-0.8),(7.6,1.7),(6.0,2.8),(6.1,4.2),(5.3,6.1),(2.2,7.0),(-1.5,5.9),(-4.4,3.3)])
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 PECI  = sp([(-5.4,-0.4),(-5.3,-4.2),(-2.6,-6.9),(2.6,-7.0),(5.3,-4.8),(5.4,-3.6),(2.4,-3.9),(-1.2,-3.7),(-4.4,-2.4)])
 HEAD_ROT = 112
 HEAD_T = f"translate(79.4 70.4) rotate({HEAD_ROT}) scale(1.06)"
@@ -129,35 +85,6 @@ def figure(p, mono=False):
 <path d="{PECI}" fill="url(#{p}Cp)"/><path d="M-4.2 -3.9C-2.2 -5 1 -5.2 3.4 -4.6" stroke="#fff" stroke-opacity=".28" stroke-width=".5" fill="none" stroke-linecap="round"/></g>
 <path d="{ARM}" fill="#0A6B40" opacity=".12" transform="translate(-.7 .5)"/>
 <g class="fa"><path d="{ARM}" fill="url(#{p}Ro)"/><path d="M60.6 62C62.6 67 65.4 71 70 74.2" fill="none" stroke="#6DAE92" stroke-width=".6" stroke-linecap="round" opacity=".7"/><path d="{CUFF}" fill="url(#{p}Au)"/></g>
-<<<<<<< HEAD
-=======
-=======
-BEARD = sp([(-1.2,2.6),(1.4,3.4),(3.6,3.9),(6.1,4.3),(5.4,6.3),(2.2,7.1),(-1.4,5.9),(-3.4,4.0)])
-PECI  = sp([(-5.4,-0.4),(-5.3,-4.2),(-2.6,-6.9),(2.6,-7.0),(5.3,-4.8),(5.4,-3.6),(2.4,-3.9),(-1.2,-3.7),(-4.4,-2.4)])
-HEAD_ROT = 112
-HEAD_T = f"translate(79.4 70.4) rotate({HEAD_ROT}) scale(.96)"
-
-def figure(p, mono=False):
-    if mono:
-        return (f'<g fill="#000"><path d="{FOOT}"/><path d="{CALF}"/><path d="{DRAPE}"/><path d="{BODY}"/><path d="{ARM}"/><path d="{HAND}"/>'
-                f'<g transform="{HEAD_T}"><path d="{SKULL}"/><path d="{PECI}"/></g></g>')
-    return f'''<defs><clipPath id="{p}Cb"><path d="{BODY}"/></clipPath></defs>
-<path d="{FOOT}" fill="url(#{p}Sd)"/><path d="M23.2 72.6C22.6 74.6 22.8 76.4 23.4 77.3" stroke="#A97650" stroke-width=".8" fill="none" stroke-linecap="round" opacity=".55"/><path d="M26.6 76.2L26.8 77.4M28.2 76L28.4 77.4" stroke="#A97650" stroke-width=".4" stroke-linecap="round" opacity=".7"/>
-<path d="{DRAPE}" fill="url(#{p}Rs)"/>
-<path d="{CALF}" fill="url(#{p}Rs)"/>
-<path d="M27 72.6C29 74.4 31 75.6 34 76.2" stroke="#6DAE92" stroke-width=".55" fill="none" stroke-linecap="round" opacity=".7"/>
-<path d="M33 71.6C38 72.2 44 72.6 50 73.6" stroke="#6DAE92" stroke-width=".55" fill="none" stroke-linecap="round" opacity=".55"/>
-<g class="fb"><path d="{BODY}" fill="url(#{p}Ro)"/>
-<g clip-path="url(#{p}Cb)"><path d="{sp([(49,61),(53,64),(58,67.6),(60,70),(56,74),(50,70),(44,64)])}" fill="#0A6B40" opacity=".09"/><path d="M28 58C32 62 38 67 46 71L40 80L22 80Z" fill="#0A6B40" opacity=".10"/></g>
-<g fill="none" stroke="#6DAE92" stroke-width=".6" stroke-linecap="round" opacity=".7"><path d="M44 51C47 56 49.5 60 51 63.2"/><path d="M36 54C37.6 59 40.6 63.2 45 67.4"/><path d="M33 49C32 53.6 32.4 57 33.6 59.6" opacity=".6"/><path d="M52.8 65.6C54.6 67.6 55.8 70 56 72.4"/></g>
-<path d="M36 46C41 43.8 47 44.4 53 47.6C58 50.4 62.4 53.4 66.2 56.4" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".7"/></g>
-<g transform="{HEAD_T}"><path d="{SKULL}" fill="url(#{p}Sk)"/><path d="M-.2 -1.5C1.2 -1.7 1.9 -.4 1.5 1C1.2 2.1 -.2 2.5 -.7 1.8C-.1 1.4 -.1 .8 -.5 .5C-.9 .2 -1 -.9 -.2 -1.5Z" fill="#D9A27B"/><path d="M.1 -.7C.7 -.7 1 -.2 .8 .5" stroke="#B57D5B" stroke-width=".28" fill="none" stroke-linecap="round"/>
-<path d="{PECI}" fill="url(#{p}Cp)"/><path d="M-4.2 -3.9C-2.2 -5 1 -5.2 3.4 -4.6" stroke="#fff" stroke-opacity=".28" stroke-width=".5" fill="none" stroke-linecap="round"/></g>
-<path d="{ARM}" fill="#0A6B40" opacity=".12" transform="translate(-.7 .5)"/>
-<g class="fa"><path d="{ARM}" fill="url(#{p}Ro)"/><path d="M60.6 62C62.6 67 65.4 71 70 74.2" fill="none" stroke="#6DAE92" stroke-width=".6" stroke-linecap="round" opacity=".7"/>
-<path d="{CUFF}" fill="url(#{p}Au)"/></g>
->>>>>>> d8ad076f73abecbf911a3e581a339e7e5bc61a0b
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 <path d="{HAND}" fill="url(#{p}Sk)"/><path d="M79.2 75.2L79.6 77.4M81.4 76L81.7 77.4" stroke="#C48F66" stroke-width=".32" stroke-linecap="round"/>'''
 
 # ---------------------------------------------------------------- komposisi
@@ -169,15 +96,7 @@ def art(p="rs", transform="", mono=False):
     cres = crescent(50, 13.4, 6.2, 5.1, 2.8)
     if mono:
         return (f'<g {transform}><path d="{ARCH}" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>'
-<<<<<<< HEAD
                 f'<g transform="{MOON_T}"><path d="{CRES}" fill="#000"/><path d="{STAR}" fill="#000" transform="translate(-3.4 3.4)"/></g>'
-=======
-<<<<<<< HEAD
-                f'<g transform="{MOON_T}"><path d="{CRES}" fill="#000"/><path d="{STAR}" fill="#000" transform="translate(-3.4 3.4)"/></g>'
-=======
-                f'<path d="{cres}" fill="#000"/><path d="{star(50, 9.6, 2.6)}" fill="#000"/>'
->>>>>>> d8ad076f73abecbf911a3e581a339e7e5bc61a0b
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
                 f'<rect x="8" y="77.5" width="84" height="7" rx="3.5" fill="#000"/><g transform="{FIG_T}">{figure(p, True)}</g></g>')
     sparks = "".join(f'<path class="sk s{i}" d="{spark(x, y, s)}" fill="#FFF4CC"/>' for i, (x, y, s) in enumerate([(36.5, 35.5, 2.1), (65, 33, 1.7), (50, 40.5, 1.4)]))
     return f'''<g {transform}>
@@ -186,15 +105,7 @@ def art(p="rs", transform="", mono=False):
 <path d="{ARCH}" fill="url(#{p}Ar)"/>
 <path class="ar" pathLength="1" d="{ARCH}" fill="none" stroke="#F2CD6B" stroke-opacity=".62" stroke-width="1.1" stroke-linejoin="round"/>
 <path d="{ARCH_IN}" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".8" stroke-linejoin="round"/>
-<<<<<<< HEAD
 <g class="moon"><path d="M49.45 19.2h1.1v2.4h-1.1z" fill="url(#{p}Au)"/><g transform="{MOON_T}"><path d="{CRES}" fill="url(#{p}Au)"/><path d="{STAR}" fill="#fff" transform="translate(-3.4 3.4)"/></g></g>
-=======
-<<<<<<< HEAD
-<g class="moon"><path d="M49.45 19.2h1.1v2.4h-1.1z" fill="url(#{p}Au)"/><g transform="{MOON_T}"><path d="{CRES}" fill="url(#{p}Au)"/><path d="{STAR}" fill="#fff" transform="translate(-3.4 3.4)"/></g></g>
-=======
-<g class="moon"><path d="M49.45 19.2h1.1v2.4h-1.1z" fill="url(#{p}Au)"/><path d="{crescent(50, 13.4, 6.2, 5.1, 2.8)}" fill="url(#{p}Au)"/><path d="{star(50, 9.7, 2.5)}" fill="#fff"/></g>
->>>>>>> d8ad076f73abecbf911a3e581a339e7e5bc61a0b
->>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 {sparks}
 <rect x="8" y="77.5" width="84" height="7" rx="3.5" fill="url(#{p}Au)"/>
 <rect x="8" y="77.5" width="84" height="1.6" rx=".8" fill="#fff" opacity=".35"/>
