@@ -1,8 +1,8 @@
 {
   "name": "rakaatsense",
   "private": true,
-  "version": "1.4.1",
-  "description": "RakaatSense: AI prayer assistant (sensor calibration, rakaat counter, AI camera movement check, qibla, dzikir)",
+  "version": "1.5.0",
+  "description": "RakaatSense: AI prayer assistant (sensor calibration, rakaat counter, camera rakat monitor, qibla, dzikir)",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",

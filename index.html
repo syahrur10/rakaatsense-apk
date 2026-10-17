@@ -121,11 +121,35 @@
 </section>
 
 <section id="cam" class="tab">
-  <h2 class="ttl" data-i="cam.title"></h2>
+  <div class="rk-head"><h2 class="ttl" data-i="cam.title"></h2><button class="gd-btn" id="camGuideBtn"><span data-ic="help" data-s="18"></span><span data-i="gd.btn"></span></button></div>
   <p class="mute small" data-i="cam.hint"></p>
-  <div class="cambox"><video id="video" playsinline muted></video><canvas id="ov"></canvas><div id="posture" class="badge" data-i="cam.ready"></div></div>
-  <div class="row"><div class="mini"><b id="score">–</b><small data-i="cam.score"></small></div><div class="mini"><b id="errs">0</b><small data-i="cam.fix"></small></div></div>
+
+  <div id="camSum" hidden>
+    <div class="w-sum"><small data-i="w.s.title"></small><b class="w-lbl" id="wSumLbl"></b>
+      <div class="w-big" id="wSumBig"></div><p class="w-msg" id="wSumMsg"></p><small id="wSumSj"></small>
+      <ul class="w-log" id="wLog"></ul>
+      <button class="btn" id="wMark" type="button" data-i="w.mark" hidden></button></div>
+  </div>
+
+  <div id="camSetup">
+    <span class="glbl" data-i="rk.g.pray"></span>
+    <div class="pills wrap" id="cPills"></div>
+    <div id="cKindBox"><span class="glbl" data-i="rk.g.kind"></span>
+      <div class="seg" id="cKinds" role="tablist"><button type="button" data-k="f" data-i="rk.k.f"></button><button type="button" data-k="q" data-i="rk.k.q"></button><button type="button" data-k="b" data-i="rk.k.b"></button></div></div>
+    <div class="stepper" id="cStepBox" hidden><span id="cStepTxt"></span><button type="button" id="cSnDn" data-ic="minus" data-s="20" data-ia="rk.sn.dn"></button><b id="cSnN">2</b><button type="button" id="cSnUp" data-ic="plus" data-s="20" data-ia="rk.sn.up"></button></div>
+    <b class="rk-sel" id="cSel"></b>
+    <span class="glbl" data-i="cam.g.alert"></span>
+    <div class="seg" id="cNotif" role="tablist"><button type="button" data-n="vib" data-i="cam.n.vib"></button><button type="button" data-n="snd" data-i="cam.n.snd"></button><button type="button" data-n="off" data-i="cam.n.off"></button></div>
+    <small class="mute" data-i="cam.n.hint"></small>
+    <div class="cam-how"><span data-ic="scan" data-s="26"></span><div><b data-i="cam.how.t"></b><small data-i="cam.how.d"></small></div></div>
+  </div>
+
+  <div class="cambox p" id="camBox" hidden><video id="video" playsinline muted></video><canvas id="ov"></canvas><div id="posture" class="badge" data-i="cam.ready"></div>
+    <div class="cam-chips"><span id="chHead" data-i="cam.c.head"></span><span id="chSh" data-i="cam.c.sh"></span><span id="chHip" data-i="cam.c.hip"></span></div></div>
+  <div id="camPrev" class="cam-prev" hidden><p id="camMsg" class="status"></p><small class="mute" id="camCnt"></small></div>
+
   <button class="btn" id="camBtn" data-i="cam.start"></button>
+  <button class="btn ghost" id="camCancel" type="button" data-i="cam.cancel" hidden></button>
   <p class="mute small" data-i="cam.note"></p>
 </section>
 
@@ -146,6 +170,7 @@
 </section>
 </main>
 
+<div id="watch" hidden aria-hidden="true"><p id="wTxt"></p><b id="wBig"></b><small id="wHold"></small></div>
 <nav class="nav" id="nav"><button data-go="home" class="on"><span data-ic="home"></span><span data-i="nav.home"></span></button><button data-go="rk"><span data-ic="calib"></span><span data-i="nav.rk"></span></button><button data-go="cam"><span data-ic="scan"></span><span data-i="nav.cam"></span></button><button data-go="qb"><span data-ic="compass"></span><span data-i="m.qb"></span></button><button data-go="dz"><span data-ic="beads"></span><span data-i="m.dz"></span></button></nav>
 <script type="module" src="/src/main.js"></script>
 </body></html>

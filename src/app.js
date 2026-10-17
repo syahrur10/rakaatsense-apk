@@ -1,9 +1,9 @@
-/** app.js — navigasi, bahasa, jadwal shalat, beranda, penghitung rakaat (sensor), koreksi gerakan (kamera). */
+/** app.js — navigasi, bahasa, jadwal shalat, beranda, penghitung rakaat (sensor), pemantau rakaat (kamera, layar hitam). */
 import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout, isAdmin, syncStats } from './util.js';
 import { t, lang, setLang, apply, hooks, LANGS } from './i18n.js';
 import { ic, mount, scanDeco } from './icons.js';
 import { createCounter } from './counter.js';
-import { startPose, stopPose } from './pose.js';
+import { initWatch } from './watch.js';
 import { openGuide } from './guide.js';
 import './qibla.js';
 
@@ -63,7 +63,7 @@ function renderHome() {
   if (locInfo) { delete $('locTxt').dataset.i; $('locTxt').textContent = !locInfo.ok ? t('tm.def') : locInfo.name || (locInfo.failed ? t('tm.noname') : t('tm.find')); }
   $('tgrid').innerHTML = PR.map((p) => `<button class="tc ${nx.id === p.id ? 'next' : ''} ${today[p.id] ? 'done' : ''}" data-id="${p.id}" aria-pressed="${!!today[p.id]}" aria-label="${pName(p.id)}, ${t('mark')}"><span>${times[p.id] ? hm(times[p.id]) : '--:--'}</span>${ic(p.i, 26)}${pName(p.id)}</button>`).join('');
   let s = 0; for (let d = new Date(); ; d.setDate(d.getDate() - 1)) { const l = log[dayKey(d)]; if (l && PR.every((p) => l[p.id])) s++; else if (dayKey(d) === dayKey()) continue; else break; }
-  $('hStreak').textContent = s; { const c = store.get('rs.cam', null); $('hCam').textContent = c && c.score != null ? c.score + '%' : '–'; } $('hDone').textContent = PR.filter((p) => today[p.id]).length + '/5';
+  $('hStreak').textContent = s; { const c = store.get('rs.cam', null); $('hCam').textContent = c && c.det != null ? c.det + '/' + c.tgt : '–'; } $('hDone').textContent = PR.filter((p) => today[p.id]).length + '/5';
   setDates(); if (times.subuh) $('nextName').textContent = pName(nextPrayer().id);
 }
 $('tgrid').onclick = (e) => { const b = e.target.closest('.tc'); if (b) mark(b.dataset.id, !(store.get('rs.log', {})[dayKey()] || {})[b.dataset.id]); };
@@ -85,6 +85,7 @@ const sGet = () => store.get('rs.sn', {});
 const sTgt = (id, k) => Math.min(MAXS, Math.max(1, sGet()[id + '.' + k] ?? SN[id][k]));
 const tgt = () => (kind === 'f' ? PR.find((p) => p.id === pid).r : sTgt(pid, kind));
 const lk = (id = pid, k = kind) => (k === 'f' ? id : id + ':' + k); // kunci catatan harian; wajib memakai id biasa agar streak & panel admin tetap sama
+const busy = () => counter.on || watch.on; // penghitung sensor atau pemantau kamera sedang berjalan
 const doneToday = (key) => !!(store.get('rs.log', {})[dayKey()] || {})[key];
 function pills() {
   const ex = EXTRA.includes(pid), n = ex || kind !== 'f' ? sTgt(pid, kind === 'f' ? 'x' : kind) : 0;
@@ -93,21 +94,28 @@ function pills() {
   $('kindBox').hidden = ex;
   document.querySelectorAll('#kinds button').forEach((b) => { const k = b.dataset.k; b.disabled = k !== 'f' && !SN[pid]?.[k]; b.classList.toggle('on', k === kind); b.classList.toggle('dn', !b.disabled && doneToday(lk(pid, k))); b.setAttribute('aria-selected', k === kind); });
   $('nob').hidden = ex || !!SN[pid]?.b;
-  $('stepBox').hidden = kind === 'f'; if (kind !== 'f') { $('stepTxt').textContent = t('rk.sn.t', { m: MAXS }); $('snN').textContent = n; $('snDn').disabled = counter.on || n <= 1; $('snUp').disabled = counter.on || n >= MAXS; }
+  $('stepBox').hidden = kind === 'f'; if (kind !== 'f') { $('stepTxt').textContent = t('rk.sn.t', { m: MAXS }); $('snN').textContent = n; $('snDn').disabled = busy() || n <= 1; $('snUp').disabled = busy() || n >= MAXS; }
   $('rkSel').textContent = [pName(pid), t('rk.k.' + kind), t('rk.sn.n', { n: tgt() })].join(' · ');
+  /* pilihan shalat yang sama untuk tab Pemantau (kamera) */
+  $('cPills').innerHTML = PR.map((p) => `<button class="pill ${p.id === pid ? 'on' : ''}" data-id="${p.id}">${pName(p.id)}</button>`).join('') + EXTRA.map((id) => `<button class="pill x ${id === pid ? 'on' : ''}" data-id="${id}">${pName(id)}</button>`).join('');
+  $('cKindBox').hidden = ex;
+  document.querySelectorAll('#cKinds button').forEach((b) => { const k = b.dataset.k; b.disabled = k !== 'f' && !SN[pid]?.[k]; b.classList.toggle('on', k === kind); b.setAttribute('aria-selected', k === kind); });
+  $('cStepBox').hidden = kind === 'f'; if (kind !== 'f') { $('cStepTxt').textContent = t('rk.sn.t', { m: MAXS }); $('cSnN').textContent = n; $('cSnDn').disabled = busy() || n <= 1; $('cSnUp').disabled = busy() || n >= MAXS; }
+  $('cSel').textContent = $('rkSel').textContent;
   document.querySelectorAll('#pockets .pk-c').forEach((x) => x.classList.toggle('on', x.dataset.m === mode));
 }
 function setPrayer(id, k) {
-  if (counter.on) return; pid = id;
+  if (busy()) return; pid = id;
   if (EXTRA.includes(id)) kind = 'x'; else { if (k) kind = k; if (kind === 'x' || (kind !== 'f' && !SN[id][kind])) kind = 'f'; }
   finished = false; pills(); refresh();
 }
 const selectCurrent = () => setPrayer((PR.filter((p) => times[p.id] && times[p.id] <= new Date()).pop() || PR[0]).id);
 const pickPrayer = (e) => { const b = e.target.closest('[data-id]'); if (b) setPrayer(b.dataset.id); };
-$('pPills').onclick = pickPrayer; $('xPills').onclick = pickPrayer;
-$('kinds').onclick = (e) => { const b = e.target.closest('[data-k]'); if (!b || b.disabled || counter.on) return; kind = b.dataset.k; finished = false; pills(); refresh(); };
-function snStep(d) { if (counter.on || kind === 'f') return; const c = sGet(); c[pid + '.' + kind] = Math.min(MAXS, Math.max(1, sTgt(pid, kind) + d)); store.set('rs.sn', c); finished = false; pills(); refresh(); }
-$('snUp').onclick = () => snStep(1); $('snDn').onclick = () => snStep(-1);
+$('pPills').onclick = pickPrayer; $('xPills').onclick = pickPrayer; $('cPills').onclick = pickPrayer;
+const pickKind = (e) => { const b = e.target.closest('[data-k]'); if (!b || b.disabled || busy()) return; kind = b.dataset.k; finished = false; pills(); refresh(); };
+$('kinds').onclick = pickKind; $('cKinds').onclick = pickKind;
+function snStep(d) { if (busy() || kind === 'f') return; const c = sGet(); c[pid + '.' + kind] = Math.min(MAXS, Math.max(1, sTgt(pid, kind) + d)); store.set('rs.sn', c); finished = false; pills(); refresh(); }
+$('snUp').onclick = () => snStep(1); $('snDn').onclick = () => snStep(-1); $('cSnUp').onclick = () => snStep(1); $('cSnDn').onclick = () => snStep(-1);
 $('pockets').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b || counter.on) return; mode = b.dataset.m; store.set('rs.pk', mode); pills(); };
 const setPhase = (k, v) => { $('phase').dataset.i = k; $('phase').textContent = t(k, v); };
 const counter = createCounter({
@@ -126,7 +134,7 @@ function refresh(step) {
 let wl = null;
 const keepAwake = async () => { try { wl = (await navigator.wakeLock?.request('screen')) || null; } catch { wl = null; } };
 const letSleep = () => { try { wl?.release(); } catch {} wl = null; };
-document.addEventListener('visibilitychange', () => { if (!document.hidden && counter.on) keepAwake(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && (counter.on || watch.on)) keepAwake(); });
 $('cStart').onclick = async () => {
   if (counter.on) { counter.stop(); letSleep(); setBtn($('cStart'), 'rk.start'); pills(); return; }
   try { finished = false; await counter.start(mode); keepAwake(); pills(); refresh(); setBtn($('cStart'), 'rk.stop'); } catch { toast(t('rk.err')); }
@@ -137,20 +145,14 @@ $('plus').onclick = () => { counter.adjust(1); refresh(true); }; $('minus').oncl
 if (!store.get('rs.gd', 0)) $('guideBtn').classList.add('new');
 $('guideBtn').onclick = () => openGuide(mode); $('homeGuide').onclick = () => openGuide(mode);
 
-/* ---- Koreksi gerakan (kamera) ---- */
-let camOn = false, errs = 0, lastScore = null, camSave = 0;
-const saveCam = () => { if (lastScore == null) return; store.set('rs.cam', { score: lastScore, at: Date.now() }); renderHome(); };
-$('camBtn').onclick = async () => {
-  if (camOn) { stopPose($('video')); camOn = false; clearInterval(camSave); saveCam(); setBtn($('camBtn'), 'cam.start'); return; }
-  setBtn($('camBtn'), 'cam.load'); errs = 0; lastScore = null; $('errs').textContent = 0;
-  try {
-    await startPose($('video'), $('ov'), {
-      posture: (n, bad) => { $('posture').dataset.i = 'po.' + n; $('posture').textContent = t('po.' + n); $('posture').classList.toggle('bad', bad); },
-      score: (s) => { lastScore = s; $('score').textContent = s + '%'; },
-      error: (code) => { errs++; $('errs').textContent = errs; const s = t('cam.warn', { m: t('e.' + code) }); toast(s); speak(s, lang()); navigator.vibrate?.(200); },
-    }); camOn = true; camSave = setInterval(saveCam, 8000); setBtn($('camBtn'), 'rk.stop');
-  } catch { setBtn($('camBtn'), 'cam.start'); toast(t('cam.err')); }
-};
+/* ---- Pemantau rakaat (kamera): HP di lantai depan sejadah, layar hitam, getar/bunyi pengingat bila hitungan janggal ---- */
+const watch = initWatch({
+  target: tgt, label: () => $('rkSel').textContent,
+  busy: () => { if (counter.on) { toast(t('w.busyc')); return true; } return false; },
+  awake: keepAwake, sleep: () => { if (!counter.on) letSleep(); }, lock: () => pills(),
+  saved: () => renderHome(), mark: () => { mark(lk(), true); pills(); },
+});
+$('camGuideBtn').onclick = () => openGuide('cam');
 
 hooks.push(() => { setDates(); renderHome(); pills(); refresh(); });
 setPrayer('subuh'); renderHome(); loadTimes(); syncStats(1500);

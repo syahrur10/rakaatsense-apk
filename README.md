@@ -4,7 +4,7 @@
 
 # RakaatSense
 
-**Asisten salat berbasis AI** — hitung rakaat otomatis lewat sensor HP, koreksi gerakan lewat kamera, jadwal salat, dzikir, dan kiblat.
+**Asisten salat berbasis AI** — hitung rakaat otomatis lewat sensor HP, pantau rakaat lewat kamera (layar hitam) agar tidak lupa, jadwal salat, dzikir, dan kiblat.
 
 `Vite` · `JavaScript murni` · `Firebase Auth + Firestore` · `MediaPipe Pose` · `Capacitor (APK)` · `4 bahasa: ID / EN / AR / MS`
 
@@ -33,8 +33,8 @@
 |---|---|
 | **Jadwal salat 5 waktu** | Berdasarkan GPS, metode Kemenag RI, plus pelacak salat & streak harian. Nama lokasi tampil asli (mis. *Genuksari, Genuk, Semarang*). |
 | **Kalibrasi & penghitung rakaat** | Akselerometer HP menghitung **rukuk / sujud / rakaat** otomatis. Kalibrasi 3 detik. Bisa untuk **shalat wajib** maupun **sunnah** (Qabliyah, Ba'diyah, Dhuha, Tahajud, Witir) dengan **rakaat yang bisa diatur 1–4**. Posisi HP dipilih lewat dua kartu bergambar: **Saku Baju** (hijau) dan **Saku Celana** (biru). Layar dijaga menyala selama penghitungan. |
-| **Panduan animasi** | Tombol **Panduan** (kalibrasi & beranda): animasi orang yang memasukkan HP ke saku, gerakan qiyam–rukuk–sujud–duduk dengan meter kemiringan HP, serta tab *Cara Pakai* dengan tampilan mini aplikasi yang sinkron. 4 bahasa. |
-| **Koreksi gerakan kamera AI** | MediaPipe Pose menilai sudut punggung, lutut, posisi siku, pinggul, dan kepala (tampak samping) + skor gerakan. |
+| **Panduan animasi** | Tombol **Panduan** (kalibrasi & beranda): animasi orang yang memasukkan HP ke saku, gerakan qiyam–rukuk–sujud–duduk dengan meter kemiringan HP, serta tab *Cara Pakai* dengan tampilan mini aplikasi yang sinkron, dan tab **Kamera** (cara meletakkan HP di depan sejadah, simulasi cara kamera menghitung, layar hitam & arti getaran). 4 bahasa. |
+| **Pemantau Rakaat (kamera AI)** | HP diletakkan di lantai **di depan** orang shalat (di atas sejadah, miring menghadap orang). Saat memantau **layar hitam penuh** sehingga tidak mengganggu. Kamera **bukan menilai gerakan**, hanya menghitung rakaat dari naik-turun badan supaya tidak lupa. Pengingat getar / bunyi lembut hanya saat rakaat selesai atau ada yang janggal (rakaat melebihi target, duduk lama sebelum target, badan tidak terlihat). |
 | **Dzikir** | 6 preset, paket dzikir setelah salat, ringkasan harian / mingguan / bulanan / tahunan. |
 | **Kompas kiblat** | 4 mata angin tegak terbaca, skala derajat, penanda Ka'bah, petunjuk "putar kanan/kiri N°", getar saat tepat. |
 | **Login & akun** | Google + Email/Kata sandi, lupa kata sandi, atau lanjut tanpa akun. Data ibadah dipisah per akun. |
@@ -159,7 +159,17 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 - *Saku Baju*: episode miring >50° selama ≥0,5 dtk. Episode ke-1 = rukuk, ke-2/3 = sujud. 3 episode = 1 rakaat.
 - *Saku Celana*: episode paha >25° selama ≥2,5 dtk = 1 rakaat (rasio rukuk:sujud diestimasi 1:2).
 
-**Koreksi kamera** (`src/pose.js`, fungsi `judge()`): sudut punggung/lutut + posisi siku/pinggul/kepala, posisi kamera tampak samping.
+**Pemantau Rakaat kamera** (`src/pose.js`, `src/rakaat.js`, `src/watch.js`): kamera depan melihat orang dari DEPAN. MediaPipe Pose hanya dipakai untuk tiga titik (hidung, bahu, pinggul). Setelah kalibrasi berdiri 2,5 detik, tiap bingkai diubah jadi dua angka: `d` (turunnya bahu dari posisi berdiri, satuan jarak hidung→pinggul) dan `tr` (panjang vertikal bahu→pinggul, kecil saat rukuk). `rakaat.js` (mesin keadaan murni, tanpa DOM) mengubahnya menjadi berdiri / rukuk / duduk / sujud dengan histeresis dan penahan waktu. **1 rakaat = 2 sujud (dipisah duduk), dihitung saat bangkit dari sujud ke-2.** Ambang ada di konstanta `TH` (`rakaat.js`). Bila badan hilang dari bingkai saat turun, dianggap sedang sujud. Alur (`watch.js`): pratinjau + uji gerakan → hitung mundur 10 dtk → kalibrasi → layar hitam memantau (sentuh & tahan 2 dtk untuk berhenti) → ringkasan. Otomatis berhenti 90 dtk setelah target tercapai, atau 3 menit tanpa badan terlihat.
+
+| Pengingat (`watch.js`) | Pola |
+|---|---|
+| Rakaat ke-N selesai | N getar pendek |
+| Rakaat terakhir (target) | 1 getar panjang |
+| Berdiri ≤30 dtk setelah target, atau rukuk setelah target | 3 getar kuat (+ suara) |
+| Duduk >45 dtk padahal belum target | 2 getar sedang |
+| Badan tidak terlihat >20 dtk | 3 getar cepat |
+
+Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Senyap (hanya tanda siap di awal). Video diproses di HP, tidak direkam dan tidak dikirim.
 
 **Kiblat** (`src/qibla.js`): bearing great-circle ke Ka'bah + sensor orientasi.
 
@@ -191,7 +201,9 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 │  ├─ firebase.js          # inisialisasi Firebase & Firestore
 │  ├─ counter.js           # penghitung rakaat (sensor)
 │  ├─ guide.js             # panduan animasi (orang, saku, cara pakai)
-│  ├─ pose.js              # koreksi gerakan kamera (MediaPipe)
+│  ├─ pose.js              # kamera + MediaPipe → ukuran badan (d, tr)
+│  ├─ rakaat.js            # mesin penghitung rakaat dari kamera (murni, bisa diuji)
+│  ├─ watch.js             # alur pemantau: pratinjau, hitung mundur, layar hitam, ringkasan
 │  ├─ qibla.js · dzikir.js # kompas kiblat · dzikir
 │  ├─ i18n.js              # teks 4 bahasa
 │  ├─ icons.js             # ikon SVG kustom + logo
@@ -211,6 +223,7 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.5.0** | Kamera diubah total: dari koreksi gerakan menjadi **Pemantau Rakaat** (HP di depan sejadah, layar hitam, getar/bunyi pengingat bila rakaat janggal, ringkasan hasil). Tab **Kamera** baru di Panduan dengan 3 animasi (letak HP, simulasi hitungan, layar hitam & getaran). Teks 4 bahasa diperbarui |
 | **v1.4.1** | Animasi panduan dihaluskan: badan & anggota tubuh meruncing (bukan tabung), pose berbasis sudut sendi sehingga gerak melengkung, gerak berurutan (kaki → badan → lengan → kepala), napas, kedipan mata |
 | **v1.4** | Shalat sunnah dengan rakaat bisa diatur (maks. 4), kartu Saku Baju/Saku Celana yang berbeda dari pil nama shalat, panduan animasi (orang + HP di saku + cara pakai), layar tetap menyala saat menghitung |
 | **v9** | Logo & ikon: sosok sujud realistis (jubah, peci, tangan, kaki), bulan sabit jadi finial mihrab, animasi splash/masuk yang menyatu dengan logo |
@@ -225,6 +238,6 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 ## Catatan Penting
 
-- Koreksi gerakan adalah **alat bantu**, bukan pengganti guru. Validasikan kriteria gerakan dengan ustadz / guru fikih.
+- Pemantau Rakaat adalah **alat bantu** agar tidak lupa, bukan pengganti ingatan atau ilmu fikih. Ambang deteksi (`TH` di `rakaat.js`) disusun dari geometri tampak depan dan **perlu diuji di HP asli** dengan posisi HP Anda; pratinjau (uji rukuk/sujud sebelum mulai) ada untuk itu.
 - Jangan commit file `.env` (sudah ada di `.gitignore`).
 - Kunci Firebase web memang tampil di sisi klien; keamanan data dijaga oleh `firestore.rules`, jadi pastikan rules sudah di-publish.
