@@ -220,7 +220,15 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 
 /* logo v9: animasi menyatu dengan ilustrasi (splash & layar masuk).
    Mihrab tergambar -> cahaya menyala -> bulan sabit finial muncul -> sosok sujud turun & bernapas pelan; kilau bintang & kilap sajadah berulang halus. */
+<<<<<<< HEAD
 .sp .logo :is(.gl,.fig,.fb,.moon,.sk,.sh),.au-top .logo :is(.gl,.fig,.fb,.moon,.sk,.sh){transform-box:fill-box}
+=======
+<<<<<<< HEAD
+.sp .logo :is(.gl,.fig,.fb,.moon,.sk,.sh),.au-top .logo :is(.gl,.fig,.fb,.moon,.sk,.sh){transform-box:fill-box}
+=======
+.sp .logo *,.au-top .logo *{transform-box:fill-box}
+>>>>>>> d8ad076f73abecbf911a3e581a339e7e5bc61a0b
+>>>>>>> 7a1833c0e0c1e11faaaf997b5b033749335de746
 .sp .logo .ar,.au-top .logo .ar{stroke-dasharray:1;stroke-dashoffset:1;animation:rsdraw 1.05s .05s cubic-bezier(.45,.05,.25,1) forwards}
 .sp .logo .gl,.au-top .logo .gl{transform-origin:50% 50%;animation:rsglin 1s ease-out both,rsglow 5.2s 1s ease-in-out infinite}
 .sp .logo .fig,.au-top .logo .fig{animation:rsrise .95s .3s cubic-bezier(.2,.8,.2,1) both}
