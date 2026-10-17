@@ -211,6 +211,7 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.4.1** | Animasi panduan dihaluskan: badan & anggota tubuh meruncing (bukan tabung), pose berbasis sudut sendi sehingga gerak melengkung, gerak berurutan (kaki → badan → lengan → kepala), napas, kedipan mata |
 | **v1.4** | Shalat sunnah dengan rakaat bisa diatur (maks. 4), kartu Saku Baju/Saku Celana yang berbeda dari pil nama shalat, panduan animasi (orang + HP di saku + cara pakai), layar tetap menyala saat menghitung |
 | **v9** | Logo & ikon: sosok sujud realistis (jubah, peci, tangan, kaki), bulan sabit jadi finial mihrab, animasi splash/masuk yang menyatu dengan logo |
 | v7 | Logo sujud didesain ulang (mihrab, sajadah berpola, titik sensor berdenyut), README dirombak + info akun admin |
