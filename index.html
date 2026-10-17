@@ -54,6 +54,7 @@
   <div class="feat">
     <button class="fcard" data-go="rk"><span class="fi" data-ic="calib" data-s="28"></span><span class="ft"><b data-i="f.rk.t"></b><small data-i="f.rk.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
     <button class="fcard cam" data-go="cam"><span class="fi" data-ic="scan" data-s="28"></span><span class="ft"><b data-i="f.cam.t"></b><small data-i="f.cam.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
+    <button class="fcard guide" id="homeGuide"><span class="fi" data-ic="help" data-s="28"></span><span class="ft"><b data-i="f.gd.t"></b><small data-i="f.gd.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
   </div>
   <div class="steps"><div><i>1</i><span data-i="st.1"></span></div><div><i>2</i><span data-i="st.2"></span></div><div><i>3</i><span data-i="st.3"></span></div></div>
   <div class="menu two">
@@ -77,9 +78,21 @@
 </section>
 
 <section id="rk" class="tab">
-  <h2 class="ttl" data-i="rk.title"></h2>
-  <div class="pills" id="pPills"></div>
-  <div class="pills sm" id="pockets"><button class="pill on" data-m="shirt" data-i="rk.shirt"></button><button class="pill" data-m="pants" data-i="rk.pants"></button></div>
+  <div class="rk-head"><h2 class="ttl" data-i="rk.title"></h2><button class="gd-btn" id="guideBtn"><span data-ic="help" data-s="18"></span><span data-i="gd.btn"></span></button></div>
+  <span class="glbl" data-i="rk.g.pray"></span>
+  <div class="pills wrap" id="pPills"></div>
+  <span class="glbl" data-i="rk.g.more"></span>
+  <div class="pills wrap" id="xPills"></div>
+  <div id="kindBox"><span class="glbl" data-i="rk.g.kind"></span>
+    <div class="seg" id="kinds" role="tablist"><button type="button" data-k="f" data-i="rk.k.f"></button><button type="button" data-k="q" data-i="rk.k.q"></button><button type="button" data-k="b" data-i="rk.k.b"></button></div>
+    <small class="mute nob" id="nob" data-i="rk.sn.nob" hidden></small></div>
+  <div class="stepper" id="stepBox" hidden><span id="stepTxt"></span><button type="button" id="snDn" data-ic="minus" data-s="20" data-ia="rk.sn.dn"></button><b id="snN">2</b><button type="button" id="snUp" data-ic="plus" data-s="20" data-ia="rk.sn.up"></button></div>
+  <span class="glbl" data-i="rk.g.pocket"></span>
+  <div class="pk" id="pockets">
+    <button type="button" class="pk-c on" data-m="shirt"><span class="pk-art" data-art="shirt"></span><b data-i="rk.shirt"></b><small data-i="rk.shirt.d"></small></button>
+    <button type="button" class="pk-c" data-m="pants"><span class="pk-art" data-art="pants"></span><b data-i="rk.pants"></b><small data-i="rk.pants.d"></small></button>
+  </div>
+  <b class="rk-sel" id="rkSel"></b>
   <div class="circle big" id="cBig"><small data-i="rk.ruku"></small><b id="ruku">0</b><span id="rukuT">/ 2</span></div>
   <div class="circle sm" id="cSm"><small data-i="rk.sujud"></small><b id="sujud">0</b><span id="sujudT">/ 4</span></div>
   <p class="status" id="phase" data-i="rk.intro"></p>

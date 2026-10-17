@@ -32,7 +32,8 @@
 | Fitur | Keterangan |
 |---|---|
 | **Jadwal salat 5 waktu** | Berdasarkan GPS, metode Kemenag RI, plus pelacak salat & streak harian. Nama lokasi tampil asli (mis. *Genuksari, Genuk, Semarang*). |
-| **Kalibrasi & penghitung rakaat** | Akselerometer HP menghitung **rukuk / sujud / rakaat** otomatis. Mode **Saku Baju** dan **Saku Celana**. Kalibrasi 3 detik. |
+| **Kalibrasi & penghitung rakaat** | Akselerometer HP menghitung **rukuk / sujud / rakaat** otomatis. Kalibrasi 3 detik. Bisa untuk **shalat wajib** maupun **sunnah** (Qabliyah, Ba'diyah, Dhuha, Tahajud, Witir) dengan **rakaat yang bisa diatur 1–4**. Posisi HP dipilih lewat dua kartu bergambar: **Saku Baju** (hijau) dan **Saku Celana** (biru). Layar dijaga menyala selama penghitungan. |
+| **Panduan animasi** | Tombol **Panduan** (kalibrasi & beranda): animasi orang yang memasukkan HP ke saku, gerakan qiyam–rukuk–sujud–duduk dengan meter kemiringan HP, serta tab *Cara Pakai* dengan tampilan mini aplikasi yang sinkron. 4 bahasa. |
 | **Koreksi gerakan kamera AI** | MediaPipe Pose menilai sudut punggung, lutut, posisi siku, pinggul, dan kepala (tampak samping) + skor gerakan. |
 | **Dzikir** | 6 preset, paket dzikir setelah salat, ringkasan harian / mingguan / bulanan / tahunan. |
 | **Kompas kiblat** | 4 mata angin tegak terbaca, skala derajat, penanda Ka'bah, petunjuk "putar kanan/kiri N°", getar saat tepat. |
@@ -152,6 +153,8 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 ## Cara Kerja Metode
 
+**Shalat sunnah** (`src/app.js`, konstanta `SN`, `EXTRA`, `MAXS`): rakaat bawaan per shalat bisa diubah 1–`MAXS` (4) lewat stepper dan disimpan per akun (`rs.sn`). Setelah Subuh dan Ashar tidak ada Ba'diyah. Catatan selesai disimpan di log harian dengan kunci terpisah (`subuh:q`, `dzuhur:b`, `dhuha:x`), jadi streak dan panel admin yang hanya membaca 5 shalat wajib tidak berubah.
+
 **Penghitung rakaat** (`src/counter.js`): sudut gravitasi dengan kalibrasi 3 detik. Ambang ada di konstanta `TH`.
 - *Saku Baju*: episode miring >50° selama ≥0,5 dtk. Episode ke-1 = rukuk, ke-2/3 = sujud. 3 episode = 1 rakaat.
 - *Saku Celana*: episode paha >25° selama ≥2,5 dtk = 1 rakaat (rasio rukuk:sujud diestimasi 1:2).
@@ -187,6 +190,7 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 │  ├─ config.js            # mode online, daftar admin, LOCAL_ADMIN
 │  ├─ firebase.js          # inisialisasi Firebase & Firestore
 │  ├─ counter.js           # penghitung rakaat (sensor)
+│  ├─ guide.js             # panduan animasi (orang, saku, cara pakai)
 │  ├─ pose.js              # koreksi gerakan kamera (MediaPipe)
 │  ├─ qibla.js · dzikir.js # kompas kiblat · dzikir
 │  ├─ i18n.js              # teks 4 bahasa
@@ -207,6 +211,7 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.4** | Shalat sunnah dengan rakaat bisa diatur (maks. 4), kartu Saku Baju/Saku Celana yang berbeda dari pil nama shalat, panduan animasi (orang + HP di saku + cara pakai), layar tetap menyala saat menghitung |
 | **v9** | Logo & ikon: sosok sujud realistis (jubah, peci, tangan, kaki), bulan sabit jadi finial mihrab, animasi splash/masuk yang menyatu dengan logo |
 | v7 | Logo sujud didesain ulang (mihrab, sajadah berpola, titik sensor berdenyut), README dirombak + info akun admin |
 | v6 | Beranda fokus *Kalibrasi & Kamera AI*, skor gerakan kamera, navigasi bawah baru |
