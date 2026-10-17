@@ -71,3 +71,9 @@ export function draw(ctx, r) {
   [[r.ls, r.rs], [r.ls, r.lh], [r.rs, r.rh], [r.lh, r.rh]].forEach(([a, b]) => { if (ok(a) && ok(b)) { ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); } }); ctx.stroke();
   pts.forEach((a) => { ctx.beginPath(); ctx.arc(a.x, a.y, 7, 0, 7); ctx.fillStyle = ok(a) ? '#4ade80' : '#ff5a5f'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); });
 }
+
+/** Kamera ringan tanpa model AI (dipakai Mode Datar: HP rebah di sejadah, kamera menghadap atas). */
+export async function openRaw(video) {
+  stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 160 }, height: { ideal: 120 } }, audio: false });
+  video.srcObject = stream; await video.play();
+}

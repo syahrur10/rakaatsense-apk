@@ -171,6 +171,8 @@ Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-asset
 
 Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Senyap (hanya tanda siap di awal). Video diproses di HP, tidak direkam dan tidak dikirim.
 
+**Mode Datar** (`src/flat.js`): kamera depan menghadap langit-langit, bingkai diperkecil jadi 32×24 dan dirata-rata kecerahannya. Setelah kalibrasi 1,5 dtk, turunnya kecerahan >35% selama ≥0,35 dtk = satu sujud (keluar saat turun <20% selama ≥0,6 dtk); 2 sujud = 1 rakaat. Sujud ke-(2×target+1) memicu peringatan rakaat tambahan, dan tidak ada sujud 45 dtk sebelum target memicu peringatan "baru N dari M". Berdiri/rukuk tidak terbaca. Ambang ada di konstanta `TH` (`flat.js`) dan **perlu diuji di HP asli**, terutama di ruangan gelap.
+
 **Kiblat** (`src/qibla.js`): bearing great-circle ke Ka'bah + sensor orientasi.
 
 **Lokasi** (`src/util.js`): reverse geocoding OpenStreetMap Nominatim, cadangan BigDataCloud, di-cache per ~100 m. Ketuk nama lokasi untuk memperbarui (butuh internet).
@@ -223,6 +225,7 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.6.0** | **Mode Datar** untuk Pemantau Rakaat: HP direbahkan di sejadah (layar ke atas, sedikit di depan tempat dahi), tanpa penyangga dan tanpa model AI; sujud dibaca dari kamera yang tertutup (`src/flat.js`). Mode sebelumnya dinamai **Mode Tegak**. Pilihan mode ada di layar Pantau |
 | **v1.5.0** | Kamera diubah total: dari koreksi gerakan menjadi **Pemantau Rakaat** (HP di depan sejadah, layar hitam, getar/bunyi pengingat bila rakaat janggal, ringkasan hasil). Tab **Kamera** baru di Panduan dengan 3 animasi (letak HP, simulasi hitungan, layar hitam & getaran). Teks 4 bahasa diperbarui |
 | **v1.4.1** | Animasi panduan dihaluskan: badan & anggota tubuh meruncing (bukan tabung), pose berbasis sudut sendi sehingga gerak melengkung, gerak berurutan (kaki → badan → lengan → kepala), napas, kedipan mata |
 | **v1.4** | Shalat sunnah dengan rakaat bisa diatur (maks. 4), kartu Saku Baju/Saku Celana yang berbeda dari pil nama shalat, panduan animasi (orang + HP di saku + cara pakai), layar tetap menyala saat menghitung |

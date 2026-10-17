@@ -366,3 +366,6 @@ body.watching .toast{display:none!important}
 .cw-cnt{flex-wrap:wrap;justify-content:center}.cw-cnt em,.cw-cnt span{white-space:nowrap}
 .stage.calert .sv svg{max-height:185px}
 #cKinds,#cNotif{grid-template-columns:repeat(3,1fr)}
+
+/* Mode Datar: pratinjau hanya menampilkan kamera menghadap atas, tanpa titik badan */
+.cambox.flat canvas,.cambox.flat .cam-chips{display:none}

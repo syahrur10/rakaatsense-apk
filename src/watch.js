@@ -3,8 +3,9 @@
  *  dan hanya berbunyi saat rakaat selesai atau ada yang janggal (rakaat berlebih, terlalu lama duduk sebelum target, badan tidak terlihat). */
 import { $, toast, speak, store } from './util.js';
 import { t, lang, hooks } from './i18n.js';
-import { openCamera, closeCamera, read, parts, full, createCalibrator, feature, draw } from './pose.js';
+import { openCamera, openRaw, closeCamera, read, parts, full, createCalibrator, feature, draw } from './pose.js';
 import { createTracker } from './rakaat.js';
+import { readLuma, createLumaCalibrator, createFlatTracker } from './flat.js';
 
 const COUNTDOWN = 10, STEP = 90, HOLD_EXIT = 1800, DARK_AFTER = 6000, DONE_AFTER = 90000, AWAY_AFTER = 180000, MAX_RUN = 90 * 60000;
 
@@ -36,16 +37,21 @@ function cue(kind, e = {}) {
 /** @param {{target:()=>number, label:()=>string, busy:()=>boolean, awake:()=>void, sleep:()=>void, lock:()=>void, saved:(r:object)=>void, mark:()=>void}} cx */
 export function initWatch(cx) {
   const V = $('video'), CV = $('ov'), G = CV.getContext('2d'), OV = $('watch');
-  let phase = 'idle', raf = 0, last = 0, cal = createCalibrator(), pvBase = null, pvTr = null, pvGone = 0, tr = null, base = null, target = 1;
+  let flat = store.get('rs.cm', 'tegak') === 'datar', lcal = createLumaCalibrator(), phase = 'idle', raf = 0, last = 0, cal = createCalibrator(), pvBase = null, pvTr = null, pvGone = 0, tr = null, base = null, target = 1;
   let cdEnd = 0, lastSec = 0, calT = 0, calWarn = 0, startT = 0, darkT = 0, holdTm = 0, log = [], lastExtra = -1e9, res = null;
   const texts = new Set();
   const say = (el, key, v) => { el._k = [key, v]; texts.add(el); el.textContent = t(key, v); };
-  hooks.push(() => { texts.forEach((e) => e._k && (e.textContent = t(...e._k))); if (phase === 'sum') renderSum(); seg(); });
+  hooks.push(() => { texts.forEach((e) => e._k && (e.textContent = t(...e._k))); if (phase === 'sum') renderSum(); seg(); segM(); });
 
   /* ---- pilihan pengingat ---- */
   const seg = () => document.querySelectorAll('#cNotif button').forEach((b) => b.classList.toggle('on', b.dataset.n === mode()));
   $('cNotif').onclick = (e) => { const b = e.target.closest('[data-n]'); if (!b || cx.busy()) return; store.set('rs.cn', b.dataset.n); seg(); if (b.dataset.n !== 'off') { cue('rakaat', { n: 1 }); if (b.dataset.n === 'snd') tone(520, 0.14, 0.05); } };
   seg();
+
+  /* ---- pilihan mode: Tegak (HP berdiri miring di depan, AI badan) / Datar (HP rebah di sejadah, kamera menghadap atas) ---- */
+  const segM = () => { document.querySelectorAll('#cMode button').forEach((b) => b.classList.toggle('on', (b.dataset.m === 'datar') === flat)); say($('cModeHint'), flat ? 'cam.m.h.datar' : 'cam.m.h.tegak'); };
+  $('cMode').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b || cx.busy()) return; flat = b.dataset.m === 'datar'; store.set('rs.cm', b.dataset.m); segM(); };
+  segM();
 
   /* ---- tampilan ---- */
   const show = (setup, box, prev, sum) => { $('camSetup').hidden = !setup; $('camBox').hidden = !box; $('camPrev').hidden = !prev; $('camSum').hidden = !sum; };
@@ -55,12 +61,20 @@ export function initWatch(cx) {
 
   function loop() {
     raf = requestAnimationFrame(loop); const now = performance.now(); if (now - last < STEP) return; last = now;
-    const r = read(V); if (r === undefined) return; // bingkai belum siap
+    const r = flat ? readLuma(V) : read(V); if (r === undefined) return; // bingkai belum siap
     if (phase === 'preview') preview(now, r); else if (phase === 'count') count(now); else if (phase === 'calib') calib(now, r); else if (phase === 'watch') watching(now, r);
   }
 
   /* 1. Pratinjau: cek penempatan HP + uji gerakan (dry-run, hasilnya tidak disimpan) */
+  function previewFlat(now, L) { // Mode Datar: kalibrasi kecerahan lalu uji sujud (tutup kamera dengan kepala/tangan)
+    if (!pvBase) {
+      const c = lcal.add(now, L); say($('camMsg'), 'cam.f.find'); $('posture').classList.remove('bad'); say($('posture'), 'cam.p.measb', { n: Math.round(c.progress * 100) });
+      if (c.base) { pvBase = c.base; pvTr = createFlatTracker({ target: 99, base: c.base }); cue('ready'); } return;
+    }
+    pvTr.feed(now, L); setPosture(pvTr.state === 'sujud' ? 'sujud' : 'stand'); say($('camMsg'), 'cam.f.test'); say($('camCnt'), 'cam.p.cnt', { s: pvTr.sujud });
+  }
   function preview(now, r) {
+    if (flat) return previewFlat(now, r);
     if (CV.width !== V.videoWidth) { CV.width = V.videoWidth; CV.height = V.videoHeight; }
     draw(G, r); const p = parts(r); chips(p);
     if (!pvBase) {
@@ -77,10 +91,11 @@ export function initWatch(cx) {
   /* 2. Hitung mundur di layar hitam: orang bergerak ke tempat shalat dan berdiri tegak */
   function count(now) {
     const s = Math.max(0, Math.ceil((cdEnd - now) / 1000)); if (s !== lastSec) { lastSec = s; $('wBig').textContent = s; if (s > 0 && s <= 3) cue('tick'); }
-    if (now >= cdEnd) { phase = 'calib'; cal.reset(); calT = now; calWarn = now; say($('wTxt'), 'w.cal'); $('wBig').textContent = ''; }
+    if (now >= cdEnd) { phase = 'calib'; cal.reset(); lcal.reset(); calT = now; calWarn = now; say($('wTxt'), flat ? 'cam.f.cal' : 'w.cal'); $('wBig').textContent = ''; }
   }
   /* 3. Kalibrasi posisi berdiri 2,5 detik */
   function calib(now, r) {
+    if (flat) { const c = lcal.add(now, r); $('wBig').textContent = c.progress ? Math.max(1, Math.ceil((1 - c.progress) * 2)) : ''; if (c.base != null) { base = c.base; startMonitor(now); } return; }
     const c = cal.add(now, r); $('wBig').textContent = c.progress ? Math.max(1, Math.ceil((1 - c.progress) * 3)) : '';
     if (c.base) { base = c.base; startMonitor(now); return; }
     if (!full(r) && now - calWarn > 8000 && now - calT > 8000) { calWarn = now; cue('lost'); say($('wTxt'), 'w.nobody'); }
@@ -88,12 +103,12 @@ export function initWatch(cx) {
   /* 4. Memantau: layar hitam penuh */
   function startMonitor(now) {
     phase = 'watch'; startT = now; darkT = now + DARK_AFTER; log = [{ at: 0, k: 'start' }]; lastExtra = -1e9;
-    tr = createTracker({ target, onEvent: (e) => onEv(e, performance.now()) });
+    const onEvent = (e) => onEv(e, performance.now()); tr = flat ? createFlatTracker({ target, base, onEvent }) : createTracker({ target, onEvent });
     say($('wTxt'), 'w.ready'); $('wBig').textContent = ''; cue('ready');
   }
   function watching(now, r) {
     if (now > darkT) OV.classList.add('dark');
-    tr.feed(now, r ? feature(r, base) : null);
+    tr.feed(now, flat ? r : r ? feature(r, base) : null);
     if (tr.rakaat >= target && now - tr.lastRakaatT > DONE_AFTER) finish('done');
     else if (tr.unseenFor(now) > AWAY_AFTER) finish('away');
     else if (now - startT > MAX_RUN) finish('max');
@@ -113,9 +128,9 @@ export function initWatch(cx) {
   async function toPreview() {
     if (cx.busy()) return;
     $('camBtn').disabled = true; say($('camBtn'), 'cam.load');
-    try { await openCamera(V); } catch { $('camBtn').disabled = false; btn('cam.start'); toast(t('cam.err')); return; }
-    $('camBtn').disabled = false; phase = 'preview'; pvBase = null; pvTr = null; pvGone = 0; cal.reset(); cx.awake(); cx.lock();
-    show(false, true, true, false); chips({}); setPosture('none', true); say($('camMsg'), 'cam.p.find'); say($('camCnt'), 'cam.p.cnt', { s: 0 }); btn('cam.go', true);
+    try { await (flat ? openRaw(V) : openCamera(V)); } catch { $('camBtn').disabled = false; btn('cam.start'); toast(t('cam.err')); return; }
+    $('camBtn').disabled = false; phase = 'preview'; $('camBox').classList.toggle('flat', flat); lcal.reset(); pvBase = null; pvTr = null; pvGone = 0; cal.reset(); cx.awake(); cx.lock();
+    show(false, true, true, false); chips({}); setPosture('none', true); say($('camMsg'), flat ? 'cam.f.find' : 'cam.p.find'); say($('camCnt'), 'cam.p.cnt', { s: 0 }); btn('cam.go', true);
     last = 0; raf = requestAnimationFrame(loop);
   }
   function toCount() {
