@@ -8,6 +8,7 @@ import { openGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
 import { addSession, render as renderReport } from './report.js';
 import './qibla.js';
+import './dzikir.js';
 
 const PR = [{ id: 'subuh', k: 'Fajr', r: 2, i: 'sunrise' }, { id: 'dzuhur', k: 'Dhuhr', r: 4, i: 'sun' }, { id: 'ashar', k: 'Asr', r: 4, i: 'afternoon' }, { id: 'maghrib', k: 'Maghrib', r: 3, i: 'sunset' }, { id: 'isya', k: 'Isha', r: 4, i: 'moon' }];
 const setBtn = (el, k) => { el.dataset.i = k; el.textContent = t(k); }, pName = (id) => nameOf(id);
