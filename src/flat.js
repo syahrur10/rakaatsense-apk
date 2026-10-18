@@ -1,5 +1,5 @@
-/** flat.js — MODE DATAR: HP rebah di sejadah (layar ke atas), kamera depan menghadap langit-langit. Tanpa AI/MediaPipe.
- *  Sujud = kamera tertutup kepala/badan → bingkai menggelap dibanding baseline. 2 sujud (dipisah duduk) = 1 rakaat.
+/** flat.js — MODE DATAR: HP rebah di sejadah SEJAJAR DADA (di bawah dada saat sujud), layar ke atas, kamera depan menghadap langit-langit. Tanpa AI/MediaPipe.
+ *  Sujud = dada (dan badan) menutupi kamera → bingkai menggelap dibanding baseline. 2 sujud (dipisah duduk) = 1 rakaat.
  *  Murni dan ringan; bingkai hanya dikecilkan jadi 32×24 untuk menghitung rata-rata kecerahan, tidak direkam/dikirim. */
 let g = null; // kanvas kecil dibuat saat pertama dipakai (modul tetap bisa diuji di Node)
 
