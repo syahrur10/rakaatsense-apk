@@ -5,10 +5,12 @@ import { ic, mount, scanDeco } from './icons.js';
 import { createCounter } from './counter.js';
 import { initWatch } from './watch.js';
 import { openGuide } from './guide.js';
+import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
+import { addSession, render as renderReport } from './report.js';
 import './qibla.js';
 
 const PR = [{ id: 'subuh', k: 'Fajr', r: 2, i: 'sunrise' }, { id: 'dzuhur', k: 'Dhuhr', r: 4, i: 'sun' }, { id: 'ashar', k: 'Asr', r: 4, i: 'afternoon' }, { id: 'maghrib', k: 'Maghrib', r: 3, i: 'sunset' }, { id: 'isya', k: 'Isha', r: 4, i: 'moon' }];
-const setBtn = (el, k) => { el.dataset.i = k; el.textContent = t(k); }, pName = (id) => t('p.' + id);
+const setBtn = (el, k) => { el.dataset.i = k; el.textContent = t(k); }, pName = (id) => nameOf(id);
 
 /* ---- Bahasa, ikon, splash ---- */
 $('lang').innerHTML = Object.entries(LANGS).map(([k, [n]]) => `<option value="${k}" title="${n}" ${k === lang() ? 'selected' : ''}>${k.toUpperCase()}</option>`).join('');
@@ -42,7 +44,7 @@ function setDates() {
 /* ---- Navigasi ---- */
 let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
-function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); }
+function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 $('bell').onclick = async () => toast(t(('Notification' in window && (await Notification.requestPermission()) === 'granted') ? 'n.on' : 'n.off'), true);
 
@@ -78,43 +80,44 @@ setInterval(() => {
 /* ---- Penghitung rakaat (wajib + sunnah dengan rakaat yang bisa diatur) ---- */
 /** Bawaan rakaat sunnah per shalat (q = qabliyah, b = ba'diyah, x = sunnah lain). Bisa diubah pengguna 1..MAXS dan disimpan per akun ('rs.sn'). */
 const SN = { subuh: { q: 2 }, dzuhur: { q: 4, b: 2 }, ashar: { q: 4 }, maghrib: { q: 2, b: 2 }, isya: { q: 2, b: 2 }, dhuha: { x: 2 }, tahajud: { x: 2 }, witir: { x: 3 } };
-const EXTRA = ['dhuha', 'tahajud', 'witir'], MAXS = 4;
-let mode = store.get('rs.pk', 'shirt'), pid = 'subuh', kind = 'f', finished = false;
+const MAXS = 4, maxOf = (id) => (isCustom(id) ? MAXC : MAXS), snDef = (id, k) => SN[id]?.[k] ?? customs().find((c) => c.id === id)?.r ?? 2; // shalat buatan sendiri: maks. MAXC rakaat
+let mode = store.get('rs.pk', 'shirt'), pid = 'subuh', kind = 'f', finished = false, sSid = null;
 if (mode !== 'shirt' && mode !== 'pants') mode = 'shirt';
 const sGet = () => store.get('rs.sn', {});
-const sTgt = (id, k) => Math.min(MAXS, Math.max(1, sGet()[id + '.' + k] ?? SN[id][k]));
+const sTgt = (id, k) => Math.min(maxOf(id), Math.max(1, sGet()[id + '.' + k] ?? snDef(id, k)));
 const tgt = () => (kind === 'f' ? PR.find((p) => p.id === pid).r : sTgt(pid, kind));
 const lk = (id = pid, k = kind) => (k === 'f' ? id : id + ':' + k); // kunci catatan harian; wajib memakai id biasa agar streak & panel admin tetap sama
 const busy = () => counter.on || watch.on; // penghitung sensor atau pemantau kamera sedang berjalan
 const doneToday = (key) => !!(store.get('rs.log', {})[dayKey()] || {})[key];
 function pills() {
-  const ex = EXTRA.includes(pid), n = ex || kind !== 'f' ? sTgt(pid, kind === 'f' ? 'x' : kind) : 0;
+  const ex = isX(pid), xs = [...EXTRA, ...customs().map((c) => c.id)], addBtn = `<button type="button" class="pill add" data-add="1">${esc(t('cp.add'))}</button>`, n = ex || kind !== 'f' ? sTgt(pid, kind === 'f' ? 'x' : kind) : 0;
   $('pPills').innerHTML = PR.map((p) => `<button class="pill ${p.id === pid ? 'on' : ''}" data-id="${p.id}">${pName(p.id)}</button>`).join('');
-  $('xPills').innerHTML = EXTRA.map((id) => `<button class="pill x ${id === pid ? 'on' : ''} ${doneToday(id + ':x') ? 'dn' : ''}" data-id="${id}">${pName(id)}</button>`).join('');
+  $('xPills').innerHTML = xs.map((id) => `<button class="pill x ${id === pid ? 'on' : ''} ${doneToday(id + ':x') ? 'dn' : ''}" data-id="${id}">${esc(pName(id))}</button>`).join('') + addBtn;
   $('kindBox').hidden = ex;
   document.querySelectorAll('#kinds button').forEach((b) => { const k = b.dataset.k; b.disabled = k !== 'f' && !SN[pid]?.[k]; b.classList.toggle('on', k === kind); b.classList.toggle('dn', !b.disabled && doneToday(lk(pid, k))); b.setAttribute('aria-selected', k === kind); });
   $('nob').hidden = ex || !!SN[pid]?.b;
-  $('stepBox').hidden = kind === 'f'; if (kind !== 'f') { $('stepTxt').textContent = t('rk.sn.t', { m: MAXS }); $('snN').textContent = n; $('snDn').disabled = busy() || n <= 1; $('snUp').disabled = busy() || n >= MAXS; }
+  $('stepBox').hidden = kind === 'f'; if (kind !== 'f') { $('stepTxt').textContent = t('rk.sn.t', { m: maxOf(pid) }); $('snN').textContent = n; $('snDn').disabled = busy() || n <= 1; $('snUp').disabled = busy() || n >= maxOf(pid); }
   $('rkSel').textContent = [pName(pid), t('rk.k.' + kind), t('rk.sn.n', { n: tgt() })].join(' · ');
   /* pilihan shalat yang sama untuk tab Pemantau (kamera) */
-  $('cPills').innerHTML = PR.map((p) => `<button class="pill ${p.id === pid ? 'on' : ''}" data-id="${p.id}">${pName(p.id)}</button>`).join('') + EXTRA.map((id) => `<button class="pill x ${id === pid ? 'on' : ''}" data-id="${id}">${pName(id)}</button>`).join('');
+  $('cPills').innerHTML = PR.map((p) => `<button class="pill ${p.id === pid ? 'on' : ''}" data-id="${p.id}">${pName(p.id)}</button>`).join('') + xs.map((id) => `<button class="pill x ${id === pid ? 'on' : ''}" data-id="${id}">${esc(pName(id))}</button>`).join('') + addBtn;
+  document.querySelectorAll('.cp-act').forEach((e) => (e.hidden = !isCustom(pid)));
   $('cKindBox').hidden = ex;
   document.querySelectorAll('#cKinds button').forEach((b) => { const k = b.dataset.k; b.disabled = k !== 'f' && !SN[pid]?.[k]; b.classList.toggle('on', k === kind); b.setAttribute('aria-selected', k === kind); });
-  $('cStepBox').hidden = kind === 'f'; if (kind !== 'f') { $('cStepTxt').textContent = t('rk.sn.t', { m: MAXS }); $('cSnN').textContent = n; $('cSnDn').disabled = busy() || n <= 1; $('cSnUp').disabled = busy() || n >= MAXS; }
+  $('cStepBox').hidden = kind === 'f'; if (kind !== 'f') { $('cStepTxt').textContent = t('rk.sn.t', { m: maxOf(pid) }); $('cSnN').textContent = n; $('cSnDn').disabled = busy() || n <= 1; $('cSnUp').disabled = busy() || n >= maxOf(pid); }
   $('cSel').textContent = $('rkSel').textContent;
   document.querySelectorAll('#pockets .pk-c').forEach((x) => x.classList.toggle('on', x.dataset.m === mode));
 }
 function setPrayer(id, k) {
-  if (busy()) return; pid = id;
-  if (EXTRA.includes(id)) kind = 'x'; else { if (k) kind = k; if (kind === 'x' || (kind !== 'f' && !SN[id][kind])) kind = 'f'; }
+  if (busy()) return; pid = id; sSid = null;
+  if (isX(id)) kind = 'x'; else { if (k) kind = k; if (kind === 'x' || (kind !== 'f' && !SN[id][kind])) kind = 'f'; }
   finished = false; pills(); refresh();
 }
 const selectCurrent = () => setPrayer((PR.filter((p) => times[p.id] && times[p.id] <= new Date()).pop() || PR[0]).id);
-const pickPrayer = (e) => { const b = e.target.closest('[data-id]'); if (b) setPrayer(b.dataset.id); };
+const pickPrayer = (e) => { if (e.target.closest('[data-add]')) { if (!busy()) cpShow(null); return; } const b = e.target.closest('[data-id]'); if (b) setPrayer(b.dataset.id); };
 $('pPills').onclick = pickPrayer; $('xPills').onclick = pickPrayer; $('cPills').onclick = pickPrayer;
 const pickKind = (e) => { const b = e.target.closest('[data-k]'); if (!b || b.disabled || busy()) return; kind = b.dataset.k; finished = false; pills(); refresh(); };
 $('kinds').onclick = pickKind; $('cKinds').onclick = pickKind;
-function snStep(d) { if (busy() || kind === 'f') return; const c = sGet(); c[pid + '.' + kind] = Math.min(MAXS, Math.max(1, sTgt(pid, kind) + d)); store.set('rs.sn', c); finished = false; pills(); refresh(); }
+function snStep(d) { if (busy() || kind === 'f') return; const c = sGet(); c[pid + '.' + kind] = Math.min(maxOf(pid), Math.max(1, sTgt(pid, kind) + d)); store.set('rs.sn', c); finished = false; pills(); refresh(); }
 $('snUp').onclick = () => snStep(1); $('snDn').onclick = () => snStep(-1); $('cSnUp').onclick = () => snStep(1); $('cSnDn').onclick = () => snStep(-1);
 $('pockets').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b || counter.on) return; mode = b.dataset.m; store.set('rs.pk', mode); pills(); };
 const setPhase = (k, v) => { $('phase').dataset.i = k; $('phase').textContent = t(k, v); };
@@ -124,8 +127,10 @@ const counter = createCounter({
   onAngle: (a) => { $('ang').style.width = Math.min(100, a / 90 * 100) + '%'; $('angTxt').textContent = Math.round(a); setPhase(counter.phase()); },
   onStep: () => { navigator.vibrate?.(120); refresh(true); },
 });
+const repKey = () => ({ key: lk(), nm: isCustom(pid) ? nameOf(pid) : undefined }); // nama disimpan di laporan supaya tetap terbaca bila shalat buatan sendiri dihapus
 function refresh(step) {
-  const r = counter.rakaat(), tg = tgt(); $('ruku').textContent = counter.ruku(); $('rukuT').textContent = '/ ' + tg; $('sujud').textContent = counter.sujud(); $('sujudT').textContent = '/ ' + tg * 2; $('rakaat').textContent = r;
+  const r = counter.rakaat(), tg = tgt();
+  if (sSid) addSession({ sid: sSid, ...repKey(), src: 'sensor', det: r, tgt: tg, sujud: counter.sujud(), ev: {} }); $('ruku').textContent = counter.ruku(); $('rukuT').textContent = '/ ' + tg; $('sujud').textContent = counter.sujud(); $('sujudT').textContent = '/ ' + tg * 2; $('rakaat').textContent = r;
   if (!step) return; ['cBig', 'cSm'].forEach((id) => { $(id).classList.remove('pop'); void $(id).offsetWidth; $(id).classList.add('pop'); });
   if (r >= tg && !finished) { finished = true; beep(990); navigator.vibrate?.([200, 100, 200]); toast(t('rk.done', { n: tg }), true); mark(lk(), true); pills(); }
   else if (r > tg) toast(t('rk.over', { n: tg }));
@@ -137,7 +142,7 @@ const letSleep = () => { try { wl?.release(); } catch {} wl = null; };
 document.addEventListener('visibilitychange', () => { if (!document.hidden && (counter.on || watch.on)) keepAwake(); });
 $('cStart').onclick = async () => {
   if (counter.on) { counter.stop(); letSleep(); setBtn($('cStart'), 'rk.start'); pills(); return; }
-  try { finished = false; await counter.start(mode); keepAwake(); pills(); refresh(); setBtn($('cStart'), 'rk.stop'); } catch { toast(t('rk.err')); }
+  try { finished = false; sSid = 'k' + Date.now(); await counter.start(mode); keepAwake(); pills(); refresh(); setBtn($('cStart'), 'rk.stop'); } catch { toast(t('rk.err')); }
 };
 $('plus').onclick = () => { counter.adjust(1); refresh(true); }; $('minus').onclick = () => { counter.adjust(-1); finished = false; refresh(); };
 
@@ -146,13 +151,39 @@ if (!store.get('rs.gd', 0)) $('guideBtn').classList.add('new');
 $('guideBtn').onclick = () => openGuide(mode); $('homeGuide').onclick = () => openGuide(mode);
 
 /* ---- Pemantau rakaat (kamera): HP di lantai depan sejadah, layar hitam, getar/bunyi pengingat bila hitungan janggal ---- */
+const recordCam = (r) => {
+  const n = (k) => r.log.filter((x) => x.k === k).length;
+  addSession({ sid: 'm' + Date.now(), ...repKey(), src: 'cam', det: r.det, tgt: r.tgt, sujud: r.sujud, ev: { x: Math.max(n('extra'), n('over')), s: n('short'), l: n('lost') } });
+};
 const watch = initWatch({
   target: tgt, label: () => $('rkSel').textContent,
   busy: () => { if (counter.on) { toast(t('w.busyc')); return true; } return false; },
   awake: keepAwake, sleep: () => { if (!counter.on) letSleep(); }, lock: () => pills(),
-  saved: () => renderHome(), mark: () => { mark(lk(), true); pills(); },
+  saved: (r) => { renderHome(); recordCam(r); }, mark: () => { mark(lk(), true); pills(); },
 });
 $('camGuideBtn').onclick = () => openGuide(store.get('rs.cm', 'tegak') === 'datar' ? 'flat' : 'cam');
+
+/* ---- Shalat sunnah buatan sendiri: nama diketik pengguna, rakaat bawaan 1..MAXC ---- */
+let cpEdit = null;
+const cpSheet = $('cpSheet');
+function cpShow(edit) {
+  cpEdit = edit; $('cpTitle').textContent = t(edit ? 'cp.edit.t' : 'cp.title'); $('cpName').value = edit ? nameOf(edit) : ''; $('cpR').value = 2;
+  $('cpRBox').hidden = !!edit; $('cpErr').hidden = true; cpSheet.hidden = false; setTimeout(() => $('cpName').focus(), 60);
+}
+const cpHide = () => { cpSheet.hidden = true; };
+$('cpCancel').onclick = cpHide; cpSheet.addEventListener('pointerdown', (e) => { if (e.target === cpSheet) cpHide(); });
+$('cpForm').onsubmit = (e) => {
+  e.preventDefault();
+  const r = cpEdit ? renameCustom(cpEdit, $('cpName').value) : addCustom($('cpName').value, $('cpR').value);
+  if (r.err) { $('cpErr').textContent = t('cp.e.' + r.err); $('cpErr').hidden = false; return; }
+  const wasEdit = !!cpEdit; cpHide();
+  if (wasEdit) { pills(); refresh(); } else { setPrayer(r.id); toast(t('cp.added', { n: nameOf(r.id) }), true); }
+};
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-cp]'); if (!b || busy() || !isCustom(pid)) return;
+  if (b.dataset.cp === 'edit') cpShow(pid);
+  else if (confirm(t('cp.delq', { n: nameOf(pid) }))) { removeCustom(pid); setPrayer('subuh'); }
+});
 
 hooks.push(() => { setDates(); renderHome(); pills(); refresh(); });
 setPrayer('subuh'); renderHome(); loadTimes(); syncStats(1500);

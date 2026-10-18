@@ -54,6 +54,7 @@
   <div class="feat">
     <button class="fcard" data-go="rk"><span class="fi" data-ic="calib" data-s="28"></span><span class="ft"><b data-i="f.rk.t"></b><small data-i="f.rk.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
     <button class="fcard cam" data-go="cam"><span class="fi" data-ic="scan" data-s="28"></span><span class="ft"><b data-i="f.cam.t"></b><small data-i="f.cam.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
+    <button class="fcard rp" data-go="rp"><span class="fi" data-ic="chart" data-s="28"></span><span class="ft"><b data-i="f.rp.t"></b><small data-i="f.rp.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
     <button class="fcard guide" id="homeGuide"><span class="fi" data-ic="help" data-s="28"></span><span class="ft"><b data-i="f.gd.t"></b><small data-i="f.gd.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
   </div>
   <div class="steps"><div><i>1</i><span data-i="st.1"></span></div><div><i>2</i><span data-i="st.2"></span></div><div><i>3</i><span data-i="st.3"></span></div></div>
@@ -87,6 +88,7 @@
     <div class="seg" id="kinds" role="tablist"><button type="button" data-k="f" data-i="rk.k.f"></button><button type="button" data-k="q" data-i="rk.k.q"></button><button type="button" data-k="b" data-i="rk.k.b"></button></div>
     <small class="mute nob" id="nob" data-i="rk.sn.nob" hidden></small></div>
   <div class="stepper" id="stepBox" hidden><span id="stepTxt"></span><button type="button" id="snDn" data-ic="minus" data-s="20" data-ia="rk.sn.dn"></button><b id="snN">2</b><button type="button" id="snUp" data-ic="plus" data-s="20" data-ia="rk.sn.up"></button></div>
+  <div class="cp-act" hidden><button type="button" class="pill" data-cp="edit" data-i="cp.edit"></button><button type="button" class="pill del" data-cp="del" data-i="cp.del"></button></div>
   <span class="glbl" data-i="rk.g.pocket"></span>
   <div class="pk" id="pockets">
     <button type="button" class="pk-c on" data-m="shirt"><span class="pk-art" data-art="shirt"></span><b data-i="rk.shirt"></b><small data-i="rk.shirt.d"></small></button>
@@ -99,6 +101,7 @@
   <div class="meter"><i id="ang"></i></div><small class="mute"><span data-i="rk.tilt"></span> <span id="angTxt">0</span>° · <span data-i="rk.rakaat"></span> <b id="rakaat">0</b></small>
   <div class="row"><button class="btn ghost" id="minus" data-ic="minus" aria-label="−1"></button><button class="btn" id="cStart" data-i="rk.start"></button><button class="btn ghost" id="plus" aria-label="+1">+1</button></div>
   <p class="mute small" data-i="rk.hint"></p>
+  <button class="btn ghost rp-link" data-go="rp" type="button" data-i="rp.open"></button>
 </section>
 
 <section id="dz" class="tab">
@@ -128,7 +131,8 @@
     <div class="w-sum"><small data-i="w.s.title"></small><b class="w-lbl" id="wSumLbl"></b>
       <div class="w-big" id="wSumBig"></div><p class="w-msg" id="wSumMsg"></p><small id="wSumSj"></small>
       <ul class="w-log" id="wLog"></ul>
-      <button class="btn" id="wMark" type="button" data-i="w.mark" hidden></button></div>
+      <button class="btn" id="wMark" type="button" data-i="w.mark" hidden></button>
+      <button class="btn ghost rp-link" data-go="rp" type="button" data-i="rp.open"></button></div>
   </div>
 
   <div id="camSetup">
@@ -137,6 +141,7 @@
     <div id="cKindBox"><span class="glbl" data-i="rk.g.kind"></span>
       <div class="seg" id="cKinds" role="tablist"><button type="button" data-k="f" data-i="rk.k.f"></button><button type="button" data-k="q" data-i="rk.k.q"></button><button type="button" data-k="b" data-i="rk.k.b"></button></div></div>
     <div class="stepper" id="cStepBox" hidden><span id="cStepTxt"></span><button type="button" id="cSnDn" data-ic="minus" data-s="20" data-ia="rk.sn.dn"></button><b id="cSnN">2</b><button type="button" id="cSnUp" data-ic="plus" data-s="20" data-ia="rk.sn.up"></button></div>
+    <div class="cp-act" hidden><button type="button" class="pill" data-cp="edit" data-i="cp.edit"></button><button type="button" class="pill del" data-cp="del" data-i="cp.del"></button></div>
     <b class="rk-sel" id="cSel"></b>
     <span class="glbl" data-i="cam.g.alert"></span>
     <div class="seg" id="cNotif" role="tablist"><button type="button" data-n="vib" data-i="cam.n.vib"></button><button type="button" data-n="snd" data-i="cam.n.snd"></button><button type="button" data-n="off" data-i="cam.n.off"></button></div>
@@ -156,6 +161,17 @@
   <p class="mute small" data-i="cam.note"></p>
 </section>
 
+<section id="rp" class="tab">
+  <div class="dz-head"><button class="icon flip" data-go="home" data-ia="dz.back" data-ic="back"></button><h2 class="ttl" data-i="rp.title"></h2></div>
+  <div class="card rp-card">
+    <div class="pills sm" id="rpRng"><button class="pill" data-r="day" data-i="rp.r.day"></button><button class="pill on" data-r="week" data-i="rp.r.week"></button><button class="pill" data-r="month" data-i="rp.r.month"></button></div>
+    <div class="sum" id="rpSum"></div>
+  </div>
+  <div id="rpList"></div>
+  <div class="rp-tools" id="rpTools"><button class="btn ghost" id="rpCopy" type="button" data-i="rp.copy"></button><button class="btn ghost del" id="rpClear" type="button" data-i="rp.clear"></button></div>
+  <p class="mute small" data-i="rp.note"></p>
+</section>
+
 <section id="qb" class="tab">
   <h2 class="ttl" data-i="qb.title"></h2>
   <svg id="compass" viewBox="0 -24 280 304" aria-hidden="true">
@@ -173,6 +189,15 @@
 </section>
 </main>
 
+<div class="sheet" id="cpSheet" hidden>
+  <form class="sheet-card" id="cpForm" novalidate role="dialog" aria-modal="true" aria-labelledby="cpTitle">
+    <h3 id="cpTitle"></h3>
+    <label class="fld plain"><span data-i="cp.name"></span><div class="box"><input id="cpName" type="text" maxlength="30" autocomplete="off" data-ph="cp.ph"></div></label>
+    <label class="fld plain" id="cpRBox"><span data-i="cp.r"></span><div class="box"><input id="cpR" type="number" inputmode="numeric" min="1" max="20" value="2"></div></label>
+    <p class="au-err" id="cpErr" role="alert" hidden></p>
+    <div class="row"><button type="button" class="btn ghost" id="cpCancel" data-i="cp.cancel"></button><button type="submit" class="btn" data-i="cp.save"></button></div>
+  </form>
+</div>
 <div id="watch" hidden aria-hidden="true"><p id="wTxt"></p><b id="wBig"></b><small id="wHold"></small></div>
 <nav class="nav" id="nav"><button data-go="home" class="on"><span data-ic="home"></span><span data-i="nav.home"></span></button><button data-go="rk"><span data-ic="calib"></span><span data-i="nav.rk"></span></button><button data-go="cam"><span data-ic="scan"></span><span data-i="nav.cam"></span></button><button data-go="qb"><span data-ic="compass"></span><span data-i="m.qb"></span></button><button data-go="dz"><span data-ic="beads"></span><span data-i="m.dz"></span></button></nav>
 <script type="module" src="/src/main.js"></script>

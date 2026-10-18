@@ -35,6 +35,8 @@
 | **Kalibrasi & penghitung rakaat** | Akselerometer HP menghitung **rukuk / sujud / rakaat** otomatis. Kalibrasi 3 detik. Bisa untuk **shalat wajib** maupun **sunnah** (Qabliyah, Ba'diyah, Dhuha, Tahajud, Witir) dengan **rakaat yang bisa diatur 1–4**. Posisi HP dipilih lewat dua kartu bergambar: **Saku Baju** (hijau) dan **Saku Celana** (biru). Layar dijaga menyala selama penghitungan. |
 | **Panduan animasi** | Tombol **Panduan** (kalibrasi & beranda): animasi orang yang memasukkan HP ke saku, gerakan qiyam–rukuk–sujud–duduk dengan meter kemiringan HP, serta tab *Cara Pakai* dengan tampilan mini aplikasi yang sinkron, dan tab **Kamera** (cara meletakkan HP di depan sejadah, simulasi cara kamera menghitung, layar hitam & arti getaran). 4 bahasa. |
 | **Pemantau Rakaat (kamera AI)** | HP diletakkan di lantai **di depan** orang shalat (di atas sejadah, miring menghadap orang). Saat memantau **layar hitam penuh** sehingga tidak mengganggu. Kamera **bukan menilai gerakan**, hanya menghitung rakaat dari naik-turun badan supaya tidak lupa. Pengingat getar / bunyi lembut hanya saat rakaat selesai atau ada yang janggal (rakaat melebihi target, duduk lama sebelum target, badan tidak terlihat). |
+| **Laporan Shalat** | Riwayat tiap sesi per hari (7 / 30 hari): tanggal, jam, shalat, **jumlah rakaat vs target** → *sesuai / kurang N / lebih N*, sumber (kamera / sensor / tanda manual), dan catatan peringatan dari kamera. Bisa disalin sebagai teks, dihapus per catatan, atau dihapus semua. Tersimpan di perangkat (`rs.rp`), tidak dikirim ke server. Yang dinilai hanya hitungan rakaat, **bukan sah/tidaknya shalat**. |
+| **Sunnah buatan sendiri** | Tombol **+ Sunnah baru** di tab Rakaat & Pemantau: ketik nama (maks. 30 huruf, mis. Istikharah, Hajat, Tarawih) dan jumlah rakaat (1–20). Bisa diubah nama / dihapus; riwayatnya di laporan tetap ada. Tersimpan per akun (`rs.cp`), kode di `src/prayers.js`. |
 | **Dzikir** | 6 preset, paket dzikir setelah salat, ringkasan harian / mingguan / bulanan / tahunan. |
 | **Kompas kiblat** | 4 mata angin tegak terbaca, skala derajat, penanda Ka'bah, petunjuk "putar kanan/kiri N°", getar saat tepat. |
 | **Login & akun** | Google + Email/Kata sandi, lupa kata sandi, atau lanjut tanpa akun. Data ibadah dipisah per akun. |
@@ -203,6 +205,8 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 │  ├─ firebase.js          # inisialisasi Firebase & Firestore
 │  ├─ counter.js           # penghitung rakaat (sensor)
 │  ├─ guide.js             # panduan animasi (orang, saku, cara pakai)
+│  ├─ prayers.js           # daftar shalat + sunnah buatan sendiri (nama diketik pengguna)
+│  ├─ report.js            # laporan shalat (riwayat sesi, ringkasan, salin/hapus)
 │  ├─ pose.js              # kamera + MediaPipe → ukuran badan (d, tr)
 │  ├─ rakaat.js            # mesin penghitung rakaat dari kamera (murni, bisa diuji)
 │  ├─ watch.js             # alur pemantau: pratinjau, hitung mundur, layar hitam, ringkasan
@@ -225,6 +229,7 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.7.0** | **Laporan Shalat** (riwayat per hari: rakaat vs target, sesuai / kurang / lebih, sumber, peringatan) dan **shalat sunnah buatan sendiri** (nama diketik pengguna). **Mode Datar** diubah: HP diletakkan sejajar dada (di bawah dada saat sujud), bukan di depan dahi |
 | **v1.6.0** | **Mode Datar** (plus panduan animasi di tab terpisah: Mode Tegak dan Mode Datar) untuk Pemantau Rakaat: HP direbahkan di sejadah (layar ke atas, sejajar dada), tanpa penyangga dan tanpa model AI; sujud dibaca saat dada menutupi kamera (`src/flat.js`). Mode sebelumnya dinamai **Mode Tegak**. Pilihan mode ada di layar Pantau |
 | **v1.5.0** | Kamera diubah total: dari koreksi gerakan menjadi **Pemantau Rakaat** (HP di depan sejadah, layar hitam, getar/bunyi pengingat bila rakaat janggal, ringkasan hasil). Tab **Kamera** baru di Panduan dengan 3 animasi (letak HP, simulasi hitungan, layar hitam & getaran). Teks 4 bahasa diperbarui |
 | **v1.4.1** | Animasi panduan dihaluskan: badan & anggota tubuh meruncing (bukan tabung), pose berbasis sudut sendi sehingga gerak melengkung, gerak berurutan (kaki → badan → lengan → kepala), napas, kedipan mata |
