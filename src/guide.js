@@ -52,8 +52,8 @@ const RAW = {
   r: { A: [96, 125], K: [89.8, 95.7], H: [83.1, 64.4], S: [122.1, 64.4], C: [134, 63.6], T: [91, 93], bend: 0.3, toe: [110, 125] },
   // Turun ke sujud: lutut dulu, badan masih tegak condong sedikit, tangan menuju lantai; jari kaki sudah ditekuk menghadap kiblat
   k: { A: [81.5, 112], K: [110, 121], H: [105.5, 89.3], S: [118.8, 52.7], C: [123.9, 41.8], T: [130, 92], bend: 0.3, toe: [88.5, 124.1] },
-  // Sujud (7 anggota): dahi + hidung, 2 telapak tangan, 2 lutut, jari-jari 2 kaki menyentuh lantai; pinggul lebih tinggi dari kepala; siku terangkat dan menjauh dari badan; telapak rata menghadap kiblat sejajar bahu/telinga
-  s: { A: [81.5, 112], K: [110, 121], H: [97.5, 91.5], S: [131.8, 110], C: [146.1, 119.2], T: [157, 124.2], bend: -0.9, as: 0.8, toe: [88.5, 124.1], hw: 1, ha: 0 },
+  // Sujud (7 anggota): dahi + hidung, 2 telapak tangan, 2 lutut, jari-jari 2 kaki menyentuh lantai; pinggul lebih tinggi dari kepala; telapak rata menghadap kiblat tepat di bawah bahu, siku menekuk ke belakang & terangkat dari lantai (mengacu foto sujud)
+  s: { A: [81.5, 112], K: [110, 121], H: [97.5, 91.9], S: [135, 102.7], C: [145.7, 119.2], T: [138, 124.2], bend: 0.8, as: 1, toe: [88.5, 124.1], hw: 1, ha: 0 },
   // Duduk di antara dua sujud (iftirasy): duduk di atas telapak kaki kiri (rebah), kaki kanan ditegakkan dengan jari menghadap kiblat, tangan di atas paha
   d: { A: [81.5, 112], K: [110, 121], A2: [80, 121], toe2: [66, 124], H: [81, 108], S: [84.4, 69.1], C: [86.5, 57.3], T: [98, 108], bend: 0.2, toe: [88.5, 124.1], hw: 1, ha: 24 },
 };
