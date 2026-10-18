@@ -6,7 +6,7 @@ import { createCounter } from './counter.js';
 import { initWatch } from './watch.js';
 import { openGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
-import { addSession, render as renderReport } from './report.js';
+import { addSession, focus as focusReport, render as renderReport } from './report.js';
 import './qibla.js';
 import './dzikir.js';
 
@@ -45,7 +45,7 @@ function setDates() {
 /* ---- Navigasi ---- */
 let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
-function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); }
+function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 $('bell').onclick = async () => toast(t(('Notification' in window && (await Notification.requestPermission()) === 'granted') ? 'n.on' : 'n.off'), true);
 
@@ -153,14 +153,15 @@ $('guideBtn').onclick = () => openGuide(mode); $('homeGuide').onclick = () => op
 
 /* ---- Pemantau rakaat (kamera): HP di lantai depan sejadah, layar hitam, getar/bunyi pengingat bila hitungan janggal ---- */
 const recordCam = (r) => {
-  const n = (k) => r.log.filter((x) => x.k === k).length;
-  addSession({ sid: 'm' + Date.now(), ...repKey(), src: 'cam', det: r.det, tgt: r.tgt, sujud: r.sujud, ev: { x: Math.max(n('extra'), n('over')), s: n('short'), l: n('lost') } });
+  const n = (k) => r.log.filter((x) => x.k === k).length, sid = 'm' + Date.now();
+  addSession({ sid, ...repKey(), src: 'cam', det: r.det, tgt: r.tgt, sujud: r.sujud, ev: { x: Math.max(n('extra'), n('over')), s: n('short'), l: n('lost') }, log: r.log });
+  return sid;
 };
 const watch = initWatch({
   target: tgt, label: () => $('rkSel').textContent,
   busy: () => { if (counter.on) { toast(t('w.busyc')); return true; } return false; },
   awake: keepAwake, sleep: () => { if (!counter.on) letSleep(); }, lock: () => pills(),
-  saved: (r) => { renderHome(); recordCam(r); }, mark: () => { mark(lk(), true); pills(); },
+  saved: (r) => { renderHome(); const sid = recordCam(r); focusReport(sid); go('rp'); }, // selesai → langsung buka Laporan dengan hasil sesi ini mark: () => { mark(lk(), true); pills(); },
 });
 $('camGuideBtn').onclick = () => openGuide(store.get('rs.cm', 'tegak') === 'datar' ? 'flat' : 'cam');
 

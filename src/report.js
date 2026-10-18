@@ -6,8 +6,10 @@ import { t, lang, hooks } from './i18n.js';
 import { PRID, esc, keyLabel } from './prayers.js';
 
 const CAP = 500;
-let rg = 'week';
+let rg = 'week', hl = null; // hl = sid sesi yang baru selesai (disorot di bagian atas laporan)
 const DAYS = { day: 1, week: 7, month: 30 };
+/** sorot sesi tertentu di atas laporan (dipakai setelah pemantauan kamera selesai) */
+export const focus = (sid) => { hl = sid; if (sid) rg = 'day'; };
 export const verdict = (r) => (r.det === r.tgt ? 'ok' : r.det < r.tgt ? 'less' : 'more');
 
 /** Tambah sesi, atau perbarui bila sid sama (penghitung sensor memperbarui hasil tiap kali hitungan berubah). */
@@ -37,7 +39,22 @@ const dlabel = (d) => d.toLocaleDateString(lang(), { weekday: 'long', day: 'nume
 const vtext = (r) => { const v = verdict(r); return v === 'ok' ? t('rp.v.ok') : t('rp.v.' + v, { n: Math.abs(r.det - r.tgt) }); };
 const notes = (r) => [r.ev?.x && t('rp.n.x', { n: r.ev.x }), r.ev?.s && t('rp.n.s', { n: r.ev.s }), r.ev?.l && t('rp.n.l', { n: r.ev.l })].filter(Boolean);
 
+const mmss = (ms) => { const x = Math.round(ms / 1000); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
+/** kartu hasil sesi terbaru: rakaat terdeteksi vs target, pesan sesuai/salah, dan kronologi kejadian */
+function renderLast() {
+  const r = hl && store.get('rs.rp', []).find((x) => x.sid === hl), el = $('rpLast');
+  if (!r) { el.hidden = true; el.innerHTML = ''; return; }
+  const v = verdict(r), cls = v === 'ok' ? 'ok' : v === 'more' ? 'bad' : 'warn', msg = t('w.s.' + v, { n: r.det, m: r.tgt });
+  const lg = (r.log || []).filter((x) => x.k !== 'found');
+  el.hidden = false;
+  el.innerHTML = `<div class="w-sum rp-last"><small>${t('rp.last.t')}</small><b class="w-lbl">${esc(keyLabel(r.key, r.nm))}</b>`
+    + `<div class="w-big ${cls}"><b>${r.det}</b><span>/ ${r.tgt}</span></div><span class="rp-chip ${v}">${vtext(r)}</span><p class="w-msg">${esc(msg)}</p>`
+    + `<small>${esc(t('w.s.sj', { n: r.sujud }))}</small>`
+    + (lg.length ? `<ul class="w-log">${lg.map((x) => `<li class="${x.k}"><time>${mmss(x.at)}</time><span>${esc(t('w.ev.' + x.k, { n: x.n, m: x.m }))}</span></li>`).join('')}</ul>` : '') + '</div>';
+}
+
 export function render() {
+  renderLast();
   const data = collect(), all = data.flatMap((d) => d.sessions), c = { ok: 0, less: 0, more: 0 };
   all.forEach((r) => c[verdict(r)]++);
   document.querySelectorAll('#rpRng button').forEach((b) => b.classList.toggle('on', b.dataset.r === rg));

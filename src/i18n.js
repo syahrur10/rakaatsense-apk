@@ -698,6 +698,7 @@ Object.assign(MS, {
 /* ---- Laporan shalat + shalat sunnah buatan sendiri ---- */
 Object.assign(ID, {
   "rp.title": "Laporan Shalat",
+  "rp.last.t": "Hasil sesi ini",
   "f.rp.t": "Laporan Shalat",
   "f.rp.d": "Riwayat tiap shalat: tanggal, jumlah rakaat, dan hasilnya (sesuai, kurang, atau lebih).",
   "rp.open": "Lihat laporan",
@@ -749,6 +750,7 @@ Object.assign(ID, {
 });
 Object.assign(EN, {
   "rp.title": "Prayer Report",
+  "rp.last.t": "Result of this session",
   "f.rp.t": "Prayer Report",
   "f.rp.d": "History of every prayer: date, rakat count and the result (matched, short or extra).",
   "rp.open": "View report",
@@ -800,6 +802,7 @@ Object.assign(EN, {
 });
 Object.assign(AR, {
   "rp.title": "تقرير الصلاة",
+  "rp.last.t": "نتيجة هذه الجلسة",
   "f.rp.t": "تقرير الصلاة",
   "f.rp.d": "سجل كل صلاة: التاريخ وعدد الركعات ونتيجتها (مطابقة أو ناقصة أو زائدة).",
   "rp.open": "عرض التقرير",
@@ -851,6 +854,7 @@ Object.assign(AR, {
 });
 Object.assign(MS, {
   "rp.title": "Laporan Solat",
+  "rp.last.t": "Keputusan sesi ini",
   "f.rp.t": "Laporan Solat",
   "f.rp.d": "Sejarah setiap solat: tarikh, bilangan rakaat dan hasilnya (sepadan, kurang atau lebih).",
   "rp.open": "Lihat laporan",

@@ -395,3 +395,5 @@ body.watching .toast{display:none!important}
 .sheet-card h3{margin-bottom:.9rem;font-size:1.15rem}
 .sheet .row .btn.ghost{flex:1;display:block}
 .fld.plain input{padding-inline:1rem}
+
+.rp-last{margin-top:.2rem}.rp-last .rp-chip{display:inline-block}.rp-last .w-msg{margin:.5rem 0 .3rem}
