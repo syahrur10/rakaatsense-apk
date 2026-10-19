@@ -41,6 +41,7 @@
 | **Kompas kiblat** | 4 mata angin tegak terbaca, skala derajat, penanda Ka'bah, petunjuk "putar kanan/kiri N°", getar saat tepat. |
 | **Login & akun** | Google + Email/Kata sandi, lupa kata sandi, atau lanjut tanpa akun. Data ibadah dipisah per akun. |
 | **Panel Admin** | Kelola pengguna, lihat data ibadah, ubah peran, tambah akun. |
+| **Al-Qur'an** | 114 surah **offline**: teks Utsmani riwayat Hafs dengan **tajwid berwarna** (mad, ikhfa, idgham, iqlab, qalqalah, ghunnah, dll.), **terjemahan Indonesia (Kemenag RI)** atau English, panduan warna dengan **sorot per hukum**, ukuran huruf Arab diatur, tafkhim opsional, penanda ayat, *lanjutkan membaca* otomatis, lompat ke ayat, pencarian surah, tombol Back Android kembali ke daftar. Kode di `src/quran.js`, data di `public/quran/`. |
 | **Tanggal ganda** | Masehi lengkap + Hijriyah di beranda. |
 | **4 bahasa** | Indonesia, English, العربية (RTL), Melayu. |
 
@@ -210,15 +211,19 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 │  ├─ pose.js              # kamera + MediaPipe → ukuran badan (d, tr)
 │  ├─ rakaat.js            # mesin penghitung rakaat dari kamera (murni, bisa diuji)
 │  ├─ watch.js             # alur pemantau: pratinjau, hitung mundur, layar hitam, ringkasan
+│  ├─ quran.js             # Al-Qur'an: daftar surah, pembaca tajwid berwarna, terjemahan, penanda
 │  ├─ qibla.js · dzikir.js # kompas kiblat · dzikir
 │  ├─ i18n.js              # teks 4 bahasa
 │  ├─ icons.js             # ikon SVG kustom + logo
 │  ├─ pwhash.js · util.js  # hash PBKDF2 · helper
 │  └─ style.css            # tema putih + hijau zamrud
 ├─ public/                 # ikon PWA, manifest
+│  ├─ quran/               # data Al-Qur'an per surah (tajwid, terjemahan ID/EN) + README sumber & lisensi
+│  └─ fonts/               # Amiri Quran (OFL)
 ├─ android-assets/         # ikon & splash siap pakai untuk Android
 ├─ scripts/create-admin.mjs# buat akun admin di Firebase
 ├─ tools/logo.py           # generator logo
+├─ tools/build-quran.py    # bangun ulang public/quran/ dari paket npm sumber
 ├─ firestore.rules         # aturan keamanan Firestore
 └─ vercel.json
 ```
@@ -229,6 +234,7 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.9.0** | **Al-Qur'an Tajwid Berwarna**: tab baru *Qur'an* (114 surah, offline) dengan tajwid berwarna + terjemahan Indonesia/English, legenda warna interaktif, penanda, lanjutkan membaca, lompat ayat, pengaturan huruf. Sumber & lisensi data di `public/quran/README.txt` |
 | **v1.8.1** | **Panduan dirapikan jadi 4 tab** (Saku Celana, Saku Baju, Mode Datar, Mode Tegak). Tab *Cara Pakai* dihapus: animasinya dilebur ke tab Saku dan disesuaikan per posisi HP (hitungan mengikuti `counter.js`), menggantikan adegan *Saat shalat* yang mirip |
 | **v1.8.0** | **Laporan Shalat & Dzikir digabung** dalam satu halaman dengan tab terpisah. Laporan shalat didesain ulang (cincin persentase, grafik, filter wajib/sunnah, kartu per sesi dengan nama shalat, tanggal & jam, bar rakaat). Tab Dzikir baru (total, set selesai, grafik, rincian, riwayat harian); ringkasan dzikir lama di layar Dzikir dihapus. Set dzikir yang selesai kini ikut tercatat |
 | **v1.7.0** | **Laporan Shalat** (riwayat per hari: rakaat vs target, sesuai / kurang / lebih, sumber, peringatan) dan **shalat sunnah buatan sendiri** (nama diketik pengguna). **Mode Datar** diubah: HP diletakkan sejajar dada (di bawah dada saat sujud), bukan di depan dahi |
@@ -248,6 +254,7 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 ## Catatan Penting
 
+- **Al-Qur'an:** teks dan terjemahan tidak boleh diubah (syarat Tanzil.net). Warna tajwid berasal dari data Quran.com dan merupakan alat bantu belajar; untuk kepastian hukum bacaan rujuk guru tajwid. Terjemahan Melayu belum tersedia, UI Melayu memakai terjemahan Indonesia.
 - Pemantau Rakaat adalah **alat bantu** agar tidak lupa, bukan pengganti ingatan atau ilmu fikih. Ambang deteksi (`TH` di `rakaat.js`) disusun dari geometri tampak depan dan **perlu diuji di HP asli** dengan posisi HP Anda; pratinjau (uji rukuk/sujud sebelum mulai) ada untuk itu.
 - Jangan commit file `.env` (sudah ada di `.gitignore`).
 - Kunci Firebase web memang tampil di sisi klien; keamanan data dijaga oleh `firestore.rules`, jadi pastikan rules sudah di-publish.

@@ -7,6 +7,7 @@ import { initWatch } from './watch.js';
 import { openGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
 import { addSession, focus as focusReport, render as renderReport } from './report.js';
+import { enter as qrEnter } from './quran.js';
 import './qibla.js';
 import './dzikir.js';
 
@@ -45,7 +46,7 @@ function setDates() {
 /* ---- Navigasi ---- */
 let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
-function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); }
+function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 $('bell').onclick = async () => toast(t(('Notification' in window && (await Notification.requestPermission()) === 'granted') ? 'n.on' : 'n.off'), true);
 
