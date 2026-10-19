@@ -54,7 +54,7 @@
   <div class="feat">
     <button class="fcard" data-go="rk"><span class="fi" data-ic="calib" data-s="28"></span><span class="ft"><b data-i="f.rk.t"></b><small data-i="f.rk.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
     <button class="fcard cam" data-go="cam"><span class="fi" data-ic="scan" data-s="28"></span><span class="ft"><b data-i="f.cam.t"></b><small data-i="f.cam.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
-    <button class="fcard rp" data-go="rp"><span class="fi" data-ic="chart" data-s="28"></span><span class="ft"><b data-i="f.rp.t"></b><small data-i="f.rp.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
+    <button class="fcard rp" data-go="rp" data-rptab="pr"><span class="fi" data-ic="chart" data-s="28"></span><span class="ft"><b data-i="f.rp.t"></b><small data-i="f.rp.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
     <button class="fcard guide" id="homeGuide"><span class="fi" data-ic="help" data-s="28"></span><span class="ft"><b data-i="f.gd.t"></b><small data-i="f.gd.d"></small></span><span class="fa" data-ic="arrow" data-s="20"></span></button>
   </div>
   <div class="steps"><div><i>1</i><span data-i="st.1"></span></div><div><i>2</i><span data-i="st.2"></span></div><div><i>3</i><span data-i="st.3"></span></div></div>
@@ -101,11 +101,11 @@
   <div class="meter"><i id="ang"></i></div><small class="mute"><span data-i="rk.tilt"></span> <span id="angTxt">0</span>° · <span data-i="rk.rakaat"></span> <b id="rakaat">0</b></small>
   <div class="row"><button class="btn ghost" id="minus" data-ic="minus" aria-label="−1"></button><button class="btn" id="cStart" data-i="rk.start"></button><button class="btn ghost" id="plus" aria-label="+1">+1</button></div>
   <p class="mute small" data-i="rk.hint"></p>
-  <button class="btn ghost rp-link" data-go="rp" type="button" data-i="rp.open"></button>
+  <button class="btn ghost rp-link" data-go="rp" data-rptab="pr" type="button" data-i="rp.open"></button>
 </section>
 
 <section id="dz" class="tab">
-  <div class="dz-head"><button class="icon flip" id="back" data-ia="dz.back" data-ic="back" hidden></button><h2 class="ttl" id="dzTitle" data-i="dz.title"></h2><button class="icon" id="sumBtn" data-ic="chart" data-s="20"></button></div>
+  <div class="dz-head"><h2 class="ttl" id="dzTitle" data-i="dz.title"></h2><button class="icon" id="sumBtn" data-go="rp" data-rptab="dz" data-ia="rp.title" data-ic="chart" data-s="20"></button></div>
   <div id="dzMain">
     <div class="chips" id="chips"></div>
     <button class="pill gold" id="pack" data-i="dz.pack"></button>
@@ -114,12 +114,6 @@
     <div class="num" id="dNum">000</div>
     <button class="tap" id="tap" data-ia="dz.tap"><span data-ic="beads" data-s="72"></span></button>
     <div class="row3"><button class="icon" id="dReset" data-ia="dz.reset" data-ic="reset" data-s="20"></button><button class="icon" id="dUndo" data-ia="dz.undo" data-ic="minus" data-s="20"></button></div>
-  </div>
-  <div id="dzSum" hidden>
-    <div class="card"><div class="pills sm" id="rng"><button class="pill on" data-r="day" data-i="dz.day"></button><button class="pill" data-r="week" data-i="dz.week"></button><button class="pill" data-r="month" data-i="dz.month"></button><button class="pill" data-r="year" data-i="dz.year"></button></div>
-      <svg id="bars" viewBox="0 0 320 150"></svg>
-      <div class="sum"><div><b id="sTot">0</b><small data-i="dz.total"></small></div><div><b id="sDay">0</b><small data-i="dz.today"></small></div></div></div>
-    <div id="sList"></div>
   </div>
 </section>
 
@@ -132,7 +126,7 @@
       <div class="w-big" id="wSumBig"></div><p class="w-msg" id="wSumMsg"></p><small id="wSumSj"></small>
       <ul class="w-log" id="wLog"></ul>
       <button class="btn" id="wMark" type="button" data-i="w.mark" hidden></button>
-      <button class="btn ghost rp-link" data-go="rp" type="button" data-i="rp.open"></button></div>
+      <button class="btn ghost rp-link" data-go="rp" data-rptab="pr" type="button" data-i="rp.open"></button></div>
   </div>
 
   <div id="camSetup">
@@ -163,14 +157,29 @@
 
 <section id="rp" class="tab">
   <div class="dz-head"><button class="icon flip" data-go="home" data-ia="dz.back" data-ic="back"></button><h2 class="ttl" data-i="rp.title"></h2></div>
-  <div id="rpLast" hidden></div>
-  <div class="card rp-card">
-    <div class="pills sm" id="rpRng"><button class="pill" data-r="day" data-i="rp.r.day"></button><button class="pill on" data-r="week" data-i="rp.r.week"></button><button class="pill" data-r="month" data-i="rp.r.month"></button></div>
-    <div class="sum" id="rpSum"></div>
+  <div class="seg rp-tabs" id="rpTab" role="tablist">
+    <button type="button" class="on" data-t="pr" role="tab" aria-selected="true"><span data-ic="ruku" data-s="20"></span><span data-i="rp.tab.pr"></span></button>
+    <button type="button" data-t="dz" role="tab" aria-selected="false"><span data-ic="beads" data-s="20"></span><span data-i="rp.tab.dz"></span></button>
   </div>
-  <div id="rpList"></div>
+  <div class="pills sm rp-rng" id="rpRng"><button class="pill" data-r="day" data-i="rp.r.day"></button><button class="pill on" data-r="week" data-i="rp.r.week"></button><button class="pill" data-r="month" data-i="rp.r.month"></button></div>
+
+  <div id="rpPrayer">
+    <div id="rpLast" hidden></div>
+    <div class="card rp-hero" id="rpHero"></div>
+    <div class="card rp-ch" id="rpChart" hidden></div>
+    <div class="pills sm rp-filter" id="rpFilter"><button class="pill on" data-f="all" data-i="rp.f.all"></button><button class="pill" data-f="f" data-i="rp.f.fard"></button><button class="pill" data-f="s" data-i="rp.f.sn"></button></div>
+    <div id="rpList"></div>
+  </div>
+
+  <div id="rpDzikir" hidden>
+    <div class="card rp-dzhero" id="rpDzHero"></div>
+    <div class="card rp-ch rp-dzchart" id="rpDzChart"></div>
+    <div id="rpDzBy"></div>
+    <div id="rpDzList"></div>
+  </div>
+
   <div class="rp-tools" id="rpTools"><button class="btn ghost" id="rpCopy" type="button" data-i="rp.copy"></button><button class="btn ghost del" id="rpClear" type="button" data-i="rp.clear"></button></div>
-  <p class="mute small" data-i="rp.note"></p>
+  <p class="mute small" id="rpNote" data-i="rp.note"></p>
 </section>
 
 <section id="qb" class="tab">
