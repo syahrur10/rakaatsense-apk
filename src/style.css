@@ -279,7 +279,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .gd-tabs{position:sticky;top:calc(58px + env(safe-area-inset-top));z-index:2;max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;padding:.3rem 1rem .6rem;background:var(--bg)}
 .gd-tabs button{display:grid;justify-items:center;gap:.15rem;border:1.5px solid var(--line);background:#fff;color:var(--mute);border-radius:16px;padding:.5rem .2rem;font:700 .74rem 'Plus Jakarta Sans','Noto Sans Arabic',sans-serif;cursor:pointer;line-height:1.15;text-align:center}
 .gd-tabs button.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(14,124,74,.25)}
-.gd-tabs button:nth-child(2).on{background:linear-gradient(135deg,#4A6EA8,#223552)}
+.gd-tabs button[data-tab=pants].on{background:linear-gradient(135deg,#4A6EA8,#223552)}
 .gd-wrap{max-width:520px;margin:0 auto;padding:.2rem 1rem calc(2rem + env(safe-area-inset-bottom))}
 .gd-h{display:flex;align-items:center;gap:.55rem;margin:1rem 0 .55rem;font-size:1.02rem}
 .gd-h i{flex:none;width:26px;height:26px;border-radius:50%;background:var(--g2);color:#fff;font-style:normal;display:grid;place-items:center;font-size:.8rem}
@@ -341,7 +341,7 @@ body.watching .toast{display:none!important}
 
 /* panduan kamera */
 .gd-tabs{grid-template-columns:repeat(4,1fr);gap:.35rem}.gd-tabs button{font-size:.7rem}
-.gd-tabs button:nth-child(4).on{background:linear-gradient(135deg,#0E7C4A,#0A3D2B)}
+.gd-tabs button[data-tab=flat].on,.gd-tabs button[data-tab=cam].on{background:linear-gradient(135deg,#0E7C4A,#0A3D2B)}
 .stage.chow{display:grid;grid-template-columns:1.6fr 1fr;gap:.3rem;align-items:center}
 .cw-panel{direction:ltr;display:grid;justify-items:center;gap:.5rem;text-align:center;padding:.3rem .2rem}
 [dir=rtl] .cw-panel{direction:rtl}
@@ -370,7 +370,7 @@ body.watching .toast{display:none!important}
 /* Mode Datar: pratinjau hanya menampilkan kamera menghadap atas, tanpa titik badan */
 .cambox.flat canvas,.cambox.flat .cam-chips{display:none}
 .stage.fplace .sv svg{max-height:300px}
-.gd-tabs{grid-template-columns:repeat(5,1fr);gap:.25rem;padding-inline:.6rem}.gd-tabs button{font-size:.62rem;padding:.5rem .1rem;line-height:1.15;text-align:center}.gd-tabs button:nth-child(5).on{background:linear-gradient(135deg,#0E7C4A,#0A3D2B)}
+.gd-tabs{grid-template-columns:repeat(4,1fr);gap:.35rem;padding-inline:.8rem}.gd-tabs button{font-size:.72rem;padding:.5rem .1rem;line-height:1.15;text-align:center}
 
 /* laporan shalat + shalat sunnah buatan sendiri */
 .fcard.rp .fi{background:linear-gradient(135deg,#8A6BD1,#4B3A8C);box-shadow:0 8px 18px rgba(75,58,140,.3)}
@@ -440,3 +440,4 @@ body.watching .toast{display:none!important}
 .rp-dch{display:flex;flex-wrap:wrap;gap:.4rem;background:#fff;border:1px solid var(--line);border-radius:18px;padding:.7rem;box-shadow:var(--shadow)}
 .rp-dc{background:var(--mint);color:var(--g3);border-radius:99px;padding:.3rem .8rem;font-size:.8rem;font-weight:600}.rp-dc b{font-weight:800}
 [dir=rtl] .rp-ring,[dir=rtl] .rp-dots{direction:ltr}
+.stage.how .tilt{grid-column:1/-1;padding-top:.2rem}

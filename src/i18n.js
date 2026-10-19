@@ -1030,6 +1030,23 @@ Object.assign(MS, {
   "rp.dz.clear": "Padam sejarah zikir",
   "rp.dz.clearq": "Padam keseluruhan sejarah zikir? Tindakan ini tidak boleh dibatalkan.",
 });
+/* ---- Panduan: Cara Pakai dilebur ke tab Saku Celana / Saku Baju ---- */
+Object.assign(ID, {
+  "gd.h.2s": "Di layar Kalibrasi, pilih kartu Saku Baju (hijau).",
+  "gd.h.2p": "Di layar Kalibrasi, pilih kartu Saku Celana (biru).",
+});
+Object.assign(EN, {
+  "gd.h.2s": "On the Calibrate screen, choose the Shirt Pocket card (green).",
+  "gd.h.2p": "On the Calibrate screen, choose the Pants Pocket card (blue).",
+});
+Object.assign(AR, {
+  "gd.h.2s": "في شاشة المعايرة اختر بطاقة «جيب القميص» (الخضراء).",
+  "gd.h.2p": "في شاشة المعايرة اختر بطاقة «جيب البنطال» (الزرقاء).",
+});
+Object.assign(MS, {
+  "gd.h.2s": "Di skrin Tentukur, pilih kad Poket Baju (hijau).",
+  "gd.h.2p": "Di skrin Tentukur, pilih kad Poket Seluar (biru).",
+});
 export const LANGS = { id: ['Bahasa Indonesia', ID], en: ['English', EN], ar: ['العربية', AR], ms: ['Bahasa Melayu', MS] };
 const saved = (() => { try { return localStorage.getItem('rs.lang'); } catch { return null; } })();
 let cur = LANGS[saved] ? saved : ({ id: 'id', ms: 'ms', ar: 'ar' }[(navigator.language || 'en').slice(0, 2)] || 'en');

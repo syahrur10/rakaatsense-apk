@@ -1,4 +1,4 @@
-/** guide.js — panduan animasi: cara menaruh HP di Saku Baju / Saku Celana, gerakan saat shalat, cara memakai aplikasi, dan cara memakai KAMERA (HP di depan sejadah, layar hitam).
+/** guide.js — panduan animasi: cara menaruh HP di Saku Baju / Saku Celana, gerakan saat shalat, cara memakai aplikasi (satu adegan per posisi HP: Saku Celana / Saku Baju), dan cara memakai KAMERA (HP di depan sejadah, layar hitam).
  *  Orang digambar sebagai kerangka sendi tampak samping (panjang tulang tetap), lengan dihitung dengan IK 2-ruas.
  *  Animasi memakai requestAnimationFrame; bila pengguna memilih "reduce motion", gambar diam dan diganti tiap diketuk. */
 import { t, hooks } from './i18n.js';
@@ -73,7 +73,9 @@ function fk(P, now) {
   const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), A2 = pt(K, P.a2 + 180, P.len[0]);
   return { A: P.A, K, H, S: Sh, C: Cc, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL), T: [P.T[0], P.T[1] + 0.5 * br], bend: P.bend, as: P.as, hw: P.hw, ha: P.ha, an };
 }
-const TH = { shirt: { on: 50, off: 30 }, pants: { on: 25, off: 15 } }; // sama dengan ambang di counter.js
+const TH = { shirt: { on: 50, off: 30, hold: 500 }, pants: { on: 25, off: 15, hold: 2500 } }; // sama dengan ambang di counter.js
+/** sudut kemiringan HP dari sendi: Saku Baju = batang badan (pinggul → bahu) vs tegak, Saku Celana = paha (pinggul → lutut) vs tegak ke bawah */
+const tiltOf = (kind, F) => (kind === 'shirt' ? angle([F.S[0] - F.H[0], F.S[1] - F.H[1]], [0, -1]) : angle([F.K[0] - F.H[0], F.K[1] - F.H[1]], [0, 1]));
 
 /** Gambar orang tampak samping di dalam <svg>. Mengembalikan fungsi draw(pose, nowMs) → sudut kemiringan HP. */
 function sideFigure(svg, kind) {
@@ -150,49 +152,42 @@ function player(steps, onFrame) {
 }
 
 /* ===== Urutan gerak ===== */
-const MOVE = [
-  { p: 'q', move: 0, hold: 1100, k: 'po.stand' }, { p: 'r', move: 900, hold: 1000, k: 'po.ruku' }, { p: 'i', move: 800, hold: 600, k: 'po.stand' },
-  { p: 'k', move: 800, hold: 0, k: 'po.sujud' }, { p: 's', move: 700, hold: 1100, k: 'po.sujud' }, { p: 'd', move: 750, hold: 1000, k: 'po.sit' },
-  { p: 's', move: 650, hold: 1100, k: 'po.sujud' }, { p: 'k', move: 650, hold: 0, k: 'po.sujud' }, { p: 'q', move: 850, hold: 900, k: 'po.stand' },
-];
 const HOW = [
   { p: 'q', move: 0, hold: 3600, k: 'po.stand' }, { p: 'r', move: 900, hold: 1100, k: 'po.ruku' }, { p: 'i', move: 800, hold: 600, k: 'po.stand' }, { p: 'k', move: 800, hold: 0, k: 'po.sujud' },
   { p: 's', move: 700, hold: 1200, k: 'po.sujud' }, { p: 'd', move: 750, hold: 1000, k: 'po.sit' }, { p: 's', move: 650, hold: 1300, k: 'po.sujud' }, { p: 'k', move: 650, hold: 0, k: 'po.sujud' }, { p: 'q', move: 850, hold: 1800, k: 'po.stand' },
 ];
 
-/** Adegan "saat shalat": orang bergerak + meter kemiringan HP dengan logika ambang yang sama dengan penghitung asli. */
-function moveScene(box, kind) {
+/** Adegan "cara pakai" (satu untuk tiap posisi HP): orang + meter kemiringan + tampilan mini aplikasi yang berubah sinkron.
+ *  Hitungannya meniru penghitung asli (counter.js) memakai sudut HP & ambang yang sama:
+ *  Saku Baju → rukuk, sujud 1, sujud 2 = 3 gerakan = 1 rakaat; Saku Celana → paha turun ≥ 2,5 dtk lalu bangun = 1 rakaat (rukuk : sujud ≈ 1 : 2). */
+function howScene(box, kind) {
   const svg = S('svg', { 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
-  const draw = sideFigure(svg, kind), chip = box.querySelector('.stage-chip'), bar = box.querySelector('.tilt i'), val = box.querySelector('.tilt b'), det = box.querySelector('.tilt em'), th = TH[kind];
-  let bent = false;
-  const p = player(MOVE, (f, now) => {
-    const a = draw(f.pose, now); if (!bent && a > th.on) bent = true; else if (bent && a < th.off) bent = false;
-    chip.textContent = t(f.st.k); bar.style.width = Math.min(100, a / 90 * 100) + '%'; bar.classList.toggle('hot', bent);
-    val.textContent = Math.round(a) + '°'; det.textContent = bent ? '✓ ' + t('gd.det') : ''; det.classList.toggle('on', bent);
-  });
-  box.querySelector('.tilt .th').style.insetInlineStart = th.on / 90 * 100 + '%';
-  p.start(); if (p.still) box.onclick = () => p.next(); return p;
-}
-
-/** Adegan "cara pakai": orang + tampilan mini aplikasi yang berubah sinkron (kalibrasi 3 detik → rukuk → sujud → rakaat). */
-function howScene(box) {
-  const svg = S('svg', { 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
-  const draw = sideFigure(svg, 'shirt'), chip = box.querySelector('.stage-chip'), $m = (c) => box.querySelector(c); let last = '';
+  const shirt = kind === 'shirt', th = TH[kind], CAL = 3000, total = HOW.reduce((x, y) => x + y.move + y.hold, 0);
+  const draw = sideFigure(svg, kind), chip = box.querySelector('.stage-chip'), $m = (c) => box.querySelector(c), bar = $m('.tilt i'), val = $m('.tilt b'), det = $m('.tilt em');
+  $m('.tilt .th').style.insetInlineStart = th.on / 90 * 100 + '%';
+  let st, cur, last = '';
+  const reset = () => { st = { n: 0, bent: false, since: 0, counted: false }; cur = 0; };
+  reset();
+  /** majukan "penghitung" sampai waktu `to` (ms dalam satu putaran); mundur = ulang dari awal. Langkah 40 ms agar ketukan tidak terlewat meski gambar diam. */
+  const adv = (to) => {
+    if (to < cur) reset();
+    while (cur < to) {
+      cur = Math.min(to, cur + 40); if (cur < CAL) continue; // 3 detik pertama = kalibrasi
+      const a = tiltOf(kind, fk(p.at(cur).pose, 0));
+      if (!st.bent && a > th.on) { st.bent = true; st.since = cur; st.counted = false; }
+      else if (st.bent) { if (a < th.off) st.bent = false; else if (!st.counted && cur - st.since > th.hold) { st.counted = true; st.n++; } }
+    }
+  };
   const p = player(HOW, (f, now) => {
-    const a = draw(f.pose, now); chip.textContent = t(f.st.k);
-    let ph = ['rk.ready'], r = 0, sj = 0, rk = 0, i = f.i;
-    if (i === 0) { if (f.local < 3000) ph = ['rk.cal', { n: Math.ceil((3000 - f.local) / 1000) }]; }
-    else if (i === 1) { if (f.arrived) { ph = ['ph.ruku']; r = 1; } }
-    else if (i <= 3) { ph = ['ph.ruku']; r = 1; }
-    else if (i === 4) { r = 1; ph = f.arrived ? ['ph.sujud1'] : ['ph.ruku']; sj = f.arrived ? 1 : 0; }
-    else if (i === 5) { r = 1; sj = 1; ph = ['ph.sujud1']; }
-    else if (i === 6) { r = 1; sj = f.arrived ? 2 : 1; rk = f.arrived ? 1 : 0; ph = f.arrived ? ['ph.new'] : ['ph.sujud1']; }
-    else { r = 1; sj = 2; rk = 1; ph = ['ph.new']; }
-    const key = ph[0] + (ph[1]?.n ?? '') + r + sj + rk; if (key !== last) {
+    const ms = f.abs % total; adv(ms);
+    const a = draw(f.pose, now), n = st.n, r = shirt ? Math.ceil(n / 3) : n, sj = shirt ? n - r : n * 2, rk = shirt ? Math.floor(n / 3) : n;
+    chip.textContent = t(f.st.k); bar.style.width = Math.min(100, a / 90 * 100) + '%'; bar.classList.toggle('hot', st.bent); val.textContent = Math.round(a) + '°'; det.textContent = st.bent ? '✓ ' + t('gd.det') : ''; det.classList.toggle('on', st.bent);
+    const ph = ms < CAL ? ['rk.cal', { n: Math.ceil((CAL - ms) / 1000) }] : ms < CAL + 600 ? ['rk.ready'] : shirt ? [['ph.new', 'ph.ruku', 'ph.sujud1'][n % 3]] : [st.bent ? 'ph.down' : 'ph.stand'];
+    const key = ph[0] + (ph[1]?.n ?? '') + '|' + r + sj + rk;
+    if (key !== last) {
       last = key; $m('.ma-ph').textContent = t(ph[0], ph[1]); $m('.ma-r b').textContent = r; $m('.ma-s b').textContent = sj; $m('.ma-n b').textContent = rk;
       for (const c of ['.ma-r', '.ma-s']) { const e = $m(c); e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
     }
-    $m('.ma-m i').style.width = Math.min(100, a / 90 * 100) + '%';
   });
   p.start(); if (p.still) box.onclick = () => p.next(); return p;
 }
@@ -427,27 +422,26 @@ function camAlertScene(box) {
 
 /* ===== Halaman panduan ===== */
 let root = null, tab = 'shirt', players = [], open = false;
-const steps = (pre, n) => `<ol class="gd-steps">${Array.from({ length: n }, (_, i) => `<li><i>${i + 1}</i><span>${t(`${pre}.${i + 1}`)}</span></li>`).join('')}</ol>`;
+const steps = (pre, n, ov = {}) => `<ol class="gd-steps">${Array.from({ length: n }, (_, i) => `<li><i>${i + 1}</i><span>${t(ov[i + 1] || `${pre}.${i + 1}`)}</span></li>`).join('')}</ol>`;
 const stage = (cls, extra = '') => `<div class="stage ${cls}"><span class="stage-chip"></span><div class="sv"></div>${extra}</div>`;
 const tiltBox = '<div class="tilt"><span class="tl"></span><div class="tm"><i></i><u class="th"></u></div><b>0°</b><em></em></div>';
-const miniApp = () => `<div class="mini-app"><p class="ma-ph"></p><div class="ma-r"><small>${t('rk.ruku')}</small><b>0</b></div><div class="ma-s"><small>${t('rk.sujud')}</small><b>0</b></div><div class="ma-m"><i></i></div><div class="ma-n"><small>${t('rk.rakaat')}</small><b>0</b></div></div>`;
+const miniApp = () => `<div class="mini-app"><p class="ma-ph"></p><div class="ma-r"><small>${t('rk.ruku')}</small><b>0</b></div><div class="ma-s"><small>${t('rk.sujud')}</small><b>0</b></div><div class="ma-n"><small>${t('rk.rakaat')}</small><b>0</b></div></div>`;
 
 const camPanel = () => `<div class="cw-panel"><div class="cw-phone"><i></i><u></u></div><p class="cw-ev"></p><div class="cw-cnt"><span>${t('rk.sujud')}</span><b class="cw-s">0</b><span>${t('rk.rakaat')}</span><b class="cw-n">0</b><em>/ ${SIM_TARGET}</em></div></div>`;
 const legend = () => `<ul class="gd-legend">${[['●●', '', 'gd.cm.l1'], ['━━', 'fin', 'gd.cm.l2'], ['▮▮▮', 'bad', 'gd.cm.l3'], ['▮ ▮', '', 'gd.cm.l4'], ['···', '', 'gd.cm.l5']].map(([g, c, k]) => `<li class="${c}"><i>${g}</i><span>${t(k)}</span></li>`).join('')}</ul>`;
 
 function render() {
   players.forEach((p) => p.stop()); players = [];
-  const tabs = [['shirt', 'rk.shirt', 'shirt'], ['pants', 'rk.pants', 'pants'], ['how', 'gd.tab.how', 'help'], ['cam', 'cam.m.tegak', 'scan'], ['flat', 'cam.m.datar', 'eye']];
+  const tabs = [['pants', 'rk.pants', 'pants'], ['shirt', 'rk.shirt', 'shirt'], ['flat', 'cam.m.datar', 'eye'], ['cam', 'cam.m.tegak', 'scan']]; // urutan prioritas: sensor saku dulu, lalu kamera
   let body;
   const alert = `<h3 class="gd-h"><i>${tab === 'flat' ? 2 : 3}</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
   if (tab === 'flat') body = `<h3 class="gd-h"><i>1</i>${t('gd.fl.place')}</h3>${stage('fplace')}${steps('gd.fl', 5)}<div class="gd-tip">${t('gd.fl.tip')}</div>${alert}`;
   else if (tab === 'cam') body = `<h3 class="gd-h"><i>1</i>${t('gd.cm.place')}</h3>${stage('cplace')}${steps('gd.cm', 6)}<div class="gd-tip">${t('gd.cm.tip')}</div>
     <h3 class="gd-h"><i>2</i>${t('gd.cm.how')}</h3>${stage('chow', camPanel())}<div class="gd-tip alt">${t('gd.cm.how.tip')}</div>
     <h3 class="gd-h"><i>3</i>${t('gd.cm.alert')}</h3>${stage('calert', '<div class="ca-cap"><b></b><small></small></div>')}${legend()}<div class="gd-tip">${t('gd.cm.safe')}</div>`;
-  else if (tab === 'how') body = `<h3 class="gd-h"><i>▶</i>${t('gd.howt')}</h3>${stage('how', miniApp())}${steps('gd.h', 6)}<div class="gd-tip">${t('gd.h.tip')}</div><div class="gd-tip alt">${t('gd.h.sn')}</div>`;
   else {
     const pre = tab === 'shirt' ? 'gd.sh' : 'gd.pa';
-    body = `<h3 class="gd-h"><i>1</i>${t('gd.place')}</h3>${stage('place')}${steps(pre, 4)}<h3 class="gd-h"><i>2</i>${t('gd.move')}</h3>${stage('move', tiltBox)}<div class="gd-tip">${t(pre + '.tip')}</div>`;
+    body = `<h3 class="gd-h"><i>1</i>${t('gd.place')}</h3>${stage('place')}${steps(pre, 4)}<h3 class="gd-h"><i>2</i>${t('gd.howt')}</h3>${stage('how', miniApp() + tiltBox)}<div class="gd-tip">${t(pre + '.tip')}</div>${steps('gd.h', 6, { 2: tab === 'shirt' ? 'gd.h.2s' : 'gd.h.2p' })}<div class="gd-tip alt">${t('gd.h.tip')}</div><div class="gd-tip alt">${t('gd.h.sn')}</div>`;
   }
   root.innerHTML = `<div class="gd-head"><button class="icon flip" data-gx aria-label="${t('gd.close')}">${ic('back')}</button><h2 class="ttl">${t('gd.title')}</h2></div>
     <div class="gd-tabs" role="tablist">${tabs.map(([k, l, i]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}" class="${k === tab ? 'on' : ''}">${ic(i, 22)}<span>${t(l)}</span></button>`).join('')}</div>
@@ -455,11 +449,10 @@ function render() {
   const q = (c) => root.querySelector(c);
   if (tab === 'flat') players.push(flatScene(q('.stage.fplace')), camAlertScene(q('.stage.calert')));
   else if (tab === 'cam') players.push(camPlaceScene(q('.stage.cplace')), camHowScene(q('.stage.chow')), camAlertScene(q('.stage.calert')));
-  else if (tab === 'how') players.push(howScene(q('.stage.how')));
   else {
-    players.push(placeScene(q('.stage.place'), tab)); const mv = q('.stage.move'); mv.querySelector('.tilt .tl').textContent = t('gd.tilt'); players.push(moveScene(mv, tab));
+    players.push(placeScene(q('.stage.place'), tab)); const hw = q('.stage.how'); hw.querySelector('.tilt .tl').textContent = t('gd.tilt'); players.push(howScene(hw, tab));
   }
-  if (players.some((p) => p.still)) root.querySelectorAll('.stage.move,.stage.how,.stage.chow').forEach((s) => s.insertAdjacentHTML('afterend', `<small class="mute gd-tap">${t('gd.tap')}</small>`));
+  if (players.some((p) => p.still)) root.querySelectorAll('.stage.how,.stage.chow').forEach((s) => s.insertAdjacentHTML('afterend', `<small class="mute gd-tap">${t('gd.tap')}</small>`));
   root.scrollTo(0, 0);
 }
 function build() {
@@ -469,5 +462,5 @@ function build() {
   hooks.push(() => { if (open) render(); });
   document.addEventListener('visibilitychange', () => { if (open) { players.forEach((p) => p.stop()); players = []; if (!document.hidden) render(); } });
 }
-export function openGuide(k = 'shirt') { if (!root) build(); tab = k; open = true; root.classList.add('on'); document.body.classList.add('gd-open'); render(); store.set('rs.gd', 1); }
+export function openGuide(k = 'shirt') { if (!root) build(); tab = ['pants', 'shirt', 'flat', 'cam'].includes(k) ? k : 'pants'; open = true; root.classList.add('on'); document.body.classList.add('gd-open'); render(); store.set('rs.gd', 1); }
 export function closeGuide() { open = false; players.forEach((p) => p.stop()); players = []; root?.classList.remove('on'); document.body.classList.remove('gd-open'); document.querySelector('#guideBtn')?.classList.remove('new'); }
