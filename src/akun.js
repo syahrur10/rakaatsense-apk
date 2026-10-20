@@ -10,7 +10,7 @@ import { ONLINE } from './config.js';
 /* ---------- teks antarmuka ---------- */
 const U = {
   id: {
-    'nav.ac': 'Akun', 'ac.title': 'Akun Saya', 'ac.role.user': 'Pengguna', 'ac.role.guest': 'Tamu',
+    'nav.ac': 'Akun', 'nav.gd': 'Panduan', 'ac.title': 'Akun Saya', 'ac.role.user': 'Pengguna', 'ac.role.guest': 'Tamu',
     'ac.photo': 'Ganti foto profil', 'ac.photo.del': 'Hapus foto', 'ac.photo.ok': 'Foto profil diperbarui.', 'ac.photo.gone': 'Foto profil dihapus.',
     'ac.bio.h': 'Biodata', 'ac.name': 'Nama lengkap', 'ac.bio': 'Bio singkat', 'ac.bio.ph': 'Ceritakan sedikit tentang dirimu', 'ac.birth': 'Tanggal lahir',
     'ac.gender': 'Jenis kelamin', 'ac.g.none': 'Tidak diisi', 'ac.g.m': 'Laki-laki', 'ac.g.f': 'Perempuan', 'ac.city': 'Kota / domisili', 'ac.city.ph': 'Contoh: Semarang',
@@ -20,7 +20,7 @@ const U = {
     'ac.admin': 'Buka Panel Admin', 'ac.noname': 'Belum ada nama',
   },
   en: {
-    'nav.ac': 'Account', 'ac.title': 'My Account', 'ac.role.user': 'User', 'ac.role.guest': 'Guest',
+    'nav.ac': 'Account', 'nav.gd': 'Guide', 'ac.title': 'My Account', 'ac.role.user': 'User', 'ac.role.guest': 'Guest',
     'ac.photo': 'Change profile photo', 'ac.photo.del': 'Remove photo', 'ac.photo.ok': 'Profile photo updated.', 'ac.photo.gone': 'Profile photo removed.',
     'ac.bio.h': 'Profile', 'ac.name': 'Full name', 'ac.bio': 'Short bio', 'ac.bio.ph': 'Tell us a little about yourself', 'ac.birth': 'Date of birth',
     'ac.gender': 'Gender', 'ac.g.none': 'Not set', 'ac.g.m': 'Male', 'ac.g.f': 'Female', 'ac.city': 'City', 'ac.city.ph': 'e.g. Semarang',
@@ -30,7 +30,7 @@ const U = {
     'ac.admin': 'Open Admin Panel', 'ac.noname': 'No name yet',
   },
   ar: {
-    'nav.ac': 'حسابي', 'ac.title': 'حسابي', 'ac.role.user': 'مستخدم', 'ac.role.guest': 'ضيف',
+    'nav.ac': 'حسابي', 'nav.gd': 'الدليل', 'ac.title': 'حسابي', 'ac.role.user': 'مستخدم', 'ac.role.guest': 'ضيف',
     'ac.photo': 'تغيير صورة الملف الشخصي', 'ac.photo.del': 'حذف الصورة', 'ac.photo.ok': 'تم تحديث الصورة.', 'ac.photo.gone': 'تم حذف الصورة.',
     'ac.bio.h': 'البيانات الشخصية', 'ac.name': 'الاسم الكامل', 'ac.bio': 'نبذة قصيرة', 'ac.bio.ph': 'اكتب نبذة قصيرة عن نفسك', 'ac.birth': 'تاريخ الميلاد',
     'ac.gender': 'الجنس', 'ac.g.none': 'غير محدد', 'ac.g.m': 'ذكر', 'ac.g.f': 'أنثى', 'ac.city': 'المدينة', 'ac.city.ph': 'مثال: سمارانغ',

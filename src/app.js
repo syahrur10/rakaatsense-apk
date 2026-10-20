@@ -154,7 +154,7 @@ $('plus').onclick = () => { counter.adjust(1); refresh(true); }; $('minus').oncl
 
 /* ---- Panduan animasi (cara menaruh HP di saku & cara memakai aplikasi) ---- */
 if (!store.get('rs.gd', 0)) $('guideBtn').classList.add('new');
-$('guideBtn').onclick = () => openGuide(mode); $('homeGuide').onclick = () => openGuide(mode);
+$('guideBtn').onclick = () => openGuide(mode); $('homeGuide').onclick = () => openGuide(mode); $('navGuide').onclick = () => openGuide(mode);
 
 /* ---- Pemantau rakaat (kamera): HP di lantai depan sejadah, layar hitam, getar/bunyi pengingat bila hitungan janggal ---- */
 const recordCam = (r) => {
