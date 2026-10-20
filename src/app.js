@@ -162,7 +162,8 @@ const watch = initWatch({
   target: tgt, label: () => $('rkSel').textContent,
   busy: () => { if (counter.on) { toast(t('w.busyc')); return true; } return false; },
   awake: keepAwake, sleep: () => { if (!counter.on) letSleep(); }, lock: () => pills(),
-  saved: (r) => { renderHome(); const sid = recordCam(r); focusReport(sid); go('rp'); }, // selesai → langsung buka Laporan dengan hasil sesi ini mark: () => { mark(lk(), true); pills(); },
+  saved: (r) => { renderHome(); const sid = recordCam(r); if (r.det > 0 || r.sujud > 0) { focusReport(sid); go('rp'); } }, // selesai → langsung buka Laporan dengan hasil sesi ini (tanpa hitungan = tetap di ringkasan)
+  mark: () => { mark(lk(), true); pills(); },
 });
 $('camGuideBtn').onclick = () => openGuide(store.get('rs.cm', 'tegak') === 'datar' ? 'flat' : 'cam');
 

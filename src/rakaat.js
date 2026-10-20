@@ -75,3 +75,21 @@ export function createTracker({ target, onEvent = () => {}, th = TH }) {
     snapshot: () => ({ rakaat, ruku: rukuN, sujud: sujudN, state, target }),
   };
 }
+
+/** Kapan pemantauan dianggap selesai (murni, bisa diuji). Mengembalikan 'done' | 'away' | 'idle' | 'max' | null.
+ *  - done : target rakaat tercapai, lalu orang berdiri/pergi (setelah jendela peringatan "rakaat tambahan") atau lewat DONE.after
+ *  - away : badan tidak terlihat lama (HP diambil / orang pergi)
+ *  - idle : tidak ada perubahan gerakan sama sekali selama DONE.idle padahal sudah ada sujud (mis. selesai tapi hitungan kurang)
+ *  - max  : batas waktu keseluruhan */
+export const DONE = { quick: 30000, after: 45000, away: 120000, idle: 150000, max: 90 * 60000, awayAfterDone: 5000 };
+export function finishReason({ now, startT, rakaat, target, lastRakaatT, state, unseen, sujud, lastChangeT, extraSince }, d = DONE) {
+  if (rakaat >= target && rakaat > 0) {
+    const since = now - lastRakaatT;
+    if (since > d.after) return 'done';
+    if (since > d.quick && !extraSince && (state === 'stand' || unseen > d.awayAfterDone)) return 'done';
+  }
+  if (unseen > d.away) return 'away';
+  if (sujud > 0 && now - lastChangeT > d.idle) return 'idle';
+  if (now - startT > d.max) return 'max';
+  return null;
+}

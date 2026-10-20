@@ -1,0 +1,12 @@
+import { finishReason, DONE } from '../../src/rakaat.js';
+const base = { startT: 0, rakaat: 2, target: 2, lastRakaatT: 100000, state: 'sit', unseen: 0, sujud: 4, lastChangeT: 100000, extraSince: false };
+const T = (name, o, want) => { const got = finishReason({ now: 100000, ...o }); console.log((got === want ? 'OK  ' : 'FAIL') + ' ' + name.padEnd(46) + String(got)); if (got !== want) process.exitCode = 1; };
+T('masih tahiyat akhir (10s)', { ...base, now: 110000 }, null);
+T('berdiri 12s setelah rakaat akhir (belum aman)', { ...base, now: 112000, state: 'stand' }, null);
+T('berdiri >30s setelah rakaat akhir', { ...base, now: 135000, state: 'stand' }, 'done');
+T('pergi (badan hilang >5s) >30s', { ...base, now: 140000, state: 'sit', unseen: 6000 }, 'done');
+T('duduk dzikir terus, lewat 45s', { ...base, now: 146000 }, 'done');
+T('rakaat tambahan terdeteksi: tunggu 45s', { ...base, now: 135000, state: 'stand', extraSince: true }, null);
+T('target belum tercapai, belum idle', { ...base, now: 160000, rakaat: 1, lastChangeT: 150000 }, null);
+T('target belum tercapai, diam 150s+ = idle', { ...base, now: 260000, rakaat: 1, lastChangeT: 100000 }, 'idle');
+T('badan hilang >120s = away', { ...base, now: 200000, rakaat: 0, sujud: 0, unseen: 121000 }, 'away');

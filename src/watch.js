@@ -4,10 +4,10 @@
 import { $, toast, speak, store } from './util.js';
 import { t, lang, hooks } from './i18n.js';
 import { openCamera, openRaw, closeCamera, read, parts, full, createCalibrator, feature, draw } from './pose.js';
-import { createTracker } from './rakaat.js';
+import { createTracker, finishReason } from './rakaat.js';
 import { readLuma, createLumaCalibrator, createFlatTracker } from './flat.js';
 
-const COUNTDOWN = 10, STEP = 90, HOLD_EXIT = 1800, DARK_AFTER = 6000, DONE_AFTER = 90000, AWAY_AFTER = 180000, MAX_RUN = 90 * 60000;
+const COUNTDOWN = 10, STEP = 90, HOLD_EXIT = 1800, DARK_AFTER = 6000;
 
 /* ---- bunyi lembut & getar ---- */
 let ac = null;
@@ -38,6 +38,7 @@ function cue(kind, e = {}) {
 export function initWatch(cx) {
   const V = $('video'), CV = $('ov'), G = CV.getContext('2d'), OV = $('watch');
   let flat = store.get('rs.cm', 'tegak') === 'datar', lcal = createLumaCalibrator(), phase = 'idle', raf = 0, last = 0, cal = createCalibrator(), pvBase = null, pvTr = null, pvGone = 0, tr = null, base = null, target = 1;
+  let lastChangeT = 0, lastSt = '', lastSj = -1, doneAt = 0;
   let cdEnd = 0, lastSec = 0, calT = 0, calWarn = 0, startT = 0, darkT = 0, holdTm = 0, log = [], lastExtra = -1e9, res = null;
   const texts = new Set();
   const say = (el, key, v) => { el._k = [key, v]; texts.add(el); el.textContent = t(key, v); };
@@ -102,16 +103,17 @@ export function initWatch(cx) {
   }
   /* 4. Memantau: layar hitam penuh */
   function startMonitor(now) {
-    phase = 'watch'; startT = now; darkT = now + DARK_AFTER; log = [{ at: 0, k: 'start' }]; lastExtra = -1e9;
+    phase = 'watch'; startT = now; darkT = now + DARK_AFTER; log = [{ at: 0, k: 'start' }]; lastExtra = -1e9; lastChangeT = now; lastSt = ''; lastSj = -1; doneAt = 0;
     const onEvent = (e) => onEv(e, performance.now()); tr = flat ? createFlatTracker({ target, base, onEvent }) : createTracker({ target, onEvent });
     say($('wTxt'), 'w.ready'); $('wBig').textContent = ''; cue('ready');
   }
   function watching(now, r) {
     if (now > darkT) OV.classList.add('dark');
     tr.feed(now, flat ? r : r ? feature(r, base) : null);
-    if (tr.rakaat >= target && now - tr.lastRakaatT > DONE_AFTER) finish('done');
-    else if (tr.unseenFor(now) > AWAY_AFTER) finish('away');
-    else if (now - startT > MAX_RUN) finish('max');
+    if (tr.state !== lastSt || tr.sujud !== lastSj) { lastSt = tr.state; lastSj = tr.sujud; lastChangeT = now; }
+    const rAt = tr.lastRakaatT - startT; // peringatan "rakaat tambahan" sejak rakaat terakhir = bukan selesai biasa
+    const why = finishReason({ now, startT, rakaat: tr.rakaat, target, lastRakaatT: tr.lastRakaatT, state: tr.state, unseen: tr.unseenFor(now), sujud: tr.sujud, lastChangeT, extraSince: log.some((x) => (x.k === 'extra' || x.k === 'over') && x.at >= rAt) });
+    if (why) finish(why);
   }
   function onEv(e, now) {
     const at = now - startT;
@@ -142,7 +144,7 @@ export function initWatch(cx) {
   function finish(reason) {
     if (phase === 'count' || phase === 'calib') return toIdle(); // ditahan saat hitung mundur/kalibrasi = batal
     const snap = tr.snapshot(); res = { det: snap.rakaat, tgt: target, sujud: snap.sujud, reason, log, label: cx.label() };
-    stopAll(); phase = 'sum'; store.set('rs.cam', { det: res.det, tgt: res.tgt, at: Date.now() }); cx.saved(res);
+    if (reason === 'done') cue('ready'); stopAll(); phase = 'sum'; store.set('rs.cam', { det: res.det, tgt: res.tgt, at: Date.now() }); cx.saved(res);
     show(true, false, false, true); btn('w.again'); renderSum(); scrollTo(0, 0);
   }
   const mmss = (ms) => { const s = Math.round(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
