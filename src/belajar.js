@@ -11,7 +11,7 @@ import { REC, SURAH, STEP, MOVES, PREP, PRAYERS, prayer, flow } from './belajar-
 /* ---------- teks antarmuka ---------- */
 const U = {
   id: {
-    'f.bs.t': 'Belajar Shalat', 'f.bs.d': 'Gerakan & bacaan shalat langkah demi langkah, lengkap dengan arti. Cocok untuk mualaf dan pemula.',
+    'nav.bs': 'Belajar', 'f.bs.t': 'Belajar Shalat', 'f.bs.d': 'Gerakan & bacaan shalat langkah demi langkah, lengkap dengan arti. Cocok untuk mualaf dan pemula.',
     'bs.title': 'Belajar Shalat', 'bs.sub': 'Gerakan dan bacaan, lengkap dengan latin dan arti.',
     'bs.t.follow': 'Ikuti', 'bs.t.moves': 'Gerakan', 'bs.t.recs': 'Bacaan', 'bs.t.prep': 'Persiapan',
     'bs.pick': 'Pilih shalat yang ingin dipelajari', 'bs.p.sunnah': 'Sunnah 2 rakaat', 'bs.sum': '{n} rakaat · {s} langkah', 'bs.start': 'Mulai belajar',
@@ -23,7 +23,7 @@ const U = {
     'bs.recs.h': 'Ketuk sebuah bacaan untuk membukanya.',
   },
   en: {
-    'f.bs.t': 'Learn to Pray', 'f.bs.d': 'Prayer movements and recitations step by step, with meanings. Great for new Muslims and beginners.',
+    'nav.bs': 'Learn', 'f.bs.t': 'Learn to Pray', 'f.bs.d': 'Prayer movements and recitations step by step, with meanings. Great for new Muslims and beginners.',
     'bs.title': 'Learn to Pray', 'bs.sub': 'Movements and recitations, with transliteration and meaning.',
     'bs.t.follow': 'Follow', 'bs.t.moves': 'Moves', 'bs.t.recs': 'Recitations', 'bs.t.prep': 'Basics',
     'bs.pick': 'Choose a prayer to learn', 'bs.p.sunnah': 'Sunnah, 2 rak\'ahs', 'bs.sum': '{n} rak\'ahs · {s} steps', 'bs.start': 'Start learning',
@@ -35,7 +35,7 @@ const U = {
     'bs.recs.h': 'Tap a recitation to open it.',
   },
   ar: {
-    'f.bs.t': 'تعلّم الصلاة', 'f.bs.d': 'حركات الصلاة وأذكارها خطوة بخطوة مع المعاني. مناسب للمسلمين الجدد والمبتدئين.',
+    'nav.bs': 'تعلّم', 'f.bs.t': 'تعلّم الصلاة', 'f.bs.d': 'حركات الصلاة وأذكارها خطوة بخطوة مع المعاني. مناسب للمسلمين الجدد والمبتدئين.',
     'bs.title': 'تعلّم الصلاة', 'bs.sub': 'الحركات والأذكار مع النطق والمعنى.',
     'bs.t.follow': 'تابع', 'bs.t.moves': 'الحركات', 'bs.t.recs': 'الأذكار', 'bs.t.prep': 'الأساسيات',
     'bs.pick': 'اختر الصلاة التي تريد تعلّمها', 'bs.p.sunnah': 'سنة ركعتان', 'bs.sum': '{n} ركعات · {s} خطوة', 'bs.start': 'ابدأ التعلّم',
@@ -83,7 +83,7 @@ function halt() { stage?.stop(); stage = null; clearTimeout(demoTm); demoTm = 0;
 /* ---------- tab: Ikuti ---------- */
 function followPick() {
   const P = prayer(S.pid), n = flow(P.id).length;
-  $('bsBody').innerHTML = `<div class="card bs-hero"><span class="al-ico big">${ic('book', 26)}</span><p>${esc(t('bs.hero'))}</p></div>`
+  $('bsBody').innerHTML = `<div class="card bs-hero"><span class="al-ico big">${ic('sajadah', 26)}</span><p>${esc(t('bs.hero'))}</p></div>`
     + `<span class="glbl">${esc(t('bs.pick'))}</span><div class="pills wrap" id="bsPills">${PRAYERS.map((p) => `<button type="button" class="pill ${p.id === S.pid ? 'on' : ''}" data-pid="${p.id}">${esc(pname(p.id))}</button>`).join('')}</div>`
     + `<div class="card bs-sumc"><b>${esc(pname(P.id))}</b><small>${esc(t('bs.sum', { n: P.r, s: n }))}</small></div>`
     + `<button type="button" class="btn" data-a="start">${esc(t('bs.start'))}</button>`;

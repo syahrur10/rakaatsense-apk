@@ -20,5 +20,14 @@ service cloud.firestore {
         || isAdmin());
       allow delete: if isAdmin() && request.auth.uid != uid;
     }
+    // Profil pengguna: profiles/{uid} (name, bio, birth, gender, city, photo, at) — hanya pemilik (dan admin untuk membaca).
+    match /profiles/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'bio', 'birth', 'gender', 'city', 'photo', 'at'])
+        && request.resource.data.get('photo', '').size() < 180000
+        && request.resource.data.get('bio', '').size() <= 400;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
   }
 }

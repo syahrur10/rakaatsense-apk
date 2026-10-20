@@ -75,7 +75,7 @@ function drawRows() {
   }
   const q = norm(query), rows = META.filter((m) => !q || String(m.n) === q || norm(m.tr).includes(q) || norm(m.id).includes(q) || norm(m.en).includes(q) || m.ar.includes(query.trim()));
   const last = S().last, lm = last && META[last.s - 1];
-  const resume = lm && !q ? `<button class="qr-resume" data-qr="open" data-n="${last.s}" data-a="${last.a}"><span class="fi">${ic('book', 26)}</span><span class="qr-nm"><small>${t('qr.cont')}</small><b>${lm.tr} · ${t('qr.ayat', { n: last.a })}</b></span><span class="fa">${ic('arrow', 20)}</span></button>` : '';
+  const resume = lm && !q ? `<button class="qr-resume" data-qr="open" data-n="${last.s}" data-a="${last.a}"><span class="fi">${ic('quran', 26)}</span><span class="qr-nm"><small>${t('qr.cont')}</small><b>${lm.tr} · ${t('qr.ayat', { n: last.a })}</b></span><span class="fa">${ic('arrow', 20)}</span></button>` : '';
   box.innerHTML = resume + (rows.length ? `<div class="qr-list">${rows.map((m) => `<button class="qr-row" data-qr="open" data-n="${m.n}"><span class="qr-n"><b>${m.n}</b></span><span class="qr-nm"><b>${m.tr}</b><small>${esc(sub(m))}</small></span><span class="qr-ara" lang="ar">${m.ar}</span></button>`).join('')}</div>` : `<p class="rp-empty">${t('qr.none')}</p>`);
 }
 

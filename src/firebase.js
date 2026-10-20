@@ -66,3 +66,12 @@ export async function createUser(name, mail, pw, role) {
     return user.uid;
   } finally { await fbSignOut(a).catch(() => {}); await deleteApp(sec).catch(() => {}); }
 }
+
+/* ---- Profil (koleksi "profiles": foto, bio, biodata) — dipisah dari "users" supaya daftar admin tetap ringan ---- */
+/** Simpan profil sendiri, dan samakan nama tampilan di Auth + daftar pengguna (admin). */
+export async function pushProfile(uid, p) {
+  const { m, db } = await fs();
+  await m.setDoc(m.doc(db, 'profiles', uid), { name: p.name || '', bio: p.bio || '', birth: p.birth || '', gender: p.gender || '', city: p.city || '', photo: p.photo || '', at: p.at || Date.now() });
+  if (p.name) { await m.setDoc(m.doc(db, 'users', uid), { name: p.name }, { merge: true }).catch(() => {}); if (auth?.currentUser) await updateProfile(auth.currentUser, { displayName: p.name }).catch(() => {}); }
+}
+export async function pullProfile(uid) { const { m, db } = await fs(); const d = await m.getDoc(m.doc(db, 'profiles', uid)); return d.exists() ? d.data() : null; }

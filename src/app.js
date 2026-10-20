@@ -8,6 +8,7 @@ import { openGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
 import { addSession, focus as focusReport, render as renderReport } from './report.js';
 import { enter as qrEnter } from './quran.js';
+import { enter as acEnter } from './akun.js';
 import { setTimes as alarmTimes } from './alarm.js';
 import './belajar.js';
 import './qibla.js';
@@ -27,6 +28,7 @@ function setGreet() {
   $('greet2').textContent = (isAdmin() ? t('au.r.admin') + ' · ' : '') + t('g.' + part);
   $('logout').setAttribute('aria-label', t(guest ? 'au.in' : 'au.out'));
 }
+window.addEventListener('rs:profile', setDates);
 $('logout').onclick = () => { if (session()?.id === 'guest' || confirm(t('au.outq'))) logout(); };
 const HJ = {
   id: ['Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir', 'Jumadil Awal', 'Jumadil Akhir', 'Rajab', 'Syakban', 'Ramadan', 'Syawal', 'Zulkaidah', 'Zulhijah'],
@@ -48,7 +50,7 @@ function setDates() {
 /* ---- Navigasi ---- */
 let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
-function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); }
+function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); if (id === 'ac') acEnter(); const nb = document.querySelector('#nav button.on'); if (nb && $('nav').scrollWidth > $('nav').clientWidth) nb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 $('bell').onclick = () => go('al'); // lonceng → halaman Alarm Shalat (izin notifikasi diminta di sana)
 
