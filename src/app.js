@@ -9,6 +9,7 @@ import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCust
 import { addSession, focus as focusReport, render as renderReport } from './report.js';
 import { enter as qrEnter } from './quran.js';
 import { setTimes as alarmTimes } from './alarm.js';
+import './belajar.js';
 import './qibla.js';
 import './dzikir.js';
 

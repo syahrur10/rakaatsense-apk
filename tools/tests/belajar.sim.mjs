@@ -1,0 +1,13 @@
+import { REC, STEP, PRAYERS, flow, usedRecs, SURAH } from '../../src/belajar-data.js';
+let bad = 0; const ok = (n, c) => { console.log((c ? 'OK  ' : 'FAIL') + ' ' + n); if (!c) { bad++; process.exitCode = 1; } };
+ok('semua bacaan yang dipakai ada', usedRecs().every((id) => REC[id]));
+ok('baris Arab/latin/arti sejajar', Object.values(REC).every((r) => { const a = r.ar.split('|').length; return r.lat.split('|').length === a && (a === 1 || (r.tr.id.split('|').length === a && r.tr.en.split('|').length === a)); }));
+ok('semua langkah punya pose & judul 2 bahasa', Object.values(STEP).every((s) => s.pose && s.title.id && s.title.en && s.how.id && s.how.en));
+ok('5 surah pendek tersedia', SURAH.length === 5 && SURAH.every((id) => REC[id]));
+const cnt = (pid, k) => flow(pid).filter((s) => s.k === k).length;
+ok('Subuh: 2 rukuk, 4 sujud, 1 tahiyat akhir, qunut', cnt('subuh', 'ruku') === 2 && cnt('subuh', 'sujud1') + cnt('subuh', 'sujud2') === 4 && cnt('subuh', 'tahiyat_akhir') === 1 && cnt('subuh', 'qunut') === 1);
+ok('Dzuhur: 4 rukuk, tahiyat awal 1x, surah hanya rakaat 1-2', cnt('dzuhur', 'ruku') === 4 && cnt('dzuhur', 'tahiyat_awal') === 1 && cnt('dzuhur', 'surah') === 2);
+ok('Maghrib: 3 rakaat, tahiyat akhir di rakaat 3', cnt('maghrib', 'ruku') === 3 && flow('maghrib').find((s) => s.k === 'tahiyat_akhir').rk === 3);
+ok('Isya: bacaan keras hanya rakaat 1-2', flow('isya').filter((s) => s.k === 'fatihah').map((s) => s.read).join() === 'jahr,jahr,sirr,sirr');
+ok('tiap shalat diawali siap/niat dan diakhiri salam+selesai', PRAYERS.every((p) => { const f = flow(p.id).map((s) => s.k); return f[0] === 'siap' && f[1] === 'niat' && f.at(-2) === 'salam' && f.at(-1) === 'selesai'; }));
+console.log(bad ? 'GAGAL' : 'semua lolos');

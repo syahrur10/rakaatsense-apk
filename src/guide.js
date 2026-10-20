@@ -54,6 +54,10 @@ const RAW = {
   k: { A: [81.5, 112], K: [110, 121], H: [105.5, 89.3], S: [118.8, 52.7], C: [123.9, 41.8], T: [130, 92], bend: 0.3, toe: [88.5, 124.1] },
   // Sujud (7 anggota): dahi + hidung, 2 telapak tangan, 2 lutut, jari-jari 2 kaki menyentuh lantai; pinggul lebih tinggi dari kepala; telapak rata menghadap kiblat tepat di bawah bahu, siku menekuk ke belakang & terangkat dari lantai (mengacu foto sujud)
   s: { A: [81.5, 112], K: [110, 121], H: [97.5, 91.9], S: [135, 102.7], C: [145.7, 119.2], T: [138, 124.2], bend: 0.8, as: 1, toe: [88.5, 124.1], hw: 1, ha: 0 },
+  // Takbiratul ihram: berdiri tegak, kedua tangan diangkat sejajar bahu/telinga, telapak menghadap kiblat
+  u: { A: [96, 125], K: [96, 95], H: [96, 63], S: [96, 24], C: [98.1, 12.2], T: [110, 21], bend: 0.7, as: 1, toe: [110, 125], hw: 1, ha: -80 },
+  // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kiri keluar di bawah betis kanan, kaki kanan ditegakkan, tangan di atas paha
+  w: { A: [97, 120], K: [119, 101], A2: [112, 123], toe2: [124, 124], H: [91, 117], S: [91.5, 78], C: [93.6, 66.2], T: [106, 103], bend: 0.2, toe: [108, 124], hw: 1, ha: 24 },
   // Duduk di antara dua sujud (iftirasy): duduk di atas telapak kaki kiri (rebah), kaki kanan ditegakkan dengan jari menghadap kiblat, tangan di atas paha
   d: { A: [81.5, 112], K: [110, 121], A2: [80, 121], toe2: [66, 124], H: [81, 108], S: [84.4, 69.1], C: [86.5, 57.3], T: [98, 108], bend: 0.2, toe: [88.5, 124.1], hw: 1, ha: 24 },
 };
@@ -79,7 +83,7 @@ const tiltOf = (kind, F) => (kind === 'shirt' ? angle([F.S[0] - F.H[0], F.S[1] -
 
 /** Gambar orang tampak samping di dalam <svg>. Mengembalikan fungsi draw(pose, nowMs) → sudut kemiringan HP. */
 function sideFigure(svg, kind) {
-  const cam = kind === 'cam'; // varian kamera: tanpa HP di saku, sejadah lebih panjang supaya HP di depan muat
+  const cam = kind === 'cam', plain = kind === 'plain'; // varian kamera: tanpa HP di saku, sejadah lebih panjang supaya HP di depan muat
   svg.setAttribute('viewBox', cam ? '40 -36 240 188' : '54 -4 148 138');
   const g = S('g', {}, svg), gx = cam ? 40 : 52, gw = cam ? 240 : 146;
   S('rect', { x: gx, y: 126.5, width: gw, height: 7, rx: 3.5, fill: C.gold }, g); S('rect', { x: gx, y: 126.5, width: gw, height: 1.7, rx: 0.8, fill: '#fff', opacity: 0.4 }, g);
@@ -104,7 +108,7 @@ function sideFigure(svg, kind) {
   S('path', { d: 'M-7.3 -2.4C-7.6 -9.6 -3 -11.2 0.4 -11C4.6 -10.8 7.2 -8.2 7.3 -2.4Z', fill: '#fff', stroke: C.shirtD, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }, head); S('path', { d: 'M-7.2 -3.6Q0 -6.4 7.2 -3.6', fill: 'none', stroke: C.shirt, 'stroke-width': 0.9 }, head);
   const nearArm = arm(g, nearP);
   const glow = S('circle', { r: 11, fill: C.gold, opacity: 0.45 }, g), ph = phoneShape(g, 3.8, 13);
-  if (cam) { glow.setAttribute('display', 'none'); ph.setAttribute('display', 'none'); }
+  if (cam || plain) { glow.setAttribute('display', 'none'); ph.setAttribute('display', 'none'); }
   const fn = (P, now) => {
     const F = fk(P, now);
     farLeg({ ...F, A: F.A2, toe: F.toe2 }); farArm(F); nearLeg(F);
@@ -115,7 +119,7 @@ function sideFigure(svg, kind) {
     head.setAttribute('transform', `translate(${F.C[0].toFixed(2)} ${F.C[1].toFixed(2)}) rotate(${(F.an[2] + 0.4 * (F.an[3] - F.an[2])).toFixed(1)})`);
     nearArm(F);
     shadow.setAttribute('cx', ((F.A[0] + F.H[0] + F.S[0]) / 3).toFixed(1)); shadow.setAttribute('rx', (16 + Math.abs(F.S[0] - F.A[0]) * 0.3).toFixed(1));
-    if (cam) { fn.F = F; return 0; } // varian kamera: simpan sendi (dibaca simulasi), tidak ada meter kemiringan
+    if (cam || plain) { fn.F = F; return 0; } // varian kamera: simpan sendi (dibaca simulasi), tidak ada meter kemiringan
     let pos, a, tilt;
     if (kind === 'shirt') { // HP di dada: ikut batang badan (pinggul → bahu)
       const u = [F.S[0] - F.H[0], F.S[1] - F.H[1]], n = Math.hypot(...u), ux = u[0] / n, uy = u[1] / n, f = [-uy, ux];
@@ -464,3 +468,6 @@ function build() {
 }
 export function openGuide(k = 'shirt') { if (!root) build(); tab = ['pants', 'shirt', 'flat', 'cam'].includes(k) ? k : 'pants'; open = true; root.classList.add('on'); document.body.classList.add('gd-open'); render(); store.set('rs.gd', 1); }
 export function closeGuide() { open = false; players.forEach((p) => p.stop()); players = []; root?.classList.remove('on'); document.body.classList.remove('gd-open'); document.querySelector('#guideBtn')?.classList.remove('new'); }
+
+/** dipakai halaman Belajar Shalat (belajar.js): gambar orang tampak samping + pose + pencampur gerak */
+export { sideFigure, blend, POSE };
