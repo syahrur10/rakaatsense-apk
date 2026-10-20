@@ -512,3 +512,25 @@ body.watching .toast{display:none!important}
 .qr-sw i:after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:inset-inline-start .2s}
 .qr-sw input:checked+i{background:var(--g1)}.qr-sw input:checked+i:after{inset-inline-start:21px}
 .sheet-card{max-height:90vh;overflow:auto}
+
+/* ---- Alarm Shalat ---- */
+.fcard.al .fi{background:linear-gradient(135deg,#E8836B,#C4472F);box-shadow:0 8px 18px rgba(196,71,47,.3)}
+.al-sum{display:flex;gap:.8rem;align-items:flex-start}.al-sum>div{display:grid;gap:.25rem;min-width:0}.al-sum b{color:var(--g3);font-size:.98rem}.al-sum small{color:var(--mute);font-size:.78rem;line-height:1.4}.al-sum small.bad{color:var(--red);font-weight:700}
+.al-ico{flex:none;width:42px;height:42px;border-radius:14px;background:var(--mint);color:var(--g2);display:grid;place-items:center}.al-ico.x{background:#FFF3D6;color:#8A6410}.al-ico.big{width:50px;height:50px;border-radius:16px;background:var(--grad);color:#fff}
+.al-list{display:grid;gap:.6rem}
+.al-row{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:.75rem .85rem;box-shadow:var(--shadow);transition:border-color .15s}.al-row.on{border-color:var(--g1)}
+.al-top{display:flex;align-items:center;gap:.7rem}.al-main{flex:1;display:grid;gap:.1rem;min-width:0}.al-main b{color:var(--g3);font-size:.98rem}.al-main small{color:var(--mute);font-size:.76rem}
+.al-time{font-size:1.35rem;font-weight:800;color:var(--g3);font-variant-numeric:tabular-nums;letter-spacing:.01em}.al-row:not(.on) .al-time{color:var(--mute)}
+.al-bot{margin-top:.55rem;display:flex;justify-content:flex-end}.al-opt{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--mute);font-weight:600}
+.al-opt select{border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--text);font:600 .86rem 'Plus Jakarta Sans','Noto Sans Arabic',sans-serif;padding:.4rem .6rem}
+.al-edit{padding:.4rem 1rem;font-size:.82rem}
+.al-sw{position:relative;flex:none;width:50px;height:30px;display:inline-block;cursor:pointer}.al-sw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer}
+.al-sw i{position:absolute;inset:0;border-radius:99px;background:#CFE3D8;transition:background .15s}.al-sw i::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:transform .15s}
+.al-sw input:checked+i{background:var(--g1)}.al-sw input:checked+i::after{transform:translateX(20px)}[dir=rtl] .al-sw input:checked+i::after{transform:translateX(-20px)}.al-sw input:focus-visible+i{outline:3px solid rgba(29,184,110,.4)}
+.al-add{width:100%;margin:.7rem 0 0}.al-test{margin-top:1rem}.al-days{margin-bottom:.4rem}.al-days .pill{padding:.45rem .8rem;font-size:.84rem}.al-del{width:100%;margin-top:.7rem}
+.al-ring{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#0A5C38,#1DB86E);display:grid;place-items:center;padding:1.2rem;animation:alIn .25s ease}
+@keyframes alIn{from{opacity:0}to{opacity:1}}
+.al-ring-in{width:100%;max-width:380px;text-align:center;color:#fff;display:grid;gap:.9rem;justify-items:center}.al-ring-in h2{font-size:1.7rem;font-weight:800}.al-ring-in p{opacity:.92;font-size:1rem;margin-bottom:.6rem}
+.al-ring-ic{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;animation:alPulse 1.1s ease-in-out infinite}
+@keyframes alPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.al-ring-in .btn{background:#fff;color:var(--g3);box-shadow:0 8px 22px rgba(0,0,0,.25)}.al-ring-in .btn.ghost{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7);box-shadow:none}

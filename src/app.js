@@ -8,6 +8,7 @@ import { openGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
 import { addSession, focus as focusReport, render as renderReport } from './report.js';
 import { enter as qrEnter } from './quran.js';
+import { setTimes as alarmTimes } from './alarm.js';
 import './qibla.js';
 import './dzikir.js';
 
@@ -48,7 +49,7 @@ let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
 function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
-$('bell').onclick = async () => toast(t(('Notification' in window && (await Notification.requestPermission()) === 'granted') ? 'n.on' : 'n.off'), true);
+$('bell').onclick = () => go('al'); // lonceng → halaman Alarm Shalat (izin notifikasi diminta di sana)
 
 /* ---- Jadwal shalat (Aladhan, metode Kemenag RI) ---- */
 let times = {}, fired = new Set(), locInfo = null;
@@ -57,7 +58,7 @@ async function loadTimes() {
   if (ok) { const my = locInfo; placeName(lat, lon).then((n) => { my.name = n; my.failed = !n; renderHome(); }); }
   if (!tm) { try { const d = new Date(), r = await (await fetch(`https://api.aladhan.com/v1/timings/${z(d.getDate())}-${z(d.getMonth() + 1)}-${d.getFullYear()}?latitude=${lat}&longitude=${lon}&method=20`)).json(); tm = r.data.timings; store.set(key, tm); } catch { delete $('locTxt').dataset.i; $('locTxt').textContent = t('tm.fail'); return; } }
   PR.forEach((p) => { const [h, m] = tm[p.k].split(':'); const d = new Date(); d.setHours(+h, +m, 0, 0); times[p.id] = d; });
-  renderHome(); selectCurrent();
+  alarmTimes(times); renderHome(); selectCurrent();
 }
 $('loc').onclick = () => { locInfo = null; $('locTxt').dataset.i = 'tm.load'; $('locTxt').textContent = t('tm.load'); loadTimes(); };
 const nextPrayer = () => PR.find((p) => times[p.id] && times[p.id] > new Date()) || { ...PR[0], tomorrow: true };

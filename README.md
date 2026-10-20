@@ -36,6 +36,7 @@
 | **Panduan animasi** | Tombol **Panduan** (kalibrasi & beranda) dengan **4 tab berurutan prioritas: Saku Celana, Saku Baju, Mode Datar, Mode Tegak**. Tab Saku berisi cara memasukkan HP ke saku, lalu animasi *cara memakai aplikasi* yang disesuaikan per posisi HP: orang bergerak qiyam–rukuk–sujud–duduk, meter kemiringan HP, dan tampilan mini aplikasi yang menghitung dengan logika yang sama seperti penghitung asli (Saku Baju: 3 gerakan = 1 rakaat; Saku Celana: paha turun ≥ 2,5 detik = 1 rakaat). Tab Mode Datar / Mode Tegak berisi cara meletakkan HP di depan sejadah, simulasi cara kamera menghitung, layar hitam & arti getaran. 4 bahasa. |
 | **Pemantau Rakaat (kamera AI)** | HP diletakkan di lantai **di depan** orang shalat (di atas sejadah, miring menghadap orang). Saat memantau **layar hitam penuh** sehingga tidak mengganggu. Kamera **bukan menilai gerakan**, hanya menghitung rakaat dari naik-turun badan supaya tidak lupa. Pengingat getar / bunyi lembut hanya saat rakaat selesai atau ada yang janggal (rakaat melebihi target, duduk lama sebelum target, badan tidak terlihat). |
 | **Laporan Shalat & Dzikir** | Satu halaman, dua tab (**Shalat** \| **Dzikir**) dengan rentang Hari ini / 7 / 30 hari. **Tab Shalat:** cincin persentase *sesuai*, hitungan sesi (sesuai / kurang / lebih), grafik shalat tertandai per hari, filter Semua / Wajib / Sunnah, dan riwayat per tanggal: **nama shalat, jenis (Wajib / Qabliyah / Ba'diyah / Sunnah), tanggal & jam, rakaat vs target**, sumber (kamera / sensor / tanda manual) dan catatan peringatan. **Tab Dzikir:** total, hari ini, set selesai, hari aktif, grafik (per 3 jam / per hari), rincian per dzikir, dan riwayat harian. Bisa disalin sebagai teks atau dihapus. Tersimpan di perangkat (`rs.rp`, `rs.dz`), tidak dikirim ke server. Yang dinilai hanya hitungan rakaat, **bukan sah/tidaknya shalat**. |
+| **Alarm Shalat** | Halaman **Alarm Shalat** (kartu di Beranda / ikon lonceng). **Wajib:** 5 alarm yang mengikuti jadwal shalat harian, tiap alarm punya saklar dan pilihan *tepat waktu / 5 / 10 / 15 / 30 menit sebelum*. **Sunnah:** Tahajud (03:00), Dhuha (08:00), Witir (21:00) dengan jam & hari yang bisa diubah, plus **alarm sunnah buatan sendiri** (ketik nama, pilih jam & hari, maks. 10). Pilihan bunyi: suara + getar / getar saja, tombol Coba alarm, tunda 5 menit. Di aplikasi terbuka: layar alarm + bunyi. Di **APK**: dijadwalkan lewat `@capacitor/local-notifications` (7 hari ke depan) sehingga **tetap berbunyi walau aplikasi ditutup**. Kode: `src/alarm.js` (tampilan), `src/alarmcalc.js` (hitungan murni, diuji di `tools/tests/alarm.sim.mjs`). Tersimpan per akun (`rs.al`). |
 | **Sunnah buatan sendiri** | Tombol **+ Sunnah baru** di tab Rakaat & Pemantau: ketik nama (maks. 30 huruf, mis. Istikharah, Hajat, Tarawih) dan jumlah rakaat (1–20). Bisa diubah nama / dihapus; riwayatnya di laporan tetap ada. Tersimpan per akun (`rs.cp`), kode di `src/prayers.js`. |
 | **Dzikir** | 6 preset, paket dzikir setelah salat, riwayat & grafik ada di **Laporan Shalat & Dzikir** (tombol grafik di pojok kanan atas). |
 | **Kompas kiblat** | 4 mata angin tegak terbaca, skala derajat, penanda Ka'bah, petunjuk "putar kanan/kiri N°", getar saat tepat. |
@@ -151,6 +152,25 @@ npx cap sync && npx cap open android
 Alternatif ikon otomatis: `npm i -D @capacitor/assets`, taruh isi `android-assets/assets/` ke folder `assets/`, lalu `npx capacitor-assets generate --android`.
 
 **Izin di `AndroidManifest.xml`:** `CAMERA`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `INTERNET`, `HIGH_SAMPLING_RATE_SENSORS`.
+
+### Alarm Shalat di APK (wajib agar berbunyi saat aplikasi ditutup)
+
+```bash
+npm i @capacitor/local-notifications
+npm run build && npx cap sync
+```
+
+Tambahkan di `android/app/src/main/AndroidManifest.xml` (di dalam `<manifest>`):
+
+```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+<uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.permission.WAKE_LOCK"/>
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+```
+
+Di Android 12+ izin *Alarm & pengingat* untuk aplikasi ini harus aktif (Pengaturan → Aplikasi → RakaatSense), dan matikan penghemat baterai untuk aplikasi ini bila alarm terlambat. Di browser/PWA alarm hanya berbunyi saat aplikasi terbuka.
 
 ---
 
