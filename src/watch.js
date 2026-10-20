@@ -38,7 +38,7 @@ function cue(kind, e = {}) {
 export function initWatch(cx) {
   const V = $('video'), CV = $('ov'), G = CV.getContext('2d'), OV = $('watch');
   let flat = store.get('rs.cm', 'tegak') === 'datar', lcal = createLumaCalibrator(), phase = 'idle', raf = 0, last = 0, cal = createCalibrator(), pvBase = null, pvTr = null, pvGone = 0, tr = null, base = null, target = 1;
-  let lastChangeT = 0, lastSt = '', lastSj = -1, doneAt = 0;
+  let reached = false, lastChangeT = 0, lastSt = '', lastSj = -1, doneAt = 0;
   let cdEnd = 0, lastSec = 0, calT = 0, calWarn = 0, startT = 0, darkT = 0, holdTm = 0, log = [], lastExtra = -1e9, res = null;
   const texts = new Set();
   const say = (el, key, v) => { el._k = [key, v]; texts.add(el); el.textContent = t(key, v); };
@@ -103,13 +103,14 @@ export function initWatch(cx) {
   }
   /* 4. Memantau: layar hitam penuh */
   function startMonitor(now) {
-    phase = 'watch'; startT = now; darkT = now + DARK_AFTER; log = [{ at: 0, k: 'start' }]; lastExtra = -1e9; lastChangeT = now; lastSt = ''; lastSj = -1; doneAt = 0;
+    phase = 'watch'; startT = now; darkT = now + DARK_AFTER; log = [{ at: 0, k: 'start' }]; lastExtra = -1e9; lastChangeT = now; lastSt = ''; lastSj = -1; doneAt = 0; reached = false;
     const onEvent = (e) => onEv(e, performance.now()); tr = flat ? createFlatTracker({ target, base, onEvent }) : createTracker({ target, onEvent });
     say($('wTxt'), 'w.ready'); $('wBig').textContent = ''; cue('ready');
   }
   function watching(now, r) {
     if (now > darkT) OV.classList.add('dark');
     tr.feed(now, flat ? r : r ? feature(r, base) : null);
+    if (reached) return finish('done'); // rakaat target sudah terdeteksi: tidak menunggu apa pun lagi
     if (tr.state !== lastSt || tr.sujud !== lastSj) { lastSt = tr.state; lastSj = tr.sujud; lastChangeT = now; }
     const rAt = tr.lastRakaatT - startT; // peringatan "rakaat tambahan" sejak rakaat terakhir = bukan selesai biasa
     const why = finishReason({ now, startT, rakaat: tr.rakaat, target, lastRakaatT: tr.lastRakaatT, state: tr.state, unseen: tr.unseenFor(now), sujud: tr.sujud, lastChangeT, extraSince: log.some((x) => (x.k === 'extra' || x.k === 'over') && x.at >= rAt) });
@@ -118,7 +119,7 @@ export function initWatch(cx) {
   function onEv(e, now) {
     const at = now - startT;
     if (e.type === 'rakaat') {
-      const k = e.over ? 'over' : e.final ? 'final' : 'rakaat'; log.push({ at, k, n: e.n, m: e.target });
+      const k = e.over ? 'over' : e.final ? 'final' : 'rakaat'; log.push({ at, k, n: e.n, m: e.target }); if (e.n >= e.target) reached = true; // target tercapai → selesai, langsung ke Laporan
       if (k === 'over') { if (now - lastExtra > 15000) { lastExtra = now; cue('extra', e); } } else cue(e.final ? 'final' : 'rakaat', e);
     } else if (e.type === 'extra') { lastExtra = now; log.push({ at, k: 'extra', n: e.n, m: e.target }); cue('extra', e); }
     else if (e.type === 'short') { log.push({ at, k: 'short', n: e.n, m: e.target }); cue('short', e); }
@@ -143,9 +144,13 @@ export function initWatch(cx) {
   function toIdle() { stopAll(); phase = 'idle'; show(true, false, false, false); btn('cam.start'); }
   function finish(reason) {
     if (phase === 'count' || phase === 'calib') return toIdle(); // ditahan saat hitung mundur/kalibrasi = batal
+    if (phase !== 'watch') return; // sudah selesai / bukan sedang memantau
+    phase = 'sum'; // kunci dulu supaya tidak terpanggil dua kali
     const snap = tr.snapshot(); res = { det: snap.rakaat, tgt: target, sujud: snap.sujud, reason, log, label: cx.label() };
-    if (reason === 'done') cue('ready'); stopAll(); phase = 'sum'; store.set('rs.cam', { det: res.det, tgt: res.tgt, at: Date.now() }); cx.saved(res);
+    try { cue('ready'); } catch {}
+    stopAll(); store.set('rs.cam', { det: res.det, tgt: res.tgt, at: Date.now() });
     show(true, false, false, true); btn('w.again'); renderSum(); scrollTo(0, 0);
+    try { cx.saved(res); } catch (e) { console.error(e); } // simpan + buka tab Laporan
   }
   const mmss = (ms) => { const s = Math.round(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
   function renderSum() {
