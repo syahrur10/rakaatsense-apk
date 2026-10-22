@@ -66,9 +66,14 @@ const RAW = {
 const PLANT = { q: 0.15, i: 0, u: 0, r: 1, k: 0.2, s: 1, d: 1, w: 1 };
 for (const k in PLANT) RAW[k].pl = PLANT[k];
 RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
+// Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kanan ditegakkan (jari menghadap kiblat), kaki kiri KELUAR di bawah betis kanan.
+// Tampak dari kanan: lutut kiri di lantai (K2), betis kiri rebah di bawah betis kanan (A2), telapak kiri hampir tertutup (f2s = diperpendek karena menghadap penonton).
+Object.assign(RAW.w, { A: [97, 121], K: [119, 102.5], H: [91, 118.5], S: [91.5, 79.5], C: [93.6, 67.7], T: [106, 104.5], K2: [122.9, 121.5], A2: [93, 122.8], toe2: [97.6, 124.6], f2s: 0.3 });
+RAW.sa = { ...RAW.w, sa: 1 }; // salam: posisi sama, kepala menoleh kanan lalu kiri
+RAW.w0 = { ...RAW.w, fp: 0 }; // selesai: telunjuk sudah diturunkan
 const POSE = Object.fromEntries(Object.entries(RAW).map(([k, r]) => {
-  const v = [[r.K, r.A], [r.H, r.K], [r.S, r.H], [r.C, r.S]].map(([p, q]) => [p[0] - q[0], p[1] - q[1]]), A2 = r.A2 || r.A, toe2 = r.toe2 || r.toe, off = (a, b) => [b[0] - a[0], b[1] - a[1]];
-  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, r.K)), fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0 }];
+  const v = [[r.K, r.A], [r.H, r.K], [r.S, r.H], [r.C, r.S]].map(([p, q]) => [p[0] - q[0], p[1] - q[1]]), A2 = r.A2 || r.A, K2 = r.K2 || r.K, toe2 = r.toe2 || r.toe, off = (a, b) => [b[0] - a[0], b[1] - a[1]];
+  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0 }];
 }));
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const ramp = (x, a, b = 1) => clamp01((x - a) / (b - a));
@@ -95,15 +100,17 @@ function blend(pa, pb, kl) {
   const bulge = 0.15 * dist * Math.sin(Math.PI * kArm);
   return { A: lerpV(pa.A, pb.A, kLeg), a2: lerpA(pa.a2, pb.a2, kLeg), fa: lerpA(pa.fa, pb.fa, kLeg), fa2: lerpA(pa.fa2, pb.fa2, kLeg), ang, len: ks.map((k, i) => lerp(pa.len[i], pb.len[i], k)),
     T: [lerp(pa.T[0], pb.T[0], kArm) + nx * bulge, Math.min(124.4, lerp(pa.T[1], pb.T[1], kArm) + ny * bulge)], bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kHand),
-    sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp) };
+    ak2: lerpA(pa.ak2, pb.ak2, kLeg), f2s: lerp(pa.f2s, pb.f2s, kLeg), sa: lerp(pa.sa, pb.sa, kHd), sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp) };
 }
 /** Forward kinematics + "kehidupan" saat menahan pose: napas (dada naik-turun), badan bergoyang pelan memindahkan berat (hanya saat berdiri),
  *  kepala melayang halus, tangan yang tidak menapak ikut bergoyang. Semua suku bernilai 0 saat now = 0, jadi hitungan simulasi (fk(pose, 0)) tidak berubah. */
-function fk(P, now) {
+/** Urutan salam: menoleh ke kanan (ke arah penonton), kembali ke tengah, lalu menoleh ke kiri (menjauh). Mengembalikan -1..1; 0 saat t = 0. */
+const salamTurn = (t) => { const m = t % 6400, E = (a, b) => ease(clamp01((m - a) / (b - a))); return E(700, 1500) - E(2500, 3300) - E(3300, 4100) + E(5100, 5900); };
+function fk(P, now, tl = now) {
   const br = Math.sin(now / 700), g = clamp01((70 - P.sy) / 46), sw = (Math.sin(now / 1900) + 0.6 * Math.sin(now / 3100)) * g, free = 1 - P.pl, an = P.ang.slice();
   an[0] += 0.45 * sw; an[1] -= 0.35 * sw; an[2] += 1.1 * br + 0.5 * sw; an[3] += 1.3 * Math.sin(now / 1100) + Math.sin(now / 2900) - 0.5 * br;
-  const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), A2 = pt(K, P.a2 + 180, P.len[0]);
-  return { A: P.A, K, H, S: Sh, C: Cc, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, hw: P.hw, ha: P.ha, fp: P.fp, br, an };
+  const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), K2 = pt(H, P.ak2 + (an[1] - P.ang[1]), P.len[1]), A2 = pt(K2, P.a2 + 180, P.len[0]);
+  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, hw: P.hw, ha: P.ha, fp: P.fp, br, an };
 }
 const TH = { shirt: { on: 50, off: 30, hold: 500 }, pants: { on: 25, off: 15, hold: 2500 } }; // sama dengan ambang di counter.js
 /** sudut kemiringan HP dari sendi: Saku Baju = batang badan (pinggul → bahu) vs tegak, Saku Celana = paha (pinggul → lutut) vs tegak ke bawah */
@@ -151,29 +158,41 @@ function sideFigure(svg, kind) {
   const nearLeg = leg(g, PK.pants, PK.skin), neck = limb(g, PK.skin, 6.4);
   const PF = [[-0.05, 3.6], [0.07, 6.8], [0.27, 7.5], [0.55, 6.5], [0.82, 7.1], [1.0, 5.8]], PB = [[1.0, 6], [0.82, 7.2], [0.55, 6.4], [0.27, 7.2], [0.07, 6.5], [-0.05, 3.8]];
   const torso = S('path', { fill: PK.shirt }, g), seam = S('path', { fill: 'none', stroke: '#fff', 'stroke-opacity': 0.45, 'stroke-width': 0.9, 'stroke-linecap': 'round' }, g);
-  const head = S('g', {}, g);
-  S('path', { d: 'M-8 -3Q-9.4 2 -5.6 6L-3.4 2.6Q-5 0 -5 -3Z', fill: PK.peci }, head);
-  S('circle', { r: 8.3, fill: PK.skin }, head); S('circle', { cx: 7.8, cy: 1.4, r: 1.9, fill: PK.skin }, head);
-  S('ellipse', { cx: -1.8, cy: 1.2, rx: 1.5, ry: 2.1, fill: '#E0A47E' }, head); S('circle', { cx: 3, cy: 3.2, r: 1.9, fill: '#F08C84', opacity: 0.28 }, head);
-  S('path', { d: 'M2.2 -3.9Q3.8 -4.7 5.4 -3.8', fill: 'none', stroke: '#4A3228', 'stroke-width': 0.8, 'stroke-linecap': 'round' }, head);
-  S('circle', { cx: 3.9, cy: -1.2, r: 1.15, fill: C.dark }, head); S('circle', { cx: 4.25, cy: -1.6, r: 0.38, fill: '#fff' }, head);
-  const lid = S('ellipse', { cx: 3.9, cy: -1.2, rx: 1.7, ry: 0, fill: PK.skin }, head), lash = S('path', { d: 'M2.9 -1.1Q3.9 -.3 4.9 -1.1', fill: 'none', stroke: C.dark, 'stroke-width': 0.5, 'stroke-linecap': 'round', opacity: 0 }, head);
-  S('path', { d: 'M3.8 4.4Q5.4 5.7 7 4.3', fill: 'none', stroke: '#A8574C', 'stroke-width': 0.6, 'stroke-linecap': 'round' }, head);
-  S('path', { d: 'M-8.3 -2.6C-8.6 -9.6 -3.8 -11.3 0 -11.3C4.2 -11.3 8.6 -9.4 8.4 -2.6Q0 -4.6 -8.3 -2.6Z', fill: PK.peci }, head);
-  S('path', { d: 'M-7.6 -3.5Q0 -5.4 7.7 -3.5', fill: 'none', stroke: C.gold, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.9 }, head);
+  const head = S('g', {}, g), hairB = S('path', { d: 'M-8 -3Q-9.4 2 -5.6 6L-3.4 2.6Q-5 0 -5 -3Z', fill: PK.peci }, head);
+  S('circle', { r: 8.3, fill: PK.skin }, head);
+  /* Fitur wajah diproyeksikan dari posisi 3D (f = ke depan, s = ke sisi kanan, y = tinggi) menurut sudut menoleh, jadi saat salam wajah benar-benar berputar
+     ke arah penonton (kanan) lalu menjauh (kiri), bukan sekadar bergeser. */
+  const fts = [], lids = [], lashes = [], fe = (f, s, y, zt, build) => { const gg = S('g', {}, head); build(gg); fts.push({ gg, f, s, y, zt }); };
+  fe(7.8, 0, 1.4, 2, (q) => S('circle', { r: 1.9, fill: PK.skin }, q));
+  fe(6, 0, 2.9, 1.5, (q) => S('path', { d: 'M-1.5 0Q0 1.1 1.5 0', stroke: '#D49A74', 'stroke-width': 0.6, fill: 'none', 'stroke-linecap': 'round' }, q));
+  for (const s of [4.6, -4.6]) fe(3, s, 3.2, 0, (q) => S('circle', { r: 1.9, fill: '#F08C84', opacity: 0.28 }, q));
+  fe(5.4, 0, 4.5, 1.5, (q) => S('path', { d: 'M-1.6 0Q0 1.4 1.6 -0.1', fill: 'none', stroke: '#A8574C', 'stroke-width': 0.6, 'stroke-linecap': 'round' }, q)); fts[fts.length - 1].wide = true;
+  for (const s of [3.4, -3.4]) fe(3.9, s, -1.2, 0, (q) => {
+    S('path', { d: 'M-1.6 -2.7Q0 -3.6 1.6 -2.6', fill: 'none', stroke: '#4A3228', 'stroke-width': 0.8, 'stroke-linecap': 'round' }, q); S('ellipse', { rx: 1, ry: 1.15, fill: C.dark }, q); S('circle', { cx: 0.35, cy: -0.4, r: 0.38, fill: '#fff' }, q);
+    lids.push(S('ellipse', { rx: 1.7, ry: 0, fill: PK.skin }, q)); lashes.push(S('path', { d: 'M-1 0.1Q0 0.9 1 0.1', fill: 'none', stroke: C.dark, 'stroke-width': 0.5, 'stroke-linecap': 'round', opacity: 0 }, q));
+  });
+  const hairF = S('ellipse', { cy: 1.4, rx: 7.9, ry: 5.6, fill: PK.peci, opacity: 0 }, head); // tampak belakang kepala saat menoleh ke kiri
+  for (const s of [7.8, -7.8]) fe(-1.8, s, 1.2, 2.5, (q) => { S('ellipse', { rx: 1.5, ry: 2.1, fill: '#E0A47E' }, q); });
+  S('path', { d: 'M-8.3 -2.6C-8.6 -9.6 -3.8 -11.3 0 -11.3C4.2 -11.3 8.6 -9.4 8.4 -2.6Q0 -4.6 -8.3 -2.6Z', fill: PK.peci }, head); S('path', { d: 'M-7.6 -3.5Q0 -5.4 7.7 -3.5', fill: 'none', stroke: C.gold, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.9 }, head);
+  const setHead = (F, now) => {
+    const ph = F.turn * 1.2217, c = Math.cos(ph), sn = Math.sin(ph), bk = blinkAt(now);
+    for (const t of fts) { const x = t.f * c - t.s * sn, z = t.f * sn + t.s * c, o = clamp01((z + t.zt) / 1.5), sx = t.wide ? 1 + 0.9 * Math.abs(sn) : Math.max(0.62, Math.min(1, 0.62 + z / 9)); t.gg.setAttribute('transform', `translate(${x.toFixed(2)} ${t.y}) scale(${sx.toFixed(2)} 1)`); t.gg.setAttribute('opacity', o.toFixed(2)); }
+    lids.forEach((l) => l.setAttribute('ry', (1.5 * bk).toFixed(2))); lashes.forEach((l) => l.setAttribute('opacity', bk > 0.5 ? 0.85 : 0));
+    hairB.setAttribute('opacity', (1 - clamp01(sn * 2)).toFixed(2)); hairF.setAttribute('opacity', clamp01((-sn - 0.45) * 5).toFixed(2));
+  };
   const nearArm = arm(g, PK.shirt, PK.skin);
   const glow = S('circle', { r: 11, fill: C.gold, opacity: 0.45 }, g), ph = phoneShape(g, 3.8, 13);
   if (cam || plain) { glow.setAttribute('display', 'none'); ph.setAttribute('display', 'none'); }
-  const fn = (P, now) => {
-    const F = fk(P, now);
-    farLeg({ ...F, A: F.A2, toe: F.toe2 }); farArm(F); nearLeg(F);
+  const fn = (P, now, tm) => {
+    const F = fk(P, now, tm);
+    farLeg({ ...F, K: F.K2, A: F.A2, toe: F.toe2 }); farArm(F); nearLeg(F);
     const tl = Math.hypot(F.H[0] - F.S[0], F.H[1] - F.S[1]) || 1, E = [F.H[0] + (F.H[0] - F.S[0]) / tl * 3.5, F.H[1] + (F.H[1] - F.S[1]) / tl * 3.5];
     neck(F.S, F.C);
     const n = Math.hypot(E[0] - F.S[0], E[1] - F.S[1]) || 1, ux = (E[0] - F.S[0]) / n, uy = (E[1] - F.S[1]) / n, at = (t, w) => [F.S[0] + ux * n * t + uy * w, F.S[1] + uy * n * t - ux * w], chest = 1 + 0.04 * F.br;
     torso.setAttribute('d', smoothClosed([at(-0.11, 0), ...PF.map(([t, w]) => at(t, t > 0.05 && t < 0.6 ? w * chest : w)), at(1.07, 0), ...PB.map(([t, w]) => at(t, -w))]));
     const sm = lerpV(F.S, F.H, 0.18), sm2 = lerpV(F.S, F.H, 0.72); seam.setAttribute('d', `M${sm[0].toFixed(1)} ${sm[1].toFixed(1)}L${sm2[0].toFixed(1)} ${sm2[1].toFixed(1)}`);
     head.setAttribute('transform', `translate(${F.C[0].toFixed(2)} ${F.C[1].toFixed(2)}) rotate(${(F.an[2] + 0.4 * (F.an[3] - F.an[2])).toFixed(1)})`);
-    const bk = blinkAt(now); lid.setAttribute('ry', (1.5 * bk).toFixed(2)); lash.setAttribute('opacity', bk > 0.5 ? 0.85 : 0);
+    setHead(F, now);
     nearArm(F);
     shadow.setAttribute('cx', ((F.A[0] + F.H[0] + F.S[0]) / 3).toFixed(1)); shadow.setAttribute('rx', (16 + Math.abs(F.S[0] - F.A[0]) * 0.3).toFixed(1));
     if (cam || plain) { fn.F = F; return 0; } // varian kamera: simpan sendi (dibaca simulasi), tidak ada meter kemiringan

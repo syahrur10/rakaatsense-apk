@@ -69,7 +69,7 @@ const toggles = () => `<div class="bs-tg"><button type="button" class="pill sm $
 /* ---------- gambar gerak ---------- */
 function createStage(svg, first) {
   const draw = sideFigure(svg, 'plain'); let from = POSE[first], to = from, cur = from, t0 = 0, dur = 0, raf = 0;
-  const frame = (now) => { raf = requestAnimationFrame(frame); const k = dur ? Math.min(1, (now - t0) / dur) : 1; cur = k >= 1 ? to : blend(from, to, k); draw(cur, now); };
+  const frame = (now) => { raf = requestAnimationFrame(frame); const k = dur ? Math.min(1, (now - t0) / dur) : 1; cur = k >= 1 ? to : blend(from, to, k); draw(cur, now, now - t0); };
   draw(cur, 0);
   return {
     to(name, ms = 950) { from = cur; to = POSE[name]; t0 = performance.now(); dur = ms; if (reduce()) { cur = to; dur = 0; draw(cur, 0); } },
@@ -117,13 +117,13 @@ function step(delta) { const n = idx + delta; if (n < 0) return; if (n >= steps.
 
 /* ---------- tab: Gerakan ---------- */
 const DEMO = [['i', 900, 1100, B2('Berdiri', 'Stand')], ['u', 900, 1100, B2('Takbiratul ihram', 'Opening takbir')], ['q', 800, 1500, B2('Sedekap, baca Al-Fatihah', 'Hands folded, recite Al-Fatihah')], ['r', 900, 1600, B2('Rukuk', 'Ruku')], ['i', 800, 1200, B2("I'tidal", "I'tidal")],
-  ['k', 800, 0, B2('Turun untuk sujud', 'Going down')], ['s', 700, 1800, B2('Sujud', 'Prostration')], ['d', 750, 1400, B2('Duduk di antara dua sujud', 'Sitting between prostrations')], ['s', 650, 1800, B2('Sujud kedua', 'Second prostration')], ['dt', 800, 1300, B2('Tahiyat awal', 'First tashahhud')], ['w', 900, 1700, B2('Tahiyat akhir', 'Final tashahhud')]];
+  ['k', 800, 0, B2('Turun untuk sujud', 'Going down')], ['s', 700, 1800, B2('Sujud', 'Prostration')], ['d', 750, 1400, B2('Duduk di antara dua sujud', 'Sitting between prostrations')], ['s', 650, 1800, B2('Sujud kedua', 'Second prostration')], ['dt', 800, 1300, B2('Tahiyat awal', 'First tashahhud')], ['w', 900, 1700, B2('Tahiyat akhir', 'Final tashahhud')], ['sa', 500, 6400, B2('Salam: menoleh kanan lalu kiri', 'Salam: turn right, then left')]];
 function B2(id, en) { return { id, en }; }
 function moves() {
   $('bsBody').innerHTML = `<div class="card bs-stage"><div id="bsFig"></div><p class="bs-cap" id="bsCap"></p></div><h3 class="rp-sec">${esc(t('bs.demo'))}</h3><p class="bs-hint">${esc(t('bs.demo.h'))}</p>`
     + `<h3 class="rp-sec">${esc(t('bs.gal'))}</h3><div class="bs-gal">${MOVES.map((m, i) => `<div class="card bs-mv"><div class="bs-mvf" data-i="${i}"></div><b>${esc(loc(m.name))}</b><ul>${loc(m.pts).map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>`).join('')}</div>`;
   const svg = newSvg('bs-fig'); $('bsFig').append(svg); stage = createStage(svg, 'i'); stage.start();
-  document.querySelectorAll('.bs-mvf').forEach((box) => { const s = newSvg('bs-fig sm'); box.append(s); sideFigure(s, 'plain')(POSE[MOVES[+box.dataset.i].pose], 0); });
+  document.querySelectorAll('.bs-mvf').forEach((box) => { const s = newSvg('bs-fig sm'); box.append(s); { const pz = MOVES[+box.dataset.i].pose; sideFigure(s, 'plain')(POSE[pz], 0, pz === 'sa' ? 1700 : 0); } });
   let i = -1; const run = () => { i = (i + 1) % DEMO.length; const [p, mv, hold, lb] = DEMO[i]; stage.to(p, mv); $('bsCap').textContent = loc(lb); if (!reduce() || true) demoTm = setTimeout(run, (reduce() ? 0 : mv) + hold + (reduce() ? 1200 : 0)); }; run();
 }
 

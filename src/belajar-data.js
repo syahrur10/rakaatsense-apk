@@ -59,8 +59,8 @@ export const STEP = {
   bangkit: { pose: 'q', title: B('Bangkit untuk rakaat berikutnya', 'Rise for the next rak\'ah'), how: B('Bangkit berdiri sambil mengucap "Allahu akbar", lalu bersedekap kembali.', 'Stand up saying "Allahu akbar", then fold your hands again.'), recs: ['takbir'] },
   tahiyat_awal: { pose: 'dt', title: B('Tahiyat awal', 'First tashahhud'), how: B('Duduk seperti di antara dua sujud (kaki kiri dilipat, kaki kanan tegak). Baca tahiyat. Angkat telunjuk kanan saat "illallaah". Lalu bangkit untuk rakaat berikutnya.', 'Sit as between the two prostrations (left foot folded, right foot upright). Recite the tashahhud and raise the right index finger at "illallaah". Then rise for the next rak\'ah.'), recs: ['tahiyat'] },
   tahiyat_akhir: { pose: 'w', title: B('Tahiyat akhir', 'Final tashahhud'), how: B('Duduk tawarruk: kaki kiri dikeluarkan ke sisi kanan di bawah betis kanan, pantat menyentuh lantai. Baca tahiyat, shalawat, lalu doa (sunnah).', 'Sit in tawarruk: left foot out to the right under the right shin, hips on the floor. Recite the tashahhud, salawat, then a supplication (sunnah).'), recs: ['tahiyat', 'shalawat', 'doa_akhir'] },
-  salam: { pose: 'w', title: B('Salam', 'Salam'), how: B('Menoleh ke kanan sambil mengucap salam, lalu menoleh ke kiri dan mengucap salam lagi. Shalat selesai.', 'Turn your head to the right saying the salam, then to the left and say it again. The prayer is complete.'), recs: ['salam'] },
-  selesai: { pose: 'w', title: B('Alhamdulillah, selesai', 'Alhamdulillah, you are done'), how: B('Lanjutkan dengan istighfar dan dzikir setelah shalat, lalu berdoa.', 'Continue with istighfar and the remembrance after prayer, then make your own supplication.'), done: true },
+  salam: { pose: 'sa', title: B('Salam', 'Salam'), how: B('Menoleh ke kanan sambil mengucap salam, lalu menoleh ke kiri dan mengucap salam lagi. Shalat selesai.', 'Turn your head to the right saying the salam, then to the left and say it again. The prayer is complete.'), recs: ['salam'] },
+  selesai: { pose: 'w0', title: B('Alhamdulillah, selesai', 'Alhamdulillah, you are done'), how: B('Lanjutkan dengan istighfar dan dzikir setelah shalat, lalu berdoa.', 'Continue with istighfar and the remembrance after prayer, then make your own supplication.'), done: true },
 };
 
 /* gerakan utama (galeri) */
@@ -72,7 +72,7 @@ export const MOVES = [
   { pose: 's', name: B('Sujud', 'Prostration (sujud)'), pts: B(['Tujuh anggota: dahi + hidung, dua telapak tangan, dua lutut, ujung jari kaki.', 'Siku diangkat dari lantai.', 'Tenang sejenak.'], ['Seven parts: forehead + nose, both palms, both knees, toes.', 'Elbows off the floor.', 'Be still for a moment.']) },
   { pose: 'd', name: B('Duduk iftirasy', 'Sitting (iftirasy)'), pts: B(['Duduk di atas telapak kaki kiri.', 'Kaki kanan ditegakkan, jari menghadap kiblat.', 'Dipakai di antara dua sujud dan tahiyat awal.'], ['Sit on your left foot.', 'Right foot upright, toes toward the qibla.', 'Used between prostrations and in the first tashahhud.']) },
   { pose: 'w', name: B('Duduk tawarruk', 'Sitting (tawarruk)'), pts: B(['Pantat menyentuh lantai.', 'Kaki kiri keluar di bawah betis kanan.', 'Dipakai pada tahiyat akhir.'], ['Hips on the floor.', 'Left foot out under the right shin.', 'Used in the final tashahhud.']) },
-  { pose: 'w', name: B('Salam', 'Salam'), pts: B(['Menoleh ke kanan sambil salam.', 'Lalu menoleh ke kiri sambil salam.', 'Shalat selesai.'], ['Turn right and say the salam.', 'Then turn left and say it again.', 'The prayer ends.']) },
+  { pose: 'sa', name: B('Salam', 'Salam'), pts: B(['Menoleh ke kanan sambil salam.', 'Lalu menoleh ke kiri sambil salam.', 'Shalat selesai.'], ['Turn right and say the salam.', 'Then turn left and say it again.', 'The prayer ends.']) },
 ];
 
 /* ===================== PERSIAPAN ===================== */
