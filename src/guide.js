@@ -61,30 +61,111 @@ const RAW = {
   // Duduk di antara dua sujud (iftirasy): duduk di atas telapak kaki kiri (rebah), kaki kanan ditegakkan dengan jari menghadap kiblat, tangan di atas paha
   d: { A: [81.5, 112], K: [110, 121], A2: [80, 121], toe2: [66, 124], H: [81, 108], S: [84.4, 69.1], C: [86.5, 57.3], T: [98, 108], bend: 0.2, toe: [88.5, 124.1], hw: 1, ha: 24 },
 };
+// Seberapa kuat telapak tangan "menapak" (lantai / lutut / paha): bila menapak, tangan tidak ikut bergoyang saat bernapas.
+// fp = telunjuk terangkat (tahiyat). 'dt' = duduk iftirasy + telunjuk terangkat, dipakai untuk tahiyat awal.
+const PLANT = { q: 0.15, i: 0, u: 0, r: 1, k: 0.2, s: 1, d: 1, w: 1 };
+for (const k in PLANT) RAW[k].pl = PLANT[k];
+RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
 const POSE = Object.fromEntries(Object.entries(RAW).map(([k, r]) => {
   const v = [[r.K, r.A], [r.H, r.K], [r.S, r.H], [r.C, r.S]].map(([p, q]) => [p[0] - q[0], p[1] - q[1]]), A2 = r.A2 || r.A, toe2 = r.toe2 || r.toe, off = (a, b) => [b[0] - a[0], b[1] - a[1]];
-  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, r.K)), fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0 }];
+  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, r.K)), fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0 }];
 }));
-const stage_k = (kl, d) => ease(Math.min(1, Math.max(0, (kl - d) / (1 - d))));
-/** Campur dua pose. Tiap bagian mulai sedikit terlambat dari sebelumnya (kaki → badan → lengan → kepala): gerak berurutan, tidak serentak. */
-function blend(pa, pb, kl) {
-  const kLeg = stage_k(kl, 0), kTo = stage_k(kl, 0.05), kArm = stage_k(kl, 0.11), kHd = stage_k(kl, 0.18), ks = [kLeg, kLeg, kTo, kHd];
-  return { A: lerpV(pa.A, pb.A, kLeg), a2: lerpA(pa.a2, pb.a2, kLeg), fa: lerpA(pa.fa, pb.fa, kLeg), fa2: lerpA(pa.fa2, pb.fa2, kLeg), ang: ks.map((k, i) => lerp(pa.ang[i], pb.ang[i], k)), len: ks.map((k, i) => lerp(pa.len[i], pb.len[i], k)), T: lerpV(pa.T, pb.T, kArm), bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kArm) };
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const ramp = (x, a, b = 1) => clamp01((x - a) / (b - a));
+/** Gerak halus (min-jerk) yang boleh "lewat sedikit" (o) lalu mengendap, jadi kepala/badan tidak berhenti mendadak seperti mesin.
+ *  Paruh awal gerakan tidak berubah; lonjakan hanya ditambahkan di ujung dan hilang tepat di 1 (kecepatan 0), jadi pose akhir selalu persis. */
+function swing(x, o = 0) {
+  if (x <= 0) return 0; if (x >= 1) return 1;
+  return ease(x) + (o ? o * Math.sin(Math.PI * ramp(x, 0.5)) ** 2 : 0);
 }
-/** Forward kinematics + gerak napas / kepala yang sangat halus supaya orang tampak hidup saat menahan pose. */
+const part = (kl, d, p = 1, o = 0) => swing(Math.pow(ramp(kl, d), p), o);
+/** Campur dua pose. Orang tidak bergerak serentak: saat TURUN kaki/badan memimpin dan kepala menyusul, saat BANGKIT badan memimpin dan kaki menyusul;
+ *  turun mulai pelan lalu cepat (tertarik gravitasi), bangkit mulai cepat (mendorong). Ada aba-aba kecil sebelum turun, kepala mengendap sedikit di akhir,
+ *  dan tangan bergerak melengkung (busur), bukan garis lurus. */
+function blend(pa, pb, kl) {
+  const dy = pb.sy - pa.sy, dn = dy > 6, up = dy < -6;
+  const [dL, dT, dA, dH] = dn ? [0, 0.05, 0.09, 0.17] : up ? [0.05, 0, 0.03, 0.12] : [0, 0.02, 0, 0.1];
+  const [pL, pT, pA] = dn ? [1.12, 1.18, 1.08] : up ? [0.9, 0.9, 0.95] : [1, 1, 1];
+  const kLeg = part(kl, dL, pL), kTo = part(kl, dT, pT, up ? 0.02 : 0), kArm = part(kl, dA, pA), kHd = part(kl, dH, 1, 0.2), kHand = part(kl, dA + 0.08), kFp = ease(ramp(kl, 0.5)), ks = [kLeg, kLeg, kTo, kHd];
+  const ang = ks.map((k, i) => lerp(pa.ang[i], pb.ang[i], k));
+  const ant = dn ? clamp01(Math.abs(dy) / 60) * Math.sin(Math.PI * ramp(kl, 0, 0.24)) : 0; // aba-aba: badan & kepala sedikit ke belakang sebelum turun
+  ang[2] -= 3.2 * ant; ang[3] -= 5 * ant;
+  const dx = pb.T[0] - pa.T[0], dyT = pb.T[1] - pa.T[1], dist = Math.hypot(dx, dyT) || 1; let nx = -dyT / dist, ny = dx / dist;
+  if (Math.abs(dx) > Math.abs(dyT) ? ny > 0 : nx < 0) { nx = -nx; ny = -ny; } // gerak mendatar: melengkung ke atas; gerak tegak: melengkung ke depan
+  const bulge = 0.15 * dist * Math.sin(Math.PI * kArm);
+  return { A: lerpV(pa.A, pb.A, kLeg), a2: lerpA(pa.a2, pb.a2, kLeg), fa: lerpA(pa.fa, pb.fa, kLeg), fa2: lerpA(pa.fa2, pb.fa2, kLeg), ang, len: ks.map((k, i) => lerp(pa.len[i], pb.len[i], k)),
+    T: [lerp(pa.T[0], pb.T[0], kArm) + nx * bulge, Math.min(124.4, lerp(pa.T[1], pb.T[1], kArm) + ny * bulge)], bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kHand),
+    sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp) };
+}
+/** Forward kinematics + "kehidupan" saat menahan pose: napas (dada naik-turun), badan bergoyang pelan memindahkan berat (hanya saat berdiri),
+ *  kepala melayang halus, tangan yang tidak menapak ikut bergoyang. Semua suku bernilai 0 saat now = 0, jadi hitungan simulasi (fk(pose, 0)) tidak berubah. */
 function fk(P, now) {
-  const br = Math.sin(now / 650), an = P.ang.slice(); an[2] += 0.9 * br; an[3] += 1.4 * Math.sin(now / 900 + 1);
+  const br = Math.sin(now / 700), g = clamp01((70 - P.sy) / 46), sw = (Math.sin(now / 1900) + 0.6 * Math.sin(now / 3100)) * g, free = 1 - P.pl, an = P.ang.slice();
+  an[0] += 0.45 * sw; an[1] -= 0.35 * sw; an[2] += 1.1 * br + 0.5 * sw; an[3] += 1.3 * Math.sin(now / 1100) + Math.sin(now / 2900) - 0.5 * br;
   const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), A2 = pt(K, P.a2 + 180, P.len[0]);
-  return { A: P.A, K, H, S: Sh, C: Cc, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL), T: [P.T[0], P.T[1] + 0.5 * br], bend: P.bend, as: P.as, hw: P.hw, ha: P.ha, an };
+  return { A: P.A, K, H, S: Sh, C: Cc, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, hw: P.hw, ha: P.ha, fp: P.fp, br, an };
 }
 const TH = { shirt: { on: 50, off: 30, hold: 500 }, pants: { on: 25, off: 15, hold: 2500 } }; // sama dengan ambang di counter.js
 /** sudut kemiringan HP dari sendi: Saku Baju = batang badan (pinggul → bahu) vs tegak, Saku Celana = paha (pinggul → lutut) vs tegak ke bawah */
 const tiltOf = (kind, F) => (kind === 'shirt' ? angle([F.S[0] - F.H[0], F.S[1] - F.H[1]], [0, -1]) : angle([F.K[0] - F.H[0], F.K[1] - F.H[1]], [0, 1]));
 
+const f2 = (v) => v.toFixed(2), unit = (v) => { const d = Math.hypot(v[0], v[1]) || 1e-6; return [v[0] / d, v[1] / d]; };
+/** Kurva mulus tertutup melalui titik-titik (Catmull-Rom → Bezier): dipakai untuk badan supaya ada dada, pinggang, dan pinggul, bukan tabung lurus. */
+function smoothClosed(P) {
+  const n = P.length; let d = `M${f2(P[0][0])} ${f2(P[0][1])}`;
+  for (let i = 0; i < n; i++) { const p0 = P[(i + n - 1) % n], p1 = P[i], p2 = P[(i + 1) % n], p3 = P[(i + 2) % n]; d += `C${f2(p1[0] + (p2[0] - p0[0]) / 6)} ${f2(p1[1] + (p2[1] - p0[1]) / 6)} ${f2(p2[0] - (p3[0] - p1[0]) / 6)} ${f2(p2[1] - (p3[1] - p1[1]) / 6)} ${f2(p2[0])} ${f2(p2[1])}`; }
+  return d + 'Z';
+}
+/** Anggota badan organik: satu bentuk mulus di sepanjang garis sendi P (jari-jari R per titik). Tekukan sendi menjadi lipatan alami, bukan dua "bola" yang bertumpuk.
+ *  o.flat = ujung akhir dipotong lurus (ujung lengan baju / kaki celana). Mengembalikan tepi kiri/kanan tiap titik (untuk garis kelim). */
+function tube(parent, fill, o = {}) {
+  const el = S('path', o.edge ? { fill, stroke: o.edge, 'stroke-width': o.sw ?? 0.6, 'stroke-opacity': o.eo ?? 1, 'stroke-linejoin': 'round' } : { fill }, parent);
+  const cr = (q) => { let d = ''; for (let i = 0; i < q.length - 1; i++) { const p0 = q[Math.max(0, i - 1)], p1 = q[i], p2 = q[i + 1], p3 = q[Math.min(q.length - 1, i + 2)]; d += `C${f2(p1[0] + (p2[0] - p0[0]) / 6)} ${f2(p1[1] + (p2[1] - p0[1]) / 6)} ${f2(p2[0] - (p3[0] - p1[0]) / 6)} ${f2(p2[1] - (p3[1] - p1[1]) / 6)} ${f2(p2[0])} ${f2(p2[1])}`; } return d; };
+  return (P, R) => {
+    const n = P.length, sg = [], L1 = [], R1 = [];
+    for (let i = 0; i < n - 1; i++) { const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], d = Math.hypot(dx, dy) || 1e-6; sg.push([-dy / d, dx / d]); }
+    for (let i = 0; i < n; i++) {
+      let nx, ny, sc = 1;
+      if (i === 0) [nx, ny] = sg[0]; else if (i === n - 1) [nx, ny] = sg[n - 2];
+      else { nx = sg[i - 1][0] + sg[i][0]; ny = sg[i - 1][1] + sg[i][1]; const m = Math.hypot(nx, ny) || 1e-6; nx /= m; ny /= m; sc = Math.min(1.5, 1 / Math.max(0.55, nx * sg[i][0] + ny * sg[i][1])); }
+      L1.push([P[i][0] + nx * R[i] * sc, P[i][1] + ny * R[i] * sc]); R1.push([P[i][0] - nx * R[i] * sc, P[i][1] - ny * R[i] * sc]);
+    }
+    const rv = R1.slice().reverse(), e = n - 1;
+    let d = `M${f2(L1[0][0])} ${f2(L1[0][1])}` + cr(L1);
+    const tg = unit([P[e][0] - P[e - 1][0], P[e][1] - P[e - 1][1]]), cx = (L1[e][0] + R1[e][0]) / 2 + tg[0] * R[e] * 0.5, cy = (L1[e][1] + R1[e][1]) / 2 + tg[1] * R[e] * 0.5;
+    d += o.flat ? `Q${f2(cx)} ${f2(cy)} ${f2(rv[0][0])} ${f2(rv[0][1])}` : `A${f2(R[e])} ${f2(R[e])} 0 0 0 ${f2(rv[0][0])} ${f2(rv[0][1])}`;
+    d += cr(rv) + `A${f2(R[0])} ${f2(R[0])} 0 0 0 ${f2(L1[0][0])} ${f2(L1[0][1])}Z`;
+    el.setAttribute('d', d); return { L: L1, R: R1 };
+  };
+}
+/** Tangan berjari: telapak, jari-jari, ibu jari, dan telunjuk yang bisa terangkat (fp = 0..1) untuk tahiyat. */
+function hand(parent, skin, line) {
+  const g = S('g', {}, parent), fing = S('ellipse', { cy: 0.2, ry: 1.9, fill: skin }, g); S('ellipse', { cx: 2.2, rx: 3.5, ry: 2.6, fill: skin }, g);
+  S('ellipse', { cx: 1.2, cy: -2.3, rx: 2.4, ry: 1.1, fill: skin, transform: 'rotate(-16 1.2 -2.3)' }, g);
+  const kn = S('path', { d: 'M5.2 -.8v2M7 -.6v1.6', fill: 'none', stroke: line, 'stroke-width': 0.45, 'stroke-linecap': 'round', opacity: 0.5 }, g), ix = S('path', { fill: 'none', stroke: skin, 'stroke-width': 1.5, 'stroke-linecap': 'round' }, g);
+  return { set(h, rot, fp) {
+    g.setAttribute('transform', `translate(${f2(h[0])} ${f2(h[1])}) rotate(${rot.toFixed(1)})`);
+    fing.setAttribute('cx', f2(lerp(6.1, 4.4, fp))); fing.setAttribute('rx', f2(lerp(3.1, 2.1, fp))); fing.setAttribute('ry', f2(lerp(1.9, 2.1, fp))); kn.setAttribute('opacity', (0.5 * (1 - fp)).toFixed(2));
+    ix.setAttribute('d', fp > 0.03 ? `M3.8 -1.1L${f2(3.8 + 5 * fp * Math.cos(0.3))} ${f2(-1.1 - 5 * fp * Math.sin(0.3))}` : '');
+  } };
+}
+/** Lipatan kain di sisi dalam sendi yang menekuk (garis pendek ke arah sendi). */
+const foldD = (J, a, b, rad) => {
+  const u1 = unit([a[0] - J[0], a[1] - J[1]]), u2 = unit([b[0] - J[0], b[1] - J[1]]), bi = unit([u1[0] + u2[0], u1[1] + u2[1]]), pr = [-bi[1], bi[0]]; let d = '';
+  for (const s of [0.5, 0.8]) { const p = [J[0] + bi[0] * rad * s, J[1] + bi[1] * rad * s]; d += `M${f2(p[0] - pr[0] * 3.4)} ${f2(p[1] - pr[1] * 3.4)}Q${f2(p[0] - bi[0] * 1.4)} ${f2(p[1] - bi[1] * 1.4)} ${f2(p[0] + pr[0] * 3.4)} ${f2(p[1] + pr[1] * 3.4)}`; }
+  return d;
+};
+/** Kedip: 0 (terbuka) .. 1 (tertutup). Dua irama berbeda supaya tidak berulang teratur; bernilai 0 saat now = 0. */
+const blinkAt = (now) => { const f = (x, w) => (x < w ? Math.sin(Math.PI * x / w) : 0); return Math.max(f(now % 4300, 150), f((now + 1700) % 7100, 130)); };
+const FACE = 'M-6.4 -1.5C-7.2 -6.6-3.2 -9 .6 -8.8C4.4 -8.6 6.6 -6 6.6 -3C6.6 -1.8 7 -.6 7.8 .4C8.6 1.2 9.2 2 8.6 2.9C8 3.3 7.5 3.3 7.1 3.5C7.5 4 7.6 4.5 7.1 4.9C7.5 5.4 7.2 5.8 6.6 6C6.4 6.9 6.2 7.6 5.4 8C3.6 9 .4 8.6 -2.4 6.6C-5 4.8 -6.2 2 -6.4 -1.5Z';
+
 /** Gambar orang tampak samping di dalam <svg>. Mengembalikan fungsi draw(pose, nowMs) → sudut kemiringan HP. */
 function sideFigure(svg, kind) {
   const cam = kind === 'cam', plain = kind === 'plain'; // varian kamera: tanpa HP di saku, sejadah lebih panjang supaya HP di depan muat
   svg.setAttribute('viewBox', cam ? '40 -36 240 188' : '54 -4 148 138');
+  const uid = 'f' + Math.random().toString(36).slice(2, 7), defs = S('defs', {}, svg);
+  const grad = (n, c1, c2) => { const lg = S('linearGradient', { id: uid + n, x1: 0, y1: 0, x2: 1, y2: 1 }, defs); S('stop', { offset: 0, 'stop-color': c1 }, lg); S('stop', { offset: 1, 'stop-color': c2 }, lg); return `url(#${uid + n})`; };
+  const G = { shirt: grad('a', '#2FCB84', '#14975C'), pants: grad('b', '#37587F', '#1D3050'), skin: grad('c', '#F0BF9B', '#D79C75'), shirtF: grad('d', '#18A165', '#0D7046'), pantsF: grad('e', '#2B4670', '#16263F'), skinF: grad('f', '#D9A582', '#BC8560') };
   const g = S('g', {}, svg), gx = cam ? 40 : 52, gw = cam ? 240 : 146;
   S('rect', { x: gx, y: 126.5, width: gw, height: 7, rx: 3.5, fill: C.gold }, g); S('rect', { x: gx, y: 126.5, width: gw, height: 1.7, rx: 0.8, fill: '#fff', opacity: 0.4 }, g);
   S('path', { d: `M${gx + 6} 130.2h${gw - 12}`, stroke: C.gold2, 'stroke-width': 0.8, 'stroke-dasharray': '2 2', fill: 'none' }, g);
@@ -92,45 +173,58 @@ function sideFigure(svg, kind) {
     S('path', { d: 'M0 4h22M16 0l6 4-6 4', stroke: C.shirtD, 'stroke-width': 1.8, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, kb);
     S('rect', { x: 8, y: 11, width: 11, height: 11, rx: 1.5, fill: C.dark }, kb); S('path', { d: 'M8 14.5h11', stroke: C.gold, 'stroke-width': 1.2 }, kb); }
   const shadow = S('ellipse', { cy: 130, ry: 3, fill: '#0A5C38', opacity: 0.1 }, g);
-  const leg = (parent, p) => { const th = capsule(parent, p.pants), sn = capsule(parent, p.pants), ft = capsule(parent, p.skin); return (F) => { th(F.H, F.K, 6.8, 5.3); sn(F.K, F.A, 5.6, 3.9); ft(F.A, F.toe, 3.9, 2.4); }; };
-  const arm = (parent, p, glove) => {
-    const ua = capsule(parent, p.shirt, p.edge), fa = capsule(parent, p.skin), hd = S('g', {}, parent);
-    S('ellipse', { cx: 2.4, cy: 0, rx: 4.3, ry: 2.9, fill: p.skin }, hd); S('ellipse', { cx: 0.6, cy: -2.5, rx: 2.1, ry: 1.1, fill: p.skin, transform: 'rotate(-20 0.6 -2.5)' }, hd);
-    return (F) => { const { e, h } = ik(F.S, F.T, L.ua * F.as, L.fa * F.as, F.bend); ua(F.S, e, 4.9, 4.1); fa(e, h, 3.5, 2.8); hd.setAttribute('transform', `translate(${h[0].toFixed(2)} ${h[1].toFixed(2)}) rotate(${lerpA(Math.atan2(h[1] - e[1], h[0] - e[0]) / RAD, F.ha, F.hw).toFixed(1)})`); };
+  const hem = (parent, col) => S('path', { fill: 'none', stroke: col, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.75 }, parent), seg = (e, i) => `M${f2(e.L[i][0])} ${f2(e.L[i][1])}L${f2(e.R[i][0])} ${f2(e.R[i][1])}`;
+  const leg = (parent, fl, fs, col) => { const ft = tube(parent, fs), lg = tube(parent, fl, { flat: true }), hm = hem(parent, col); return (F) => { ft([F.A, F.toe], [3.7, 2.2]); hm.setAttribute('d', seg(lg([F.H, F.K, F.A], [7.1, 5.4, 3.7]), 2)); }; };
+  const arm = (parent, fSleeve, fSkin, col, edge) => {
+    const fa = tube(parent, fSkin), hd = hand(parent, fSkin, C.skinD), ua = tube(parent, fSleeve, edge ? { flat: true, edge, sw: 0.55, eo: 0.7 } : { flat: true }), cf = hem(parent, col);
+    return (F) => { const { e, h } = ik(F.S, F.T, L.ua * F.as, L.fa * F.as, F.bend);
+      fa([e, h], [3.6, 2.7]); hd.set(h, lerpA(Math.atan2(h[1] - e[1], h[0] - e[0]) / RAD, F.ha, F.hw), F.fp); cf.setAttribute('d', seg(ua([F.S, e], [5.1, 4.2]), 1)); };
   };
-  const farP = { pants: '#22365A', shirt: '#13935A', skin: '#C98F68' }, nearP = { pants: C.pants, shirt: C.shirt, skin: C.skin, edge: C.shirtD }; // lengan dekat diberi garis tepi supaya tetap terlihat saat menumpuk di badan
-  const fg = S('g', { transform: 'translate(-3.2 -0.9)' }, g), farLeg = leg(fg, farP), farArm = arm(fg, farP);
-  const nearLeg = leg(g, nearP), neck = capsule(g, C.skin), torso = capsule(g, C.shirt);
+  const fg = S('g', { transform: 'translate(-3.2 -0.9)' }, g), farLeg = leg(fg, G.pantsF, G.skinF, '#0E1B30'), farArm = arm(fg, G.shirtF, G.skinF, '#07492B');
+  const nearLeg = leg(g, G.pants, G.skin, '#0E1B30'), kneeF = S('path', { fill: 'none', stroke: '#0B1C33', 'stroke-width': 0.6, 'stroke-linecap': 'round' }, g), neck = tube(g, C.skin);
+  const PF = [[-0.05, 3.4], [0.07, 6.6], [0.27, 7.3], [0.55, 6.3], [0.82, 6.9], [1.0, 5.6]], PB = [[1.0, 5.8], [0.82, 7.0], [0.55, 6.2], [0.27, 7.0], [0.07, 6.3], [-0.05, 3.6]];
+  const torso = S('path', { fill: G.shirt, stroke: C.shirtD, 'stroke-width': 0.5, 'stroke-opacity': 0.45, 'stroke-linejoin': 'round' }, g), hipF = S('path', { fill: 'none', stroke: C.shirtD, 'stroke-width': 0.6, 'stroke-linecap': 'round' }, g);
   const collar = S('ellipse', { rx: 3.6, ry: 2.8, fill: '#fff', stroke: C.shirtD, 'stroke-width': 0.8 }, g), seam = S('path', { fill: 'none', stroke: '#fff', 'stroke-opacity': 0.5, 'stroke-width': 0.9, 'stroke-linecap': 'round' }, g);
   const head = S('g', {}, g);
-  S('ellipse', { rx: 7, ry: 8, fill: C.skin }, head); S('path', { d: 'M5.8 3.2q3.2-.4 2.4 2.1q-1.6 1.7-3.6 1.1z', fill: C.skin }, head); S('path', { d: 'M6.9 -.3q2.1 1.7.6 3', fill: 'none', stroke: C.skinD, 'stroke-width': 0.7, 'stroke-linecap': 'round' }, head);
-  S('ellipse', { cx: -1.6, cy: 0.8, rx: 1.5, ry: 2.1, fill: '#D29A74' }, head); S('circle', { cx: 3.2, cy: -1.5, r: 0.85, fill: C.dark }, head);
-  S('path', { d: 'M-7.3 -2.4C-7.6 -9.6 -3 -11.2 0.4 -11C4.6 -10.8 7.2 -8.2 7.3 -2.4Z', fill: '#fff', stroke: C.shirtD, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }, head); S('path', { d: 'M-7.2 -3.6Q0 -6.4 7.2 -3.6', fill: 'none', stroke: C.shirt, 'stroke-width': 0.9 }, head);
-  const nearArm = arm(g, nearP);
+  S('path', { d: 'M-6.9 -4.6C-8.2 0 -7.2 4.4 -4.6 6.2L-2.6 4.6C-4.8 2.8 -5.2 -.6 -5.2 -4.4Z', fill: '#2A211F' }, head); // rambut belakang
+  S('path', { d: FACE, fill: C.skin }, head);
+  S('ellipse', { cx: -1.4, cy: 1, rx: 1.5, ry: 2.1, fill: '#D29A74' }, head); S('path', { d: 'M-1.9 .2q1.2-.4 1.2 1.6', fill: 'none', stroke: C.skinD, 'stroke-width': 0.4, 'stroke-linecap': 'round' }, head);
+  S('circle', { cx: 3.4, cy: 2.8, r: 1.9, fill: '#E8847A', opacity: 0.2 }, head);
+  S('path', { d: 'M2.4 -3.3Q4 -4.1 5.6 -3.2', fill: 'none', stroke: '#3A2A22', 'stroke-width': 0.75, 'stroke-linecap': 'round' }, head);
+  S('ellipse', { cx: 3.9, cy: -1.5, rx: 1, ry: 1.15, fill: C.dark }, head); S('circle', { cx: 4.2, cy: -1.95, r: 0.3, fill: '#fff', opacity: 0.9 }, head);
+  const lid = S('ellipse', { cx: 3.9, cy: -1.5, rx: 1.5, ry: 0, fill: C.skin }, head), lash = S('path', { d: 'M2.9 -1.4Q3.9 -.6 4.9 -1.4', fill: 'none', stroke: C.dark, 'stroke-width': 0.45, 'stroke-linecap': 'round', opacity: 0 }, head);
+  S('path', { d: 'M4.7 5.4Q5.9 6.1 7 5.1', fill: 'none', stroke: '#A0554A', 'stroke-width': 0.5, 'stroke-linecap': 'round', opacity: 0.85 }, head);
+  S('path', { d: 'M-7.3 -4.4C-7.6 -10.4 -3.2 -11.4 .4 -11.2C4.6 -11 7.3 -9 7.4 -4.4Z', fill: '#fff', stroke: C.shirtD, 'stroke-width': 0.6, 'stroke-linejoin': 'round' }, head); S('path', { d: 'M-7.2 -5.6Q0 -8.2 7.2 -5.6', fill: 'none', stroke: C.shirt, 'stroke-width': 0.9 }, head);
+  const nearArm = arm(g, G.shirt, G.skin, '#07492B', C.shirtD);
   const glow = S('circle', { r: 11, fill: C.gold, opacity: 0.45 }, g), ph = phoneShape(g, 3.8, 13);
   if (cam || plain) { glow.setAttribute('display', 'none'); ph.setAttribute('display', 'none'); }
+  const setFold = (el, bend, J, a, b, rad) => { const o = clamp01((bend - 28) / 55) * 0.45; if (o < 0.02) { el.setAttribute('d', ''); return; } el.setAttribute('opacity', o.toFixed(2)); el.setAttribute('d', foldD(J, a, b, rad)); };
   const fn = (P, now) => {
     const F = fk(P, now);
     farLeg({ ...F, A: F.A2, toe: F.toe2 }); farArm(F); nearLeg(F);
     const tl = Math.hypot(F.H[0] - F.S[0], F.H[1] - F.S[1]) || 1, E = [F.H[0] + (F.H[0] - F.S[0]) / tl * 3.5, F.H[1] + (F.H[1] - F.S[1]) / tl * 3.5];
-    neck(F.S, F.C, 3.5, 3); torso(F.S, E, 6.4, 7.6);
+    neck([F.S, F.C], [3.6, 3.1]);
+    const n = Math.hypot(E[0] - F.S[0], E[1] - F.S[1]) || 1, ux = (E[0] - F.S[0]) / n, uy = (E[1] - F.S[1]) / n, at = (t, w) => [F.S[0] + ux * n * t + uy * w, F.S[1] + uy * n * t - ux * w], chest = 1 + 0.04 * F.br;
+    torso.setAttribute('d', smoothClosed([at(-0.11, 0), ...PF.map(([t, w]) => at(t, t > 0.05 && t < 0.6 ? w * chest : w)), at(1.07, 0), ...PB.map(([t, w]) => at(t, -w))]));
+    setFold(kneeF, 180 - angle([F.H[0] - F.K[0], F.H[1] - F.K[1]], [F.A[0] - F.K[0], F.A[1] - F.K[1]]), F.K, F.H, F.A, 5.4);
+    setFold(hipF, 180 - angle([F.S[0] - F.H[0], F.S[1] - F.H[1]], [F.K[0] - F.H[0], F.K[1] - F.H[1]]), F.H, F.S, F.K, 7);
     const cl = lerpV(F.S, F.C, 0.28); collar.setAttribute('cx', cl[0]); collar.setAttribute('cy', cl[1]);
     const sm = lerpV(F.S, F.H, 0.15), sm2 = lerpV(F.S, F.H, 0.7); seam.setAttribute('d', `M${sm[0].toFixed(1)} ${sm[1].toFixed(1)}L${sm2[0].toFixed(1)} ${sm2[1].toFixed(1)}`);
     head.setAttribute('transform', `translate(${F.C[0].toFixed(2)} ${F.C[1].toFixed(2)}) rotate(${(F.an[2] + 0.4 * (F.an[3] - F.an[2])).toFixed(1)})`);
+    const bk = blinkAt(now); lid.setAttribute('ry', (1.45 * bk).toFixed(2)); lash.setAttribute('opacity', bk > 0.5 ? 0.85 : 0);
     nearArm(F);
     shadow.setAttribute('cx', ((F.A[0] + F.H[0] + F.S[0]) / 3).toFixed(1)); shadow.setAttribute('rx', (16 + Math.abs(F.S[0] - F.A[0]) * 0.3).toFixed(1));
     if (cam || plain) { fn.F = F; return 0; } // varian kamera: simpan sendi (dibaca simulasi), tidak ada meter kemiringan
     let pos, a, tilt;
     if (kind === 'shirt') { // HP di dada: ikut batang badan (pinggul → bahu)
-      const u = [F.S[0] - F.H[0], F.S[1] - F.H[1]], n = Math.hypot(...u), ux = u[0] / n, uy = u[1] / n, f = [-uy, ux];
-      pos = [F.S[0] - ux * n * 0.3 + f[0] * 8.6, F.S[1] - uy * n * 0.3 + f[1] * 8.6]; a = Math.atan2(ux, -uy) / RAD; tilt = angle(u, [0, -1]);
+      const u = [F.S[0] - F.H[0], F.S[1] - F.H[1]], nn = Math.hypot(...u), vx = u[0] / nn, vy = u[1] / nn, f = [-vy, vx];
+      pos = [F.S[0] - vx * nn * 0.3 + f[0] * 8.6, F.S[1] - vy * nn * 0.3 + f[1] * 8.6]; a = Math.atan2(vx, -vy) / RAD; tilt = angle(u, [0, -1]);
     } else { // HP di paha: ikut paha (pinggul → lutut)
-      const u = [F.K[0] - F.H[0], F.K[1] - F.H[1]], n = Math.hypot(...u), ux = u[0] / n, uy = u[1] / n, f = [uy, -ux];
-      pos = [F.H[0] + ux * n * 0.38 + f[0] * 7.6, F.H[1] + uy * n * 0.38 + f[1] * 7.6]; a = Math.atan2(ux, -uy) / RAD; tilt = angle(u, [0, 1]);
+      const u = [F.K[0] - F.H[0], F.K[1] - F.H[1]], nn = Math.hypot(...u), vx = u[0] / nn, vy = u[1] / nn, f = [vy, -vx];
+      pos = [F.H[0] + vx * nn * 0.38 + f[0] * 7.6, F.H[1] + vy * nn * 0.38 + f[1] * 7.6]; a = Math.atan2(vx, -vy) / RAD; tilt = angle(u, [0, 1]);
     }
     ph.setAttribute('transform', `translate(${pos[0].toFixed(2)} ${pos[1].toFixed(2)}) rotate(${a.toFixed(1)})`);
     glow.setAttribute('cx', pos[0]); glow.setAttribute('cy', pos[1]); glow.setAttribute('opacity', (0.26 + 0.2 * Math.sin(now / 260)).toFixed(2));
-    shadow.setAttribute('cx', ((F.A[0] + F.H[0] + F.S[0]) / 3).toFixed(1)); shadow.setAttribute('rx', (16 + Math.abs(F.S[0] - F.A[0]) * 0.3).toFixed(1));
     return tilt;
   };
   return fn;
