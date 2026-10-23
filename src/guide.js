@@ -319,20 +319,22 @@ const FRONT_T = 6800;
 function frontHand(parent, skin, skinD, side) { // side: arah ibu jari (+1 / −1). Koordinat lokal: pergelangan di (0,0), jari ke bawah (+y).
   const back = S('g', {}, parent), front = S('g', {}, parent), st = (w, c) => ({ fill: 'none', stroke: c, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   const palm = S('path', { fill: skin }, back), thumbB = S('ellipse', { rx: 2.7, ry: 5.2, fill: skin }, back);
-  const fing = [0, 1, 2, 3].map(() => S('path', st(3.6, skin), front)), seg = [0, 1, 2, 3].map(() => S('path', st(0.6, skinD), front)), thumbF = S('path', st(3.9, skin), front);
+  const fing = [0, 1, 2, 3].map(() => S('path', st(3.1, skin), front)), shade = [0, 1, 2, 3].map(() => S('path', st(3.1, skinD), front)), nails = [0, 1, 2, 3].map(() => S('ellipse', { rx: 1.25, ry: 0.95, fill: '#FBE3D2' }, front)), thumbF = S('path', st(3.3, skin), front);
   const BX = [-4.4, -1.5, 1.4, 4.2], LN = [6.8, 8.2, 7.6, 5.8];
   return { back, front, set(h, rot, g, open) {
     const tf = `translate(${f2(h[0])} ${f2(h[1])}) rotate(${rot.toFixed(1)})`; back.setAttribute('transform', tf); front.setAttribute('transform', tf);
     palm.setAttribute('d', 'M-5.6 -1Q-7.2 6 -5.8 11.5Q0 14 5.8 11.5Q7.2 6 5.6 -1Z');
-    thumbB.setAttribute('cx', f2(side * (6.4 + 0.4 * g))); thumbB.setAttribute('cy', f2(4.2 + 2 * g)); thumbB.setAttribute('transform', `rotate(${f2(side * (-24 * (1 - g)))} ${f2(side * 6)} 4)`);
+    thumbB.setAttribute('cx', f2(side * (6.4 + 1.4 * g))); thumbB.setAttribute('cy', f2(4.2 + 3 * g)); thumbB.setAttribute('transform', `rotate(${f2(side * (-24 * (1 - g)))} ${f2(side * 6)} 4)`);
     fing.forEach((f, i) => {
-      const L = LN[i], sp = (i - 1.5) * open * 0.55, xo = BX[i], eo = [xo + sp, 10 + L];           // terbuka: jari menjuntai
-      const gy = 2.6 + i * 4.3, gs = [-side * 7.6, gy], ge = [-side * 7.6 + side * (9.4 - i * 0.5), gy + 0.5];  // menggenggam: jari bertumpuk melingkari sisi HP
-      const sx = lerp(xo, gs[0], g), sy = lerp(10, gs[1], g), ex = lerp(eo[0], ge[0], g), ey = lerp(eo[1], ge[1], g);
-      f.setAttribute('d', `M${f2(sx)} ${f2(sy)}L${f2(ex)} ${f2(ey)}`);
-      seg[i].setAttribute('d', g > 0.6 ? `M${f2(lerp(sx, ex, 0.6))} ${f2(sy - 1.4)}v2.8` : '');
+      const L = LN[i], sp = (i - 1.5) * open * 0.55, xo = BX[i], eo = [xo + sp, 10 + L];                       // terbuka: jari menjuntai
+      const gy = 3 + i * 4.7, len = [10.5, 12, 11.4, 9.2][i], gs = [-side * 8, gy], ge = [-side * 8 + side * len, gy - 1.9];   // menggenggam: jari renggang melintang di punggung HP, ujung sedikit naik
+      const sx = lerp(xo, gs[0], g), sy = lerp(10, gs[1], g), ex = lerp(eo[0], ge[0], g), ey = lerp(eo[1], ge[1], g), mx = (sx + ex) / 2, my = (sy + ey) / 2 + 0.5 * g;
+      const d = `M${f2(sx)} ${f2(sy)}Q${f2(mx)} ${f2(my)} ${f2(ex)} ${f2(ey)}`; f.setAttribute('d', d);
+      shade[i].setAttribute('d', g > 0.5 ? `M${f2(sx)} ${f2(sy + 1.1)}Q${f2(mx)} ${f2(my + 1.1)} ${f2(ex)} ${f2(ey + 1.1)}` : ''); shade[i].setAttribute('opacity', 0.35 * g);
+      nails[i].setAttribute('cx', f2(ex - side * 0.5 * g)); nails[i].setAttribute('cy', f2(ey - 0.35)); nails[i].setAttribute('opacity', g > 0.5 ? 1 : 0.0);
+      nails[i].setAttribute('transform', `rotate(${f2(side * -10 * g)} ${f2(ex)} ${f2(ey)})`);
     });
-    thumbF.setAttribute('d', `M${f2(side * 3)} 2Q${f2(side * lerp(7.2, 7.4, g))} ${f2(lerp(5, 3.6, g))} ${f2(side * lerp(6.2, 7.6, g))} ${f2(lerp(10.4, 10.6, g))}`);
+    thumbF.setAttribute('d', g > 0.5 ? `M${f2(side * 7.6)} ${f2(8.5)}q${f2(side * 1.2)} 1.6 ${f2(side * 0.4)} 3.2` : `M${f2(side * 3)} 2Q${f2(side * 7.2)} 5 ${f2(side * 6.2)} 10.4`);
   } };
 }
 function placeScene(box, kind, still) {
@@ -360,10 +362,10 @@ function placeScene(box, kind, still) {
   S('ellipse', { cx: 85, cy: 39, rx: 16, ry: 17.5, fill: PK.skin }, headG); S('path', { d: 'M70.5 44Q71 58 85 59Q99 58 99.5 44Q96 53 85 53.5Q74 53 70.5 44Z', fill: PK.skin }, headG);
   S('path', { d: 'M76 56Q85 60.4 94 56', fill: 'none', stroke: PK.skinS, 'stroke-width': 1.6, 'stroke-linecap': 'round', opacity: 0.45 }, headG);
   for (const x of [73.6, 96.4]) S('ellipse', { cx: x, cy: 47, rx: 4, ry: 3.2, fill: '#F08C84', opacity: 0.27 }, headG);
-  const brows = S('g', {}, headG); S('path', { d: 'M73.6 33.6q4-2.4 8 -0.8', stroke: '#3A2A22', 'stroke-width': 1.5, fill: 'none', 'stroke-linecap': 'round' }, brows); S('path', { d: 'M88.4 32.8q4 -1.6 8 0.8', stroke: '#3A2A22', 'stroke-width': 1.5, fill: 'none', 'stroke-linecap': 'round' }, brows);
-  S('path', { d: 'M85.4 41.4Q87.6 45.4 86 46.6Q84.8 47.2 83.2 46.2', fill: 'none', stroke: '#C98A66', 'stroke-width': 1.1, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, headG);
-  const eyes = S('g', {}, headG), lids = [], irs = []; for (const x of [78.8, 91.2]) { S('ellipse', { cx: x, cy: 40.6, rx: 2.9, ry: 2.5, fill: '#fff' }, eyes); const ir = S('g', {}, eyes); S('circle', { cx: x, cy: 40.8, r: 2, fill: '#4A3022' }, ir); S('circle', { cx: x, cy: 40.8, r: 1, fill: C.dark }, ir); S('circle', { cx: x + 0.7, cy: 40, r: 0.6, fill: '#fff' }, ir); irs.push(ir);
-    lids.push(S('ellipse', { cx: x, cy: 40.2, rx: 3.3, ry: 0, fill: PK.skin }, headG)); S('path', { d: `M${x - 3.1} 40.4Q${x} 37.4 ${x + 3.1} 40.4`, fill: 'none', stroke: '#3A2A22', 'stroke-width': 1.1, 'stroke-linecap': 'round' }, headG); }
+  const brows = S('g', {}, headG); S('path', { d: 'M73 33.4Q77.4 29.8 82.2 32', stroke: '#3A2A22', 'stroke-width': 1.7, fill: 'none', 'stroke-linecap': 'round' }, brows); S('path', { d: 'M87.8 32Q92.6 29.8 97 33.4', stroke: '#3A2A22', 'stroke-width': 1.7, fill: 'none', 'stroke-linecap': 'round' }, brows);
+  S('path', { d: 'M85.4 41.8Q87.8 45.6 86.2 46.8Q84.8 47.4 83.2 46.4', fill: 'none', stroke: '#C98A66', 'stroke-width': 1.1, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, headG);
+  const eyes = S('g', {}, headG), lids = [], irs = []; for (const x of [78.6, 91.4]) { S('ellipse', { cx: x, cy: 40.6, rx: 3.3, ry: 3.1, fill: '#fff', stroke: '#D9B8A0', 'stroke-width': 0.4 }, eyes); const ir = S('g', {}, eyes); S('circle', { cx: x, cy: 40.8, r: 2.3, fill: '#4A3022' }, ir); S('circle', { cx: x, cy: 40.8, r: 1.15, fill: C.dark }, ir); S('circle', { cx: x + 0.8, cy: 39.8, r: 0.75, fill: '#fff' }, ir); irs.push(ir);
+    lids.push(S('ellipse', { cx: x, cy: 40.2, rx: 3.7, ry: 0, fill: PK.skin }, headG)); S('path', { d: `M${x - 3.4} 39.6Q${x - 2.2} 37.2 ${x} 37.3Q${x + 2.2} 37.2 ${x + 3.4} 39.6`, fill: 'none', stroke: '#3A2A22', 'stroke-width': 0.8, 'stroke-linecap': 'round', opacity: 0.8 }, headG); }
   const mouth = S('path', { fill: 'none', stroke: '#B0584C', 'stroke-width': 1.5, 'stroke-linecap': 'round' }, headG);
   S('path', { d: 'M68.4 31C67.6 12 77 6.5 85 6.5S102.4 12 101.6 31Q85 25.2 68.4 31Z', fill: PK.peci }, headG); S('path', { d: 'M69 28.4Q85 23.6 101 28.4', fill: 'none', stroke: C.gold, 'stroke-width': 1.6, 'stroke-linecap': 'round' }, headG); S('path', { d: 'M75 13Q85 8.6 94 12.6', fill: 'none', stroke: '#fff', 'stroke-width': 1.3, 'stroke-linecap': 'round', opacity: 0.2 }, headG);
   /* lengan: lengan baju panjang bermanset + tangan berjari. Tangan kiri (jauh dari saku) menjuntai; tangan kanan memasukkan HP. */
@@ -381,7 +383,7 @@ function placeScene(box, kind, still) {
   const clipId = cid0 + 'k', df = S('defs', {}, svg), hole = sh ? 'M54 87H88V118H54Z' : 'M48 152L78 176V222H48Z';
   S('path', { 'clip-rule': 'evenodd', d: 'M0 0H300V245H0ZM' + hole.slice(1) }, S('clipPath', { id: clipId }, df)); // lubang = bagian di dalam saku
   const phoneG = S('g', { 'clip-path': `url(#${clipId})` }, g), phone = S('g', {}, phoneG);
-  S('rect', { x: -7, y: -12, width: 14, height: 24, rx: 3, fill: C.dark, stroke: C.gold, 'stroke-width': 1.3 }, phone); S('circle', { cx: -2.6, cy: -7.6, r: 2.1, fill: '#3C5566' }, phone); S('circle', { cx: -2.6, cy: -7.6, r: 0.9, fill: '#0f1b22' }, phone); S('path', { d: 'M-3 -2h6', stroke: C.gold, 'stroke-width': 0.8, opacity: 0.0 }, phone);
+  S('rect', { x: -8, y: -14, width: 16, height: 28, rx: 3.4, fill: C.dark, stroke: C.gold, 'stroke-width': 1.3 }, phone); S('rect', { x: -6.2, y: -12.2, width: 7.2, height: 7.2, rx: 2, fill: '#33485A' }, phone); for (const [cx, cy] of [[-4.4, -10.4], [-1.6, -10.4], [-3, -7.6]]) S('circle', { cx, cy, r: 1.15, fill: '#0f1b22', stroke: '#6B8294', 'stroke-width': 0.4 }, phone); S('path', { d: 'M-3 -2h6', stroke: C.gold, 'stroke-width': 0.8, opacity: 0.0 }, phone);
   const glow = S('ellipse', { rx: 13, ry: 17, fill: C.gold, opacity: 0 }, g);
   g.append(arm1.hand.front); g.append(arm2.hand.front);
   /* gambar perbesaran (HP + saku), dipotong oleh panel supaya HP tampak meluncur masuk */
@@ -418,19 +420,19 @@ function placeScene(box, kind, still) {
     const hd = [lerp(a.hd[0], b.hd[0], k) + dy / dl * lift, lerp(a.hd[1], b.hd[1], k) - dx / dl * lift], gr = lerp(a.g, b.g, k), op = lerp(a.o, b.o, k), rr = lerp(a.r, b.r, k);
     const br = Math.sin(now / 650), reach = clamp01(Math.hypot(hd[0] - REST[0], hd[1] - REST[1]) / 80), sway = Math.sin(now / 1900), bk = blinkAt(now);
     const lookDown = ms > 600 && ms < 2900 ? ease(clamp01((ms - 600) / 700)) * (ms > 2300 ? 1 - ease(clamp01((ms - 2300) / 600)) * 0.3 : 1) : ms >= 2900 && ms < 4000 ? 0.7 : 0, sm = ms > 3900 ? ease(clamp01((ms - 3900) / 500)) * (ms > 5600 ? 1 - ease(clamp01((ms - 5600) / 600)) : 1) : 0;
-    const gz = [Math.max(-1, Math.min(1, (hd[0] - 85) / 38)) * 1.5, 0.3 + reach * 1.3 + lookDown * 0.6];
+    const gz = [Math.max(-1, Math.min(1, (hd[0] - 85) / 38)) * 1.2, 0.2 + reach * 0.9 + lookDown * 0.5];
     /* badan & kepala: bernapas, condong ke sisi tangan yang bekerja, kepala menunduk melihat HP/saku lalu kembali tegak */
     const bx = 0.6 * sway, by = 0.5 * br + 0.8 * Math.sin(Math.PI * clamp01((ms - 4100) / 1500)) * (ms > 4100 ? 1 : 0); // helaan napas setelah selesai
     bodyG.setAttribute('transform', `translate(${bx.toFixed(2)} ${by.toFixed(2)}) rotate(${(-1.8 * reach).toFixed(2)} 85 150)`);
-    headG.setAttribute('transform', `translate(${(bx - 0.8 * reach).toFixed(2)} ${(by + 1.3 * lookDown + 0.9 * reach).toFixed(2)}) rotate(${(Math.max(-4, Math.min(5, (hd[0] - 60) * 0.07)) - 2.2 * reach + 1.2 * Math.sin(now / 1100) - 1.4 * lookDown + 1.2 * sm).toFixed(1)} 85 58)`);
-    irs.forEach((ir) => ir.setAttribute('transform', `translate(${(gz[0] * 0.7).toFixed(2)} ${Math.min(0.9, gz[1] * 0.6).toFixed(2)})`)); lids.forEach((l) => l.setAttribute('ry', (0.55 + 2.6 * bk).toFixed(2)));
-    brows.setAttribute('transform', `translate(0 ${(-0.8 * sm - 0.3 * reach).toFixed(2)})`);
-    mouth.setAttribute('d', `M80 51.6Q85 ${(51.6 + 3 + 2.4 * sm).toFixed(2)} 90 51.6`);
+    headG.setAttribute('transform', `translate(${(bx - 0.8 * reach).toFixed(2)} ${(by + 0.7 * lookDown + 0.5 * reach).toFixed(2)}) rotate(${(Math.max(-4, Math.min(5, (hd[0] - 60) * 0.07)) - 2.2 * reach + 1.2 * Math.sin(now / 1100) - 0.8 * lookDown + 1.2 * sm).toFixed(1)} 85 58)`);
+    irs.forEach((ir) => ir.setAttribute('transform', `translate(${(gz[0] * 0.7).toFixed(2)} ${Math.min(0.9, gz[1] * 0.6).toFixed(2)})`)); lids.forEach((l) => l.setAttribute('ry', (3.4 * bk).toFixed(2)));
+    brows.setAttribute('transform', `translate(0 ${(-0.6 * sm).toFixed(2)})`);
+    mouth.setAttribute('d', `M79 51.2Q85 ${(51.2 + 4.4 + 2.2 * sm).toFixed(2)} 91 51.2`);
     /* lengan kiri (jauh): menjuntai dan ikut mengayun pelan mengimbangi lengan kanan */
     const s2 = [SHO2[0], SHO2[1] + 0.5 * br], r2 = ik(s2, [124 + 1.4 * Math.sin(now / 1700) + 2 * reach, 154 + 0.6 * br - 1.2 * reach], 50, 48, -0.5); arm2.set(s2, r2.e, r2.h, 0.12, 0.25);
     /* lengan kanan: bahu terangkat sedikit saat menjangkau */
     const s1 = [SHO[0] + bx * 0.6, SHO[1] + 0.5 * br - 2.6 * reach], r1 = ik(s1, hd, 50, 48, 0.5); arm1.set(s1, r1.e, r1.h, gr, op, rr * 0.6);
-    const inside = ms >= REL, hold = ms < REL, ph0 = [r1.h[0] - 0.6 * Math.sin(rr * RAD) * 8, r1.h[1] + OFF + 4], tIn = clamp01((ms - INS0) / (REL - INS0)); // HP ikut tangan sampai dilepas
+    const inside = ms >= REL, hold = ms < REL, ph0 = [r1.h[0] - 0.6 * Math.sin(rr * RAD) * 8 + 1, r1.h[1] + OFF + 6], tIn = clamp01((ms - INS0) / (REL - INS0)); // HP ikut tangan sampai dilepas
     const pp = hold ? ph0 : SHT.in; phone.setAttribute('transform', `translate(${pp[0].toFixed(1)} ${pp[1].toFixed(1)}) rotate(${(hold ? rr : 0).toFixed(1)})`);
     const fade = ms < 250 ? ms / 250 : 1; phoneG.setAttribute('opacity', fade);
     const hl = ms > REL && ms < 6000; glow.setAttribute('cx', SHT.in[0]); glow.setAttribute('cy', SHT.in[1]); glow.setAttribute('opacity', hl ? (0.25 * Math.min(1, (ms - REL) / 300) + 0.2 * Math.sin(now / 240) * 0.6).toFixed(2) : 0);
