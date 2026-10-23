@@ -117,7 +117,7 @@ function step(delta) { const n = idx + delta; if (n < 0) return; if (n >= steps.
 
 /* ---------- tab: Gerakan ---------- */
 const DEMO = [['i', 900, 1100, B2('Berdiri', 'Stand')], ['u', 900, 1100, B2('Takbiratul ihram', 'Opening takbir')], ['q', 800, 1500, B2('Sedekap, baca Al-Fatihah', 'Hands folded, recite Al-Fatihah')], ['r', 900, 1600, B2('Rukuk', 'Ruku')], ['i', 800, 1200, B2("I'tidal", "I'tidal")],
-  ['k', 800, 0, B2('Turun untuk sujud', 'Going down')], ['s', 700, 1800, B2('Sujud', 'Prostration')], ['d', 750, 1400, B2('Duduk di antara dua sujud', 'Sitting between prostrations')], ['s', 650, 1800, B2('Sujud kedua', 'Second prostration')], ['dt', 800, 1300, B2('Tahiyat awal', 'First tashahhud')], ['w', 900, 1700, B2('Tahiyat akhir', 'Final tashahhud')], ['sa', 500, 6400, B2('Salam: menoleh kanan lalu kiri', 'Salam: turn right, then left')]];
+  ['k', 800, 0, B2('Turun untuk sujud', 'Going down')], ['s', 700, 1800, B2('Sujud', 'Prostration')], ['d', 750, 1400, B2('Duduk di antara dua sujud', 'Sitting between prostrations')], ['s', 650, 1800, B2('Sujud kedua', 'Second prostration')], ['dt', 800, 1300, B2('Duduk iftirasy (Tahiyat awal)', 'Iftirasy (First tashahhud)')], ['w', 900, 1700, B2('Duduk tawarruk (Tahiyat akhir)', 'Tawarruk (Final tashahhud)')], ['sa', 500, 6400, B2('Salam: menoleh kanan lalu kiri', 'Salam: turn right, then left')]];
 function B2(id, en) { return { id, en }; }
 function moves() {
   $('bsBody').innerHTML = `<div class="card bs-stage"><div id="bsFig"></div><p class="bs-cap" id="bsCap"></p></div><h3 class="rp-sec">${esc(t('bs.demo'))}</h3><p class="bs-hint">${esc(t('bs.demo.h'))}</p>`

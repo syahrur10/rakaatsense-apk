@@ -279,3 +279,9 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 - Pemantau Rakaat adalah **alat bantu** agar tidak lupa, bukan pengganti ingatan atau ilmu fikih. Ambang deteksi (`TH` di `rakaat.js`) disusun dari geometri tampak depan dan **perlu diuji di HP asli** dengan posisi HP Anda; pratinjau (uji rukuk/sujud sebelum mulai) ada untuk itu.
 - Jangan commit file `.env` (sudah ada di `.gitignore`).
 - Kunci Firebase web memang tampil di sisi klien; keamanan data dijaga oleh `firestore.rules`, jadi pastikan rules sudah di-publish.
+
+
+## Pembaruan animasi manusia
+- Sosok orang digambar ulang: baju koko panjang bermanset, peci, wajah & telinga berbentuk, tangan berjari (telunjuk terangkat saat tahiyat, menggenggam lutut saat rukuk), kaki berbentuk.
+- Duduk **iftirasy (Tahiyat awal)** dan **tawarruk (Tahiyat akhir)** dibetulkan sesuai tuntunan: iftirasy = duduk di atas telapak kaki kiri, kaki kanan tegak; tawarruk = pantat kiri di lantai, kaki kiri keluar di bawah betis kanan, kaki kanan tegak (jari menghadap kiblat).
+- Label diberi keterangan dalam kurung: *Duduk iftirasy (Tahiyat awal)* dan *Duduk tawarruk (Tahiyat akhir)*.
