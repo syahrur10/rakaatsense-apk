@@ -59,7 +59,7 @@ const RAW = {
   // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kiri keluar di bawah betis kanan, kaki kanan ditegakkan, tangan di atas paha
   w: { A: [97, 120], K: [119, 101], A2: [112, 123], toe2: [124, 124], H: [91, 117], S: [91.5, 78], C: [93.6, 66.2], T: [106, 103], bend: 0.2, toe: [108, 124], hw: 1, ha: 24 },
   // Duduk di antara dua sujud (iftirasy): duduk di atas telapak kaki kiri (rebah), kaki kanan ditegakkan dengan jari menghadap kiblat, tangan di atas paha
-  d: { A: [101, 113.5], K: [113, 93], K2: [106, 121.5], A2: [79, 122.3], toe2: [66, 124.2], f2s: 1, H: [81, 108], S: [84.4, 69.1], C: [86.5, 57.3], T: [100, 100], bend: 0.2, toe: [106.5, 124.2], hw: 1, ha: 24 },
+  d: { A: [81.5, 112], K: [110, 121], K2: [108, 121.8], A2: [80, 121.5], toe2: [66, 124.2], f2s: 1, H: [81, 108], S: [84.4, 69.1], C: [86.5, 57.3], T: [98, 108.5], bend: 0.2, toe: [88.5, 124.1], hw: 1, ha: 24 },
 };
 // Seberapa kuat telapak tangan "menapak" (lantai / lutut / paha): bila menapak, tangan tidak ikut bergoyang saat bernapas.
 // fp = telunjuk terangkat (tahiyat). 'dt' = duduk iftirasy + telunjuk terangkat, dipakai untuk tahiyat awal.
@@ -68,7 +68,7 @@ for (const k in PLANT) RAW[k].pl = PLANT[k];
 RAW.r.gr = 0.75; RAW.q.gr = 0.35; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
 // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kanan ditegakkan (jari menghadap kiblat), kaki kiri KELUAR di bawah betis kanan.
 // Tampak dari kanan: lutut kiri di lantai (K2), betis kiri rebah di bawah betis kanan (A2), telapak kiri hampir tertutup (f2s = diperpendek karena menghadap penonton).
-Object.assign(RAW.w, { A: [98, 114], K: [112, 97], H: [88, 119], S: [88.5, 80], C: [90.6, 68.2], T: [104, 101.5], K2: [118, 121.5], A2: [96, 122.8], toe2: [88, 124.4], toe: [103.5, 124.2], f2s: 0.55 });
+Object.assign(RAW.w, { A: [88, 114.5], K: [119, 119.5], H: [92, 120], S: [92.5, 81], C: [94.6, 69.2], T: [107, 112.5], K2: [118, 122], A2: [98, 122.8], toe2: [106, 124.3], toe: [93.5, 124.2], f2s: 0.6 });
 RAW.sa = { ...RAW.w, sa: 1 }; // salam: posisi sama, kepala menoleh kanan lalu kiri
 RAW.w0 = { ...RAW.w, fp: 0 }; // selesai: telunjuk sudah diturunkan
 const POSE = Object.fromEntries(Object.entries(RAW).map(([k, r]) => {
@@ -160,13 +160,17 @@ function sideFigure(svg, kind) {
     S('rect', { x: 8, y: 11, width: 11, height: 11, rx: 1.5, fill: C.dark }, kb); S('path', { d: 'M8 14.5h11', stroke: C.gold, 'stroke-width': 1.2 }, kb); }
   const shadow = S('ellipse', { cy: 130, ry: 3, fill: '#0A5C38', opacity: 0.1 }, g);
   /* kaki: celana meruncing (paha → lutut → pergelangan) + telapak kaki berbentuk, bukan garis tebal seragam */
-  const leg = (parent, pc, sk, hl) => {
-    const ft = capsule(parent, sk), sn = capsule(parent, pc), th = capsule(parent, pc), hem = capsule(parent, hl), toe = capsule(parent, sk);
-    return (F) => {
-      ft(F.A, F.toe, 3.2, 2.2);
-      const v = [F.toe[0] - F.A[0], F.toe[1] - F.A[1]], vl = Math.hypot(...v) || 1; toe([F.toe[0] - v[0] / vl * 2.2, F.toe[1] - v[1] / vl * 2.2], F.toe, 2.3, 1.7);
-      sn(F.K, F.A, 4.7, 3.3); hem(lerpV(F.K, F.A, 0.88), F.A, 3.5, 3.5); th(F.H, F.K, 6.3, 4.8);
+  const leg = (parent, pc, sk, hl, split) => {
+    const thG = S('g', {}, parent); let loG = thG;
+    const mk = (pp) => { const ft = capsule(pp, sk), toe = capsule(pp, sk), sn = capsule(pp, pc), hem = capsule(pp, hl); return { ft, toe, sn, hem }; };
+    const lo = split ? null : mk(thG), th = split ? null : capsule(thG, pc), up = split ? capsule(thG, pc) : null;
+    const draw = (F, L) => {
+      L.ft(F.A, F.toe, 3.2, 2.2);
+      const v = [F.toe[0] - F.A[0], F.toe[1] - F.A[1]], vl = Math.hypot(...v) || 1; L.toe([F.toe[0] - v[0] / vl * 2.2, F.toe[1] - v[1] / vl * 2.2], F.toe, 2.3, 1.7);
+      L.sn(F.K, F.A, 4.7, 3.3); L.hem(lerpV(F.K, F.A, 0.88), F.A, 3.5, 3.5);
     };
+    if (!split) return (F) => { draw(F, lo); th(F.H, F.K, 6.3, 4.8); };
+    return { up: (F) => up(F.H, F.K, 6.3, 4.8), low: (parent2) => { const L = mk(parent2); return (F) => draw(F, L); } };
   };
   /* lengan: lengan baju koko panjang sampai pergelangan, manset, telapak tangan dengan jari */
   const arm = (parent, sl, sk, shd) => {
@@ -177,11 +181,12 @@ function sideFigure(svg, kind) {
     };
   };
   const fg = S('g', { transform: 'translate(-3.2 -0.9)' }, g), farLeg = leg(fg, PK.pantsF, PK.skinF, '#17263B'), farArm = arm(fg, PK.shirtF, PK.skinF, PK.skinF);
-  const nearLeg = leg(g, PK.pants, PK.skin, '#1F3350'), neck = limb(g, PK.skin, 6.2);
+  const nearLeg = leg(g, PK.pants, PK.skin, '#1F3350', true), neck = limb(g, PK.skin, 6.2);
   const skirt = S('path', { fill: PK.shirt }, g); // ujung baju koko yang jatuh menutupi pinggul & paha atas
   const PF = [[-0.05, 4], [0.07, 7.6], [0.27, 8.8], [0.55, 8.2], [0.82, 8.4], [1.0, 7.2]], PB = [[1.0, 7.2], [0.82, 8], [0.55, 7.2], [0.27, 8], [0.07, 7.4], [-0.05, 4.2]];
   const torso = S('path', { fill: PK.shirt }, g), shade = S('path', { fill: PK.shirtS, opacity: 0.55 }, g), seam = S('path', { fill: 'none', stroke: '#fff', 'stroke-opacity': 0.5, 'stroke-width': 0.8, 'stroke-linecap': 'round' }, g);
   const btn = [0, 1, 2].map(() => S('circle', { r: 0.7, fill: '#fff', opacity: 0.85 }, g)), collar = S('path', { fill: PK.shirtL, stroke: PK.shirtS, 'stroke-width': 0.5, 'stroke-linejoin': 'round' }, g);
+  const nearLow = nearLeg.low(g);
   const head = S('g', {}, g), hairB = S('path', { d: 'M-8.2 -3Q-9.6 2.4 -5.4 6.4L-3.2 2.8Q-5 0 -5 -3Z', fill: PK.hair }, head);
   S('ellipse', { cx: 1.4, cy: 3.6, rx: 6.4, ry: 5.4, fill: PK.skin }, head); S('circle', { r: 8.3, fill: PK.skin }, head); // tengkorak + rahang
   S('path', { d: 'M-4.5 7.6Q1 10.4 6.4 8', fill: 'none', stroke: PK.skinS, 'stroke-width': 1.1, 'stroke-linecap': 'round', opacity: 0.5 }, head); // bayangan rahang
@@ -213,7 +218,7 @@ function sideFigure(svg, kind) {
   if (cam || plain) { glow.setAttribute('display', 'none'); ph.setAttribute('display', 'none'); }
   const fn = (P, now, tm) => {
     const F = fk(P, now, tm);
-    farLeg({ ...F, K: F.K2, A: F.A2, toe: F.toe2 }); farArm(F); nearLeg(F);
+    farLeg({ ...F, K: F.K2, A: F.A2, toe: F.toe2 }); farArm(F); nearLeg.up(F); nearLow(F);
     const tl = Math.hypot(F.H[0] - F.S[0], F.H[1] - F.S[1]) || 1, ux0 = (F.H[0] - F.S[0]) / tl, uy0 = (F.H[1] - F.S[1]) / tl, E = [F.H[0] + ux0 * 3.5, F.H[1] + uy0 * 3.5];
     neck(F.S, F.C);
     const n = Math.hypot(E[0] - F.S[0], E[1] - F.S[1]) || 1, ux = (E[0] - F.S[0]) / n, uy = (E[1] - F.S[1]) / n, at = (t, w) => [F.S[0] + ux * n * t + uy * w, F.S[1] + uy * n * t - ux * w], chest = 1 + 0.045 * F.br;
