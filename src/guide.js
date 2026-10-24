@@ -371,7 +371,7 @@ function placeScene(box, kind, still) {
   const lgL = cap(g, PK.pants), lgR = cap(g, PK.pants); lgL([67, 148], [66, 223], 17.5, 11); lgR([103, 148], [104, 223], 17.5, 11);
   S('path', { d: 'M85 156V222', stroke: '#16243A', 'stroke-width': 1.4, opacity: 0.45, fill: 'none' }, g);
   for (const [x, s] of [[62, -1], [108, 1]]) { S('path', { d: `M${x - 17} 234Q${x - 18} 222 ${x - 5} 221H${x + 8}Q${x + 20} 224 ${x + 19} 234Z`, fill: C.dark }, g); S('path', { d: `M${x - 14} 231.5H${x + 16}`, stroke: '#fff', 'stroke-width': 1, opacity: 0.22, 'stroke-linecap': 'round' }, g); }
-  if (!sh) { S('path', { d: 'M50 155.5Q66 158.5 77.5 175Q64 167.5 50 160Z', fill: '#101C2E', opacity: 0.75 }, g); S('path', { d: 'M51 157Q65 160 76 174', fill: 'none', stroke: PK.pantsL, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g); S('path', { d: 'M76 174V196', stroke: PK.pantsL, 'stroke-width': 1, opacity: 0.5, 'stroke-dasharray': '2 2', fill: 'none' }, g); }
+  if (!sh) { S('path', { d: 'M51 158.4Q65 161.4 76 175.4', fill: 'none', stroke: '#16243A', 'stroke-width': 1.4, 'stroke-linecap': 'round', opacity: 0.45 }, g); S('path', { d: 'M51 157Q65 160 76 174', fill: 'none', stroke: PK.pantsL, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, g); S('path', { d: 'M76 174V196', stroke: PK.pantsL, 'stroke-width': 1, opacity: 0.5, 'stroke-dasharray': '2 2', fill: 'none' }, g); }
   /* badan baju koko */
   const bodyG = S('g', {}, g);
   S('path', { d: 'M49 80Q50 63 85 61Q120 63 121 80L126 152Q85 165 44 152Z', fill: PK.shirt }, bodyG);
