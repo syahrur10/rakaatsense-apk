@@ -321,16 +321,19 @@ const FRONT_T = 9400;
  *  side: sisi ibu jari saat tangan menjuntai (+1 = ke +x). Koordinat lokal: pergelangan di (0,0), jari ke bawah (+y). */
 function frontHand(parent, skin, skinD, side) {
   const g = S('g', {}, parent), sx = (v) => v * side, st = (w, c) => ({ fill: 'none', stroke: c, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  const BACKD = 'M-5.1 -1Q-6.8 6 -6.3 10.4Q-6 12.7 -3.8 12.7H3.8Q6 12.7 6.3 10.4Q6.8 6 5.1 -1Z';
+  S('path', { d: BACKD, fill: '#0B2A1A', opacity: 0.16, transform: 'translate(1 1.6)' }, g); // bayangan tangan di atas HP/baju
   const thumbS = S('path', st(3.7, skinD), g), thumb = S('path', st(3.3, skin), g);             // ibu jari: di bawah punggung tangan
   const fingS = [0, 1, 2, 3].map(() => S('path', st(3.5, skinD), g)), fing = [0, 1, 2, 3].map(() => S('path', st(3, skin), g));
-  S('path', { d: 'M-5.1 -1Q-6.8 6 -6.3 10.4Q-6 12.7 -3.8 12.7H3.8Q6 12.7 6.3 10.4Q6.8 6 5.1 -1Z', fill: skin, stroke: skinD, 'stroke-width': 0.45, 'stroke-opacity': 0.5, 'stroke-linejoin': 'round' }, g); // punggung tangan
+  const crease = [0, 1, 2, 3].map(() => S('path', { fill: 'none', stroke: skinD, 'stroke-width': 0.55, 'stroke-linecap': 'round', opacity: 0.5 }, g)); // lipatan sendi jari
+  S('path', { d: BACKD, fill: skin, stroke: skinD, 'stroke-width': 0.45, 'stroke-opacity': 0.5, 'stroke-linejoin': 'round' }, g); // punggung tangan
   for (const x of [-2.7, 0, 2.7]) S('path', { d: `M${x} 1.6Q${f2(x * 1.12)} 6 ${f2(x * 1.3)} 10.2`, fill: 'none', stroke: skinD, 'stroke-width': 0.5, 'stroke-linecap': 'round', opacity: 0.32 }, g); // urat punggung tangan
   const BX = [sx(4.3), sx(1.45), sx(-1.4), sx(-4.2)], LN = [7.4, 8.6, 8, 6.2], LAG = [0, 0.06, 0.12, 0.18]; // telunjuk (dekat ibu jari) → kelingking
   for (const x of BX) S('circle', { cx: x, cy: 11, r: 1.2, fill: skinD, opacity: 0.2 }, g);       // bukit buku jari
   const nails = [0, 1, 2, 3].map(() => S('ellipse', { rx: 1, ry: 1.2, fill: '#FBE3D2' }, g));
   const TO = [sx(8.6), 12.4], CO = [sx(8.4), 6.2], TG = [sx(10.2), 8.2], CG = [sx(8.4), 3.6], BT = [sx(4), 3.2]; // ibu jari: terbuka (di samping) → menggenggam (di sisi ATAS, sejajar jari, bertumpu di tepi atas HP)
-  return { g, set(h, rot, gr, open, now = 0) {
-    g.setAttribute('transform', `translate(${f2(h[0])} ${f2(h[1])}) rotate(${rot.toFixed(1)})`);
+  return { g, set(h, rot, gr, open, now = 0, sc = 1.15) {
+    g.setAttribute('transform', `translate(${f2(h[0])} ${f2(h[1])}) rotate(${rot.toFixed(1)}) scale(${sc})`);
     const e = ease(clamp01(gr)), td = `M${f2(BT[0])} ${f2(BT[1])}Q${f2(lerp(CO[0], CG[0], e))} ${f2(lerp(CO[1], CG[1], e))} ${f2(lerp(TO[0], TG[0], e))} ${f2(lerp(TO[1], TG[1], e))}`;
     thumb.setAttribute('d', td); thumbS.setAttribute('d', td); thumbS.setAttribute('transform', 'translate(0.4 0.5)');
     fing.forEach((f, i) => {
@@ -338,6 +341,7 @@ function frontHand(parent, skin, skinD, side) {
       const phi = sx(1.5 - i) * (0.07 + 0.14 * open) * (1 - 0.7 * fg) + sw, ph2 = phi + side * (0.09 + 0.2 * fg), L = LN[i] * (1 - 0.46 * fg) * (1 - 0.05 * (1 - fg));
       const B = [BX[i], 11], M = [B[0] + Math.sin(phi) * L * 0.55, B[1] + Math.cos(phi) * L * 0.55], T = [M[0] + Math.sin(ph2) * L * 0.45, M[1] + Math.cos(ph2) * L * 0.45];
       const d = `M${f2(B[0])} ${f2(B[1])}Q${f2(M[0])} ${f2(M[1])} ${f2(T[0])} ${f2(T[1])}`; f.setAttribute('d', d); fingS[i].setAttribute('d', d); fingS[i].setAttribute('transform', `translate(${f2(-side * 0.3)} 0.55)`);
+      const pc = [Math.cos(phi), -Math.sin(phi)]; crease[i].setAttribute('d', `M${f2(M[0] - pc[0] * 1.15)} ${f2(M[1] - pc[1] * 1.15)}L${f2(M[0] + pc[0] * 1.15)} ${f2(M[1] + pc[1] * 1.15)}`);
       nails[i].setAttribute('cx', f2(T[0] - Math.sin(ph2) * 1.15)); nails[i].setAttribute('cy', f2(T[1] - Math.cos(ph2) * 1.15)); nails[i].setAttribute('transform', `rotate(${f2(-ph2 / RAD)} ${f2(T[0] - Math.sin(ph2) * 1.15)} ${f2(T[1] - Math.cos(ph2) * 1.15)})`);
       nails[i].setAttribute('opacity', ((1 - fg) ** 2 * 0.9).toFixed(2));                          // kuku hanya tampak saat jari terjulur (saat melingkar ke belakang HP, kuku tersembunyi)
     });
@@ -367,7 +371,7 @@ function placeScene(box, kind, still) {
   const lgL = cap(g, PK.pants), lgR = cap(g, PK.pants); lgL([67, 148], [66, 223], 17.5, 11); lgR([103, 148], [104, 223], 17.5, 11);
   S('path', { d: 'M85 156V222', stroke: '#16243A', 'stroke-width': 1.4, opacity: 0.45, fill: 'none' }, g);
   for (const [x, s] of [[62, -1], [108, 1]]) { S('path', { d: `M${x - 17} 234Q${x - 18} 222 ${x - 5} 221H${x + 8}Q${x + 20} 224 ${x + 19} 234Z`, fill: C.dark }, g); S('path', { d: `M${x - 14} 231.5H${x + 16}`, stroke: '#fff', 'stroke-width': 1, opacity: 0.22, 'stroke-linecap': 'round' }, g); }
-  if (!sh) { S('path', { d: 'M51 157Q65 160 76 174', fill: 'none', stroke: PK.pantsL, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, g); S('path', { d: 'M76 174V196', stroke: PK.pantsL, 'stroke-width': 1, opacity: 0.5, 'stroke-dasharray': '2 2', fill: 'none' }, g); }
+  if (!sh) { S('path', { d: 'M50 155.5Q66 158.5 77.5 175Q64 167.5 50 160Z', fill: '#101C2E', opacity: 0.75 }, g); S('path', { d: 'M51 157Q65 160 76 174', fill: 'none', stroke: PK.pantsL, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g); S('path', { d: 'M76 174V196', stroke: PK.pantsL, 'stroke-width': 1, opacity: 0.5, 'stroke-dasharray': '2 2', fill: 'none' }, g); }
   /* badan baju koko */
   const bodyG = S('g', {}, g);
   S('path', { d: 'M49 80Q50 63 85 61Q120 63 121 80L126 152Q85 165 44 152Z', fill: PK.shirt }, bodyG);
@@ -390,16 +394,23 @@ function placeScene(box, kind, still) {
   const mouth = S('path', { fill: 'none', stroke: '#B0584C', 'stroke-width': 1.5, 'stroke-linecap': 'round' }, headG);
   S('path', { d: 'M68.4 31C67.6 12 77 6.5 85 6.5S102.4 12 101.6 31Q85 25.2 68.4 31Z', fill: PK.peci }, headG); S('path', { d: 'M69 28.4Q85 23.6 101 28.4', fill: 'none', stroke: C.gold, 'stroke-width': 1.6, 'stroke-linecap': 'round' }, headG); S('path', { d: 'M75 13Q85 8.6 94 12.6', fill: 'none', stroke: '#fff', 'stroke-width': 1.3, 'stroke-linecap': 'round', opacity: 0.2 }, headG);
   /* HP: dua salinan. A = di tangan (ikut tangan, DI BELAKANG tangan), B = sudah di saku (diam, lalu mengendap turun). Dipotong oleh bukaan saku supaya tampak masuk ke dalam saku. */
-  const clipId = cid0 + 'k', df = S('defs', {}, svg), hole = sh ? 'M54 87H88V118H54Z' : 'M48 152L78 176V222H48Z';
+  const PL = [5.2, 8.5], GT = 60; // PL: letak pusat HP dari pergelangan (rangka HP); GT: sudut tangan saat menggenggam
+  const clipId = cid0 + 'k', df = S('defs', {}, svg), hole = sh ? 'M54 87H88V118H54Z' : 'M44 154L51 157Q65 160 76 174L82 182V222H44Z'; // bukaan saku mengikuti garis belahan yang tergambar
   S('path', { 'clip-rule': 'evenodd', d: 'M0 0H300V245H0ZM' + hole.slice(1) }, S('clipPath', { id: clipId }, df)); // lubang = bagian di dalam saku
-  const drawPhone = (p) => { const q = S('g', {}, p); S('rect', { x: -8, y: -14, width: 16, height: 28, rx: 3.4, fill: C.dark, stroke: C.gold, 'stroke-width': 1.3 }, q); S('rect', { x: -6.2, y: -12.2, width: 7.2, height: 7.2, rx: 2, fill: '#33485A' }, q); for (const [cx, cy] of [[-4.4, -10.4], [-1.6, -10.4], [-3, -7.6]]) S('circle', { cx, cy, r: 1.15, fill: '#0f1b22', stroke: '#6B8294', 'stroke-width': 0.4 }, q); return q; };
+  const drawPhone = (p) => { const q = S('g', { transform: 'scale(1.2)' }, S('g', {}, p)); S('rect', { x: -8, y: -14, width: 16, height: 28, rx: 3.4, fill: C.dark, stroke: C.gold, 'stroke-width': 1.3 }, q); S('rect', { x: -6.2, y: -12.2, width: 7.2, height: 7.2, rx: 2, fill: '#33485A' }, q); for (const [cx, cy] of [[-4.4, -10.4], [-1.6, -10.4], [-3, -7.6]]) S('circle', { cx, cy, r: 1.15, fill: '#0f1b22', stroke: '#6B8294', 'stroke-width': 0.4 }, q); return q; };
   const wA = S('g', {}, g), phA = drawPhone(wA), wB = S('g', { 'clip-path': `url(#${clipId})` }, g), phB = drawPhone(wB);
   const gid = cid0 + 'w', gr0 = S('radialGradient', { id: gid }, df); S('stop', { offset: 0, 'stop-color': C.gold, 'stop-opacity': 0.55 }, gr0); S('stop', { offset: 0.6, 'stop-color': C.gold, 'stop-opacity': 0.22 }, gr0); S('stop', { offset: 1, 'stop-color': C.gold, 'stop-opacity': 0 }, gr0);
   const glow = S('ellipse', { rx: 16, ry: 20, fill: `url(#${gid})`, opacity: 0 }, g); // cahaya lembut penanda saku
   /* lengan: lengan baju panjang bermanset + tangan (tampak punggung tangan) di ATAS HP. Lengan kiri (jauh dari saku) menjuntai; lengan kanan memasukkan HP. */
   const mkArm = (sd) => {
-    const ua = cap(g, PK.shirt), fa = cap(g, PK.shirt), cf = cap(g, PK.cuff), jt = S('circle', { r: 7.6, fill: PK.shirt }, g), hand = frontHand(g, PK.skin, PK.skinS, sd);
-    return { set(s0, e, h, rot, gr, op, now) { ua(s0, e, 8.2, 7.2); fa(e, h, 7.4, 5.9); cf(lerpV(e, h, 0.84), h, 6.3, 6.3); jt.setAttribute('cx', f2(s0[0])); jt.setAttribute('cy', f2(s0[1])); hand.set(h, rot, gr, op, now); } };
+    const uaS = cap(g, PK.shirtS), faS = cap(g, PK.shirtS), jtS = S('circle', { r: 8.3, fill: PK.shirtS }, g), ua = cap(g, PK.shirt), fa = cap(g, PK.shirt), jt = S('circle', { r: 7.6, fill: PK.shirt }, g);
+    const cuff = S('g', {}, g); S('rect', { x: -6.9, y: -2.7, width: 13.8, height: 5.4, rx: 2.4, fill: PK.cuff, stroke: PK.shirtS, 'stroke-width': 0.6 }, cuff); S('path', { d: 'M-5.4 -0.9H5.4', stroke: '#fff', 'stroke-width': 0.8, 'stroke-linecap': 'round', opacity: 0.25 }, cuff);
+    const hand = frontHand(g, PK.skin, PK.skinS, sd);
+    return { set(s0, e, h, rot, gr, op, now) {
+      uaS(s0, e, 8.9, 7.9); faS(e, h, 8.1, 6.6); ua(s0, e, 8.2, 7.2); fa(e, h, 7.4, 5.9); jtS.setAttribute('cx', f2(s0[0])); jtS.setAttribute('cy', f2(s0[1])); jt.setAttribute('cx', f2(s0[0])); jt.setAttribute('cy', f2(s0[1]));
+      const a = Math.atan2(h[1] - e[1], h[0] - e[0]), c = [h[0] - Math.cos(a) * 2.8, h[1] - Math.sin(a) * 2.8]; cuff.setAttribute('transform', `translate(${f2(c[0])} ${f2(c[1])}) rotate(${f2(a / RAD + 90)})`);
+      hand.set(h, rot, gr, op, now);
+    } };
   };
   const arm2 = mkArm(-1), arm1 = mkArm(1);
   /* gambar perbesaran (HP + saku), dipotong oleh panel supaya HP tampak meluncur masuk */
@@ -409,15 +420,19 @@ function placeScene(box, kind, still) {
   S('rect', { x: -18, y: -35, width: 36, height: 70, rx: 8, fill: C.dark, stroke: C.gold, 'stroke-width': 2.2 }, bp); S('circle', { cx: -7, cy: -23, r: 5, fill: '#3C5566' }, bp); S('circle', { cx: -7, cy: -23, r: 2, fill: '#0f1b22' }, bp);
   S('path', { d: sh ? 'M-44 -22h88v82a8 8 0 0 1-8 8h-72a8 8 0 0 1-8-8z' : 'M-44 -24Q-4 -22 44 22V70H-44Z', fill: sh ? '#0E8F55' : C.pants, stroke: sh ? C.shirtD : C.pantsD, 'stroke-width': 2.4, 'stroke-linejoin': 'round' }, big);
   S('path', { d: sh ? 'M-44 -22h88' : 'M-44 -24Q-4 -22 44 22', fill: 'none', stroke: sh ? '#fff' : '#9DB7DD', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }, big);
+  /* tangan di gambar perbesaran: ikut menurunkan HP (tampak punggung tangan), lalu melepas dan naik */
+  const PS = 1.875, BW = [-PL[0] * PS, -PL[1] * PS], bh = S('g', {}, big), bsS = capsule(bh, PK.shirtS), bsl = capsule(bh, PK.shirt), bcuff = S('g', {}, bh), bhand = frontHand(bh, PK.skin, PK.skinS, 1);
+  S('rect', { x: -13, y: -5.2, width: 26, height: 10.4, rx: 4.6, fill: PK.cuff, stroke: PK.shirtS, 'stroke-width': 1 }, bcuff);
+  { const dir = [-0.55, -0.83], a0 = Math.atan2(dir[1], dir[0]) / RAD; bcuff.setAttribute('transform', `translate(${f2(BW[0] + 5.4 * 0.55)} ${f2(BW[1] + 5.4 * 0.83)}) rotate(${f2(a0 + 90)})`); bsS([BW[0] + dir[0] * 7, BW[1] + dir[1] * 7], [BW[0] + dir[0] * 62, BW[1] + dir[1] * 62], 17.5, 21); bsl([BW[0] + dir[0] * 7, BW[1] + dir[1] * 7], [BW[0] + dir[0] * 62, BW[1] + dir[1] * 62], 16, 19.5); }
   const tx = (x, y, txt) => { const e = S('text', { x, y, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: C.shirtD, 'font-family': 'Plus Jakarta Sans,Noto Sans Arabic,sans-serif' }, svg); e.textContent = txt; return e; };
   const up = S('g', { opacity: 0 }, svg); S('path', { d: 'M273 74V50M266 57l7-8 7 8', stroke: C.shirtD, 'stroke-width': 2.4, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, up); up.append(tx(273, 90, t('gd.top')));
   tx(229, 192, t('gd.screen'));
   const ok = S('g', { opacity: 0 }, svg); S('circle', { cx: 150, cy: 30, r: 15, fill: C.shirt }, ok); S('path', { d: 'M143 30l5 5 9-10', stroke: '#fff', 'stroke-width': 3.2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, ok);
   /* ===== lintasan: tiap kunci = {t, v:[x pergelangan, y pergelangan, genggam 0..1, jari terbuka 0..1, kemiringan HP °]}. Spline halus, tanpa berhenti di tiap kunci. ===== */
-  const PL = [5.2, 8], GT = 60, rotv = (p, a) => [p[0] * Math.cos(a * RAD) - p[1] * Math.sin(a * RAD), p[0] * Math.sin(a * RAD) + p[1] * Math.cos(a * RAD)];
+  const rotv = (p, a) => [p[0] * Math.cos(a * RAD) - p[1] * Math.sin(a * RAD), p[0] * Math.sin(a * RAD) + p[1] * Math.cos(a * RAD)];
   const hdFor = (c, r) => { const o = rotv(PL, r); return [c[0] - o[0], c[1] - o[1]]; };      // pergelangan yang membuat pusat HP tepat di c
   const phC = (h, r) => { const o = rotv(PL, r); return [h[0] + o[0], h[1] + o[1]]; };      // pusat HP dari posisi pergelangan
-  const CH = sh ? [70, 74] : [57.5, 147], RH = sh ? -3 : -8, CM = sh ? [70.4, 87.5] : [61.7, 159.5], RM = sh ? -1.5 : -13, CF = sh ? [70, 100] : [66, 172], RF = sh ? 0 : -16; // melayang di atas saku → separuh masuk → masuk penuh
+  const CH = sh ? [70, 78] : [57.5, 146], RH = sh ? -3 : -8, CM = sh ? [70.4, 89] : [61.7, 159], RM = sh ? -1.5 : -13, CF = sh ? [70, 100] : [66, 172], RF = sh ? 0 : -16; // melayang di atas saku → separuh masuk → masuk penuh
   const HOV = hdFor(CH, RH), MID = hdFor(CM, RM), FIN = hdFor(CF, RF);
   const REST = [43, 153], LIFT = [60, 119.5], A1 = [47.5, 137], LO = sh ? [61.5, 100] : [55.5, 161.5], HI = [LO[0] - 0.6, LO[1] - 7];
   const K = (t0, p, gg, o, r, x = {}) => ({ t: t0, v: [p[0], p[1], gg, o, r], ...x });
@@ -471,7 +486,9 @@ function placeScene(box, kind, still) {
     ok.setAttribute('opacity', (ms > REL + 150 ? Math.min(1, (ms - REL - 150) / 300) * Math.min(1, (8100 - ms) / 400) : 0).toFixed(2)); up.setAttribute('opacity', (ease(clamp01((ms - (T_HOV - 900)) / 400)) * tail).toFixed(2));
     /* gambar perbesaran mengikuti kedalaman HP yang sebenarnya */
     const prog = holding ? (ms < T_HOV ? 0 : clamp01((cA[1] - CH[1]) / (CF[1] - CH[1]))) : 1;
-    bp.setAttribute('transform', `translate(0 ${(-(1 - prog) * 107 - 18).toFixed(1)})`); big.setAttribute('opacity', tail.toFixed(2));
+    const rl = holding ? 0 : ease(clamp01((ms - REL) / 700)), pyo = -(1 - prog) * 107 - 18;
+    bp.setAttribute('transform', `translate(0 ${pyo.toFixed(1)})`); bh.setAttribute('transform', `translate(0 ${(pyo - 22 * rl).toFixed(1)})`); bh.setAttribute('opacity', (1 - ease(clamp01((ms - REL - 150) / 450))).toFixed(2));
+    bhand.set(BW, lerpA(0, -GT, gr), gr, 0, now, 1.15 * PS); big.setAttribute('opacity', tail.toFixed(2));
   };
   const p = { raf: 0, t0: 0, off: false, start() { if (still != null) { draw(still, 0); return; } if (reduce()) { draw(6700, 0); return; } const tick = (now) => { if (p.off) return; p.t0 ||= now; draw(now - p.t0, now); p.raf = requestAnimationFrame(tick); }; p.raf = requestAnimationFrame(tick); }, stop() { p.off = true; cancelAnimationFrame(p.raf); } };
   p.start(); return p;
