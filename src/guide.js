@@ -328,7 +328,7 @@ function frontHand(parent, skin, skinD, side) {
   const BX = [sx(4.3), sx(1.45), sx(-1.4), sx(-4.2)], LN = [7.4, 8.6, 8, 6.2], LAG = [0, 0.06, 0.12, 0.18]; // telunjuk (dekat ibu jari) → kelingking
   for (const x of BX) S('circle', { cx: x, cy: 11, r: 1.2, fill: skinD, opacity: 0.2 }, g);       // bukit buku jari
   const nails = [0, 1, 2, 3].map(() => S('ellipse', { rx: 1, ry: 1.2, fill: '#FBE3D2' }, g));
-  const TO = [sx(8.6), 12.4], CO = [sx(8.4), 6.2], TG = [sx(-7.4), -0.8], CG = [sx(-1.2), 1.6], BT = [sx(4), 3.2]; // ibu jari: terbuka (di samping) → menggenggam (menyelip di bawah punggung tangan, ujungnya muncul di sisi seberang)
+  const TO = [sx(8.6), 12.4], CO = [sx(8.4), 6.2], TG = [sx(10.2), 8.2], CG = [sx(8.4), 3.6], BT = [sx(4), 3.2]; // ibu jari: terbuka (di samping) → menggenggam (di sisi ATAS, sejajar jari, bertumpu di tepi atas HP)
   return { g, set(h, rot, gr, open, now = 0) {
     g.setAttribute('transform', `translate(${f2(h[0])} ${f2(h[1])}) rotate(${rot.toFixed(1)})`);
     const e = ease(clamp01(gr)), td = `M${f2(BT[0])} ${f2(BT[1])}Q${f2(lerp(CO[0], CG[0], e))} ${f2(lerp(CO[1], CG[1], e))} ${f2(lerp(TO[0], TG[0], e))} ${f2(lerp(TO[1], TG[1], e))}`;
