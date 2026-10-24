@@ -255,6 +255,7 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.9.1** | **Animasi memasukkan HP diperbaiki**: tangan kini tampak *punggung tangan*-nya (HP digenggam di belakang tangan, jari melingkar ke sisi HP, ujung ibu jari muncul di sisi seberang). Gerakan memakai spline halus (kecepatan kontinu, tanpa berhenti-jalan), lengan memendek saat mendekati bahu agar siku tidak mencuat, jari melepas bergantian, dan HP miring mengikuti ayunan. Kode: `frontHand`, `makeTrack`, `placeScene` di `src/guide.js`. |
 | **v1.9.0** | **Al-Qur'an Tajwid Berwarna**: tab baru *Qur'an* (114 surah, offline) dengan tajwid berwarna + terjemahan Indonesia/English, legenda warna interaktif, penanda, lanjutkan membaca, lompat ayat, pengaturan huruf. Sumber & lisensi data di `public/quran/README.txt` |
 | **v1.8.1** | **Panduan dirapikan jadi 4 tab** (Saku Celana, Saku Baju, Mode Datar, Mode Tegak). Tab *Cara Pakai* dihapus: animasinya dilebur ke tab Saku dan disesuaikan per posisi HP (hitungan mengikuti `counter.js`), menggantikan adegan *Saat shalat* yang mirip |
 | **v1.8.0** | **Laporan Shalat & Dzikir digabung** dalam satu halaman dengan tab terpisah. Laporan shalat didesain ulang (cincin persentase, grafik, filter wajib/sunnah, kartu per sesi dengan nama shalat, tanggal & jam, bar rakaat). Tab Dzikir baru (total, set selesai, grafik, rincian, riwayat harian); ringkasan dzikir lama di layar Dzikir dihapus. Set dzikir yang selesai kini ikut tercatat |
