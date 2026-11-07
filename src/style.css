@@ -274,6 +274,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 /* ---- v1.4: panduan animasi ---- */
 #guide{display:none;position:fixed;inset:0;z-index:15;overflow-y:auto;background-color:var(--bg);-webkit-overflow-scrolling:touch}
 #guide.on{display:block;animation:rise .3s ease both}body.gd-open{overflow:hidden}
+/* menu bawah tetap terlihat di atas halaman Panduan; tombol Panduan menyala */
+body.gd-open .nav{z-index:16}
+body.gd-open #nav button.on:not(#navGuide){background:none;color:#6F8F82}
+body.gd-open #navGuide{background:var(--mint);color:var(--g2)}
+body.gd-open .gd-wrap{padding-bottom:calc(6rem + env(safe-area-inset-bottom))}
 .gd-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:.7rem;max-width:520px;margin:0 auto;padding:calc(.7rem + env(safe-area-inset-top)) 1rem .3rem;background:var(--bg)}
 .gd-head .ttl{margin:0;flex:1}
 .gd-tabs{position:sticky;top:calc(58px + env(safe-area-inset-top));z-index:2;max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;padding:.3rem 1rem .6rem;background:var(--bg)}

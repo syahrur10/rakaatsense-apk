@@ -4,7 +4,7 @@ import { t, lang, setLang, apply, hooks, LANGS } from './i18n.js';
 import { ic, mount, scanDeco } from './icons.js';
 import { createCounter } from './counter.js';
 import { initWatch } from './watch.js';
-import { openGuide } from './guide.js';
+import { openGuide, closeGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
 import { addSession, focus as focusReport, render as renderReport } from './report.js';
 import { enter as qrEnter } from './quran.js';
@@ -51,7 +51,7 @@ function setDates() {
 let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
 function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); if (id === 'ac') acEnter(); const nb = document.querySelector('#nav button.on'); if (nb && $('nav').scrollWidth > $('nav').clientWidth) nb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
-document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { if (b.closest('#nav')) closeGuide(); go(b.dataset.go); } });
 $('bell').onclick = () => go('al'); // lonceng → halaman Alarm Shalat (izin notifikasi diminta di sana)
 
 /* ---- Jadwal shalat (Aladhan, metode Kemenag RI) ---- */
