@@ -1,4 +1,5 @@
-"""Sumber logo RakaatSense v9.
+"""Sumber logo RakaatSense v10 (tangan menyatu & menapak di sajadah, leher, mata + alis natural tanpa bulu mata lentik, mihrab emas tebal + rumbai).
+Catatan v9:
 Orang berjubah putih & berpeci sedang SUJUD (tampak samping, dahi + hidung menyentuh sajadah) di dalam mihrab bercahaya.
 Bulan sabit + bintang kini jadi FINIAL di puncak mihrab (seperti kubah masjid), jauh dari sosok yang sujud,
 supaya tidak ada kesan sujud/menatap ke bulan. Hasilkan SVG, PNG, aset Android, dan sinkronkan logo() di src/icons.js.
@@ -45,28 +46,31 @@ def spark(cx, cy, s):
 
 # ---------------------------------------------------------------- defs
 def defs(p="rs"):
-    return f'''<defs><linearGradient id="{p}Bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22C57A"/><stop offset=".55" stop-color="#0F8A52"/><stop offset="1" stop-color="#075A35"/></linearGradient><radialGradient id="{p}Gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="{p}Ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient><linearGradient id="{p}Au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".5" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A93A"/></linearGradient><linearGradient id="{p}Ro" gradientUnits="userSpaceOnUse" x1="32" y1="42" x2="64" y2="78"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCF1E5"/></linearGradient><linearGradient id="{p}Rs" gradientUnits="userSpaceOnUse" x1="25" y1="55" x2="50" y2="78"><stop offset="0" stop-color="#D3EBDD"/><stop offset="1" stop-color="#A3D0B8"/></linearGradient><linearGradient id="{p}Pn" gradientUnits="userSpaceOnUse" x1="25" y1="66" x2="56" y2="78"><stop offset="0" stop-color="#3C7A62"/><stop offset="1" stop-color="#2B6350"/></linearGradient><linearGradient id="{p}Pt" gradientUnits="userSpaceOnUse" x1="32" y1="46" x2="56" y2="76"><stop offset="0" stop-color="#4C8F74"/><stop offset="1" stop-color="#2F6A55"/></linearGradient><linearGradient id="{p}Sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3CBA5"/><stop offset="1" stop-color="#DCA87E"/></linearGradient><linearGradient id="{p}Sd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9A57B"/><stop offset="1" stop-color="#C58F66"/></linearGradient><linearGradient id="{p}Cp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3F36"/><stop offset="1" stop-color="#141F1A"/></linearGradient><linearGradient id="{p}Sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><pattern id="{p}Pt" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5L7.6 4.4L10.5 6L7.6 7.6L6 10.5L4.4 7.6L1.5 6L4.4 4.4Z" fill="none" stroke="#fff" stroke-width=".35"/></pattern><radialGradient id="{p}Fd" cx=".5" cy=".5" r=".6"><stop offset=".25" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="{p}Mk"><rect width="100" height="100" fill="url(#{p}Fd)"/></mask><clipPath id="{p}Cr"><rect x="8" y="77.5" width="84" height="7" rx="3.5"/></clipPath></defs>'''
+    return f'''<defs><linearGradient id="{p}Bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22C57A"/><stop offset=".55" stop-color="#0F8A52"/><stop offset="1" stop-color="#075A35"/></linearGradient><radialGradient id="{p}Gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="{p}Ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient><linearGradient id="{p}Nk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E3B08A"/><stop offset="1" stop-color="#CB9970"/></linearGradient><linearGradient id="{p}Ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".55" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A33A"/></linearGradient><radialGradient id="{p}Mg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE9A3" stop-opacity=".55"/><stop offset="1" stop-color="#FFE9A3" stop-opacity="0"/></radialGradient><linearGradient id="{p}Au" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset=".5" stop-color="#F2CD6B"/><stop offset="1" stop-color="#D9A93A"/></linearGradient><linearGradient id="{p}Ro" gradientUnits="userSpaceOnUse" x1="32" y1="42" x2="64" y2="78"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCF1E5"/></linearGradient><linearGradient id="{p}Rs" gradientUnits="userSpaceOnUse" x1="25" y1="55" x2="50" y2="78"><stop offset="0" stop-color="#D3EBDD"/><stop offset="1" stop-color="#A3D0B8"/></linearGradient><linearGradient id="{p}Pn" gradientUnits="userSpaceOnUse" x1="25" y1="66" x2="56" y2="78"><stop offset="0" stop-color="#3C7A62"/><stop offset="1" stop-color="#2B6350"/></linearGradient><linearGradient id="{p}Pt" gradientUnits="userSpaceOnUse" x1="32" y1="46" x2="56" y2="76"><stop offset="0" stop-color="#4C8F74"/><stop offset="1" stop-color="#2F6A55"/></linearGradient><linearGradient id="{p}Sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3CBA5"/><stop offset="1" stop-color="#DCA87E"/></linearGradient><linearGradient id="{p}Sd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9A57B"/><stop offset="1" stop-color="#C58F66"/></linearGradient><linearGradient id="{p}Cp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3F36"/><stop offset="1" stop-color="#141F1A"/></linearGradient><linearGradient id="{p}Sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><pattern id="{p}Pa" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5L7.6 4.4L10.5 6L7.6 7.6L6 10.5L4.4 7.6L1.5 6L4.4 4.4Z" fill="none" stroke="#fff" stroke-width=".35"/></pattern><radialGradient id="{p}Fd" cx=".5" cy=".5" r=".6"><stop offset=".25" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="{p}Mk"><rect width="100" height="100" fill="url(#{p}Fd)"/></mask><clipPath id="{p}Cr"><rect x="8" y="77.5" width="84" height="7" rx="3.5"/></clipPath></defs>'''
 
 # ---------------------------------------------------------------- sosok sujud
 # (permukaan sajadah y=77.5; menghadap kanan / kiblat). Baju koko putih + celana gelap + peci hitam.
 FOOT  = sp([(25.6,68.2),(27.6,68.4),(29,70.6),(29.8,74.4),(29.8,77.4),(25.2,77.5),(23,77.3),(22.6,75.2),(23.4,71.6)])
 CALF  = sp([(26.6,70.2),(30.4,68),(39,68.8),(47,69.8),(53,71.4),(56,74),(55,76.8),(51,77.6),(38,77.6),(31,76.8),(27.2,74.6)])
-THIGH = sp([(30.0,54.5),(31.4,48.8),(36,45.4),(41.6,45.2),(46.4,48.4),(49.6,54),(52.4,61.4),(55.4,68.8),(56.6,73.2),(55,76.8),(51,77.6),(47.6,76),(46.6,72),(44.4,66.8),(40.2,62.4),(35,59.8),(31.2,58.2)])
-SHIRT = sp([(32.2,52.8),(31.4,49.6),(33.6,46.2),(37,44.2),(43,43.4),(49,45.2),(55,48.8),(60.6,52.4),(65.4,55.4),(70.4,58.4),(73.4,61.4),(72.6,65.6),(68,67.6),(62.5,67.6),(57,66.4),(52.4,62.8),(48.8,58.6),(42.4,56.8),(36,55)])
-ARM   = sp([(58.8,60),(62.8,59.4),(66.2,62.6),(68,67.4),(70.8,71.4),(73.8,73.4),(74.6,77.3),(70.6,77.5),(66.6,75.6),(63.4,73),(61.4,69.2),(59.6,64.8)])
-CUFF  = sp([(72.6,72.8),(75.4,74.2),(75.6,77.5),(72.2,77.5),(72,74.2)])
-HAND  = sp([(73.6,74.4),(77,74),(80.6,74.8),(83,76.2),(82.2,77.5),(74,77.5)])
+THIGH = sp([(27.0,55.6),(28.2,49.4),(32.4,45.2),(38.6,44.4),(44.6,46.6),(48.6,52.4),(51.8,60.4),(55.0,68.6),(56.6,73.2),(55,76.8),(51,77.6),(47.6,76),(46.6,72),(44.0,67.4),(39.6,63.8),(33.8,62.6),(28.8,60.4)])
+SHIRT = sp([(29.8,53.4),(29.0,49.2),(31.4,45.4),(35.6,43.2),(42.4,42.8),(48.8,44.8),(55,48.6),(60.6,52.4),(65.4,55.4),(70.4,58.4),(73.4,61.4),(72.6,65.6),(68,67.6),(62.5,67.6),(57,66.4),(52.4,62.8),(48.4,59.2),(41.6,57.6),(34.6,56.6),(31.2,55.6)])
+ARM   = sp([(58.8,60),(62.8,59.4),(66.2,62.6),(67.6,67.4),(69.4,71.2),(71.4,73.2),(72.0,77.3),(68.4,77.5),(65.4,75.6),(62.8,73),(61.2,69.2),(59.6,64.8)])
+CUFF  = sp([(70.6,73.8),(72.4,74.4),(72.6,77.5),(70.0,77.5),(70.0,74.4)])
+# tangan menyatu: telapak rata menapak di sajadah, jari rapat menunjuk ke kiblat. Tangan jauh sedikit lebih tinggi & gelap (di belakang)
+HAND  = sp([(72.0,75.6),(73.6,75.0),(75.8,75.0),(77.0,75.8),(77.2,76.8),(76.6,77.5),(72.0,77.5)])
+HAND_F = sp([(72.2,74.5),(73.8,73.8),(75.8,73.8),(76.9,74.5),(77.0,75.2),(72.2,75.6)])
 # kepala: profil tegak digambar lalu diputar ke posisi sujud (ubun-ubun ke depan, dahi & hidung di sajadah)
 SKULL = sp([(-5.3,0.6),(-4.7,-3.8),(-1.6,-6.2),(2.6,-5.9),(4.9,-3.4),(5.5,-0.8),(7.6,1.7),(6.0,2.8),(6.1,4.2),(5.3,6.1),(2.2,7.0),(-1.5,5.9),(-4.4,3.3)])
 PECI  = sp([(-5.4,-0.4),(-5.3,-4.2),(-2.6,-6.9),(2.6,-7.0),(5.3,-4.8),(5.4,-3.6),(2.4,-3.9),(-1.2,-3.7),(-4.4,-2.4)])
+NECK  = sp([(-5.0,2.0),(-5.4,5.6),(-6.2,9.0),(-6.6,12.4),(1.4,12.4),(1.9,9.6),(2.6,7.6),(3.4,5.6),(-1.0,5.2)])
 HEAD_ROT = 112
 HEAD_T = f"translate(79.4 70.4) rotate({HEAD_ROT}) scale(1.06)"
 PANT_LN = "#78B99B"   # warna lipatan celana
 
 def figure(p, mono=False):
     if mono:
-        return (f'<g fill="#000"><path d="{FOOT}"/><path d="{CALF}"/><path d="{THIGH}"/><path d="{SHIRT}"/><path d="{ARM}"/><path d="{HAND}"/>'
-                f'<g transform="{HEAD_T}"><path d="{SKULL}"/><path d="{PECI}"/></g></g>')
+        return (f'<g fill="#000"><path d="{FOOT}"/><path d="{CALF}"/><path d="{THIGH}"/><path d="{SHIRT}"/><path d="{ARM}"/><path d="{HAND_F}"/><path d="{HAND}"/>'
+                f'<g transform="{HEAD_T}"><path d="{NECK}"/><path d="{SKULL}"/><path d="{PECI}"/></g></g>')
     return f'''<defs><clipPath id="{p}Cs"><path d="{SHIRT}"/></clipPath><clipPath id="{p}Ct"><path d="{THIGH}"/></clipPath></defs>
 <path d="{FOOT}" fill="url(#{p}Sd)"/>
 <path d="M23.2 72.6C22.6 74.6 22.8 76.4 23.4 77.3" stroke="#A97650" stroke-width=".8" fill="none" stroke-linecap="round" opacity=".55"/><path d="M26.6 76.2L26.8 77.4M28.2 76L28.4 77.4" stroke="#A97650" stroke-width=".4" stroke-linecap="round" opacity=".7"/>
@@ -75,6 +79,7 @@ def figure(p, mono=False):
 <path d="{THIGH}" fill="url(#{p}Pt)"/>
 <g clip-path="url(#{p}Ct)"><path d="M28 58C34 60 42 64 47 72L50 80L24 80Z" fill="#06301F" opacity=".22"/><path d="{sp([(49,58),(52,62),(55,69),(56,75),(51,77),(52,68)])}" fill="#06301F" opacity=".2"/><path d="M34 46C40 44.4 46 46.4 49 51" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".22"/></g>
 <path d="M44 52C47 58 49 63 50.6 68M40 50C41 54 43 57 46 60M53 66.5C54.8 68.6 55.8 70.8 56 73" stroke="{PANT_LN}" stroke-width=".55" fill="none" stroke-linecap="round" opacity=".55"/>
+<g transform="{HEAD_T}"><path d="{NECK}" fill="url(#{p}Nk)"/><path d="M-4.6 3.4C-3 4.6 -1 5.4 1.4 5.4" stroke="#9A6644" stroke-width=".5" fill="none" stroke-linecap="round" opacity=".45"/></g>
 <g class="fb"><path d="{SHIRT}" fill="url(#{p}Ro)"/>
 <g clip-path="url(#{p}Cs)"><path d="M28 56C36 57.6 44 59 50 62L58 70L30 70Z" fill="#0A6B40" opacity=".09"/></g>
 <path d="M32.6 52.6C38 54.8 44 56.4 48.8 58.6" fill="none" stroke="#9CCBB4" stroke-width=".7" stroke-linecap="round"/>
@@ -82,10 +87,17 @@ def figure(p, mono=False):
 <path d="M36 46C41 43.8 47 44.4 53 47.6C58 50.4 62.4 53.4 66.2 56.4" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".75"/></g>
 <g transform="{HEAD_T}"><path d="{SKULL}" fill="url(#{p}Sk)"/>
 <path d="M-.2 -1.5C1.2 -1.7 1.9 -.4 1.5 1C1.2 2.1 -.2 2.5 -.7 1.8C-.1 1.4 -.1 .8 -.5 .5C-.9 .2 -1 -.9 -.2 -1.5Z" fill="#D9A27B"/><path d="M.1 -.7C.7 -.7 1 -.2 .8 .5" stroke="#B57D5B" stroke-width=".28" fill="none" stroke-linecap="round"/>
+<ellipse cx="3.0" cy="2.5" rx="1.5" ry="1" fill="#E58E7A" opacity=".28"/>
+<path d="M2.8 -2.2C3.5 -2.6 4.2 -2.6 4.8 -2.2" stroke="#6A4A38" stroke-width=".42" fill="none" stroke-linecap="round"/>
+<path d="M3.0 -.9C3.5 -.3 4.2 -.3 4.7 -.9" stroke="#3A271D" stroke-width=".42" fill="none" stroke-linecap="round"/>
+<path d="M7.1 1.9C7.5 2.3 7.4 2.9 6.9 3.1" stroke="#C9936B" stroke-width=".3" fill="none" stroke-linecap="round" opacity=".6"/>
 <path d="{PECI}" fill="url(#{p}Cp)"/><path d="M-4.2 -3.9C-2.2 -5 1 -5.2 3.4 -4.6" stroke="#fff" stroke-opacity=".28" stroke-width=".5" fill="none" stroke-linecap="round"/></g>
+
 <path d="{ARM}" fill="#0A6B40" opacity=".12" transform="translate(-.7 .5)"/>
-<g class="fa"><path d="{ARM}" fill="url(#{p}Ro)"/><path d="M60.6 62C62.6 67 65.4 71 70 74.2" fill="none" stroke="#6DAE92" stroke-width=".6" stroke-linecap="round" opacity=".7"/><path d="{CUFF}" fill="url(#{p}Au)"/></g>
-<path d="{HAND}" fill="url(#{p}Sk)"/><path d="M79.2 75.2L79.6 77.4M81.4 76L81.7 77.4" stroke="#C48F66" stroke-width=".32" stroke-linecap="round"/>'''
+<g class="fa"><path d="{ARM}" fill="url(#{p}Ro)"/><path d="M60.6 62C62.4 67 64.8 70.6 68.6 73.6" fill="none" stroke="#6DAE92" stroke-width=".6" stroke-linecap="round" opacity=".7"/><path d="{CUFF}" fill="url(#{p}Au)"/></g>
+<path d="{HAND}" fill="url(#{p}Sk)"/>
+<path d="M74.6 76C75.4 75.8 76 76 76.4 76.4" stroke="#C99A72" stroke-width=".26" fill="none" stroke-linecap="round" opacity=".7"/>
+'''
 
 # ---------------------------------------------------------------- komposisi
 ARCH = "M14 82V58C14 45 32 39 50 21C68 39 86 45 86 58V82Z"
@@ -98,20 +110,21 @@ def art(p="rs", transform="", mono=False):
         return (f'<g {transform}><path d="{ARCH}" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>'
                 f'<g transform="{MOON_T}"><path d="{CRES}" fill="#000"/><path d="{STAR}" fill="#000" transform="translate(-3.4 3.4)"/></g>'
                 f'<rect x="8" y="77.5" width="84" height="7" rx="3.5" fill="#000"/><g transform="{FIG_T}">{figure(p, True)}</g></g>')
-    sparks = "".join(f'<path class="sk s{i}" d="{spark(x, y, s)}" fill="#FFF4CC"/>' for i, (x, y, s) in enumerate([(36.5, 35.5, 2.1), (65, 33, 1.7), (50, 40.5, 1.4)]))
+    sparks = "".join(f'<path class="sk s{i % 3}" d="{spark(x, y, s)}" fill="#FFF4CC"/>' for i, (x, y, s) in enumerate([(36.5, 36.5, 2.1), (65, 34, 1.7), (50, 42, 1.4), (24, 31, 1.5), (78, 27.5, 1.2), (71, 46, 1.0), (29, 48, .9)]))
     return f'''<g {transform}>
-<rect width="100" height="100" fill="url(#{p}Pt)" opacity=".10" mask="url(#{p}Mk)"/>
+<rect width="100" height="100" fill="url(#{p}Pa)" opacity=".05" mask="url(#{p}Mk)"/>
 <circle class="gl" cx="50" cy="58" r="44" fill="url(#{p}Gl)"/>
 <path d="{ARCH}" fill="url(#{p}Ar)"/>
-<path class="ar" pathLength="1" d="{ARCH}" fill="none" stroke="#F2CD6B" stroke-opacity=".62" stroke-width="1.1" stroke-linejoin="round"/>
-<path d="{ARCH_IN}" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".8" stroke-linejoin="round"/>
-<g class="moon"><path d="M49.45 19.2h1.1v2.4h-1.1z" fill="url(#{p}Au)"/><g transform="{MOON_T}"><path d="{CRES}" fill="url(#{p}Au)"/><path d="{STAR}" fill="#fff" transform="translate(-3.4 3.4)"/></g></g>
+<path class="ar" pathLength="1" d="{ARCH}" fill="none" stroke="url(#{p}Ag)" stroke-width="2.3" stroke-linejoin="round"/>
+<path d="{ARCH_IN}" fill="none" stroke="#E9F5C9" stroke-opacity=".42" stroke-width=".85" stroke-linejoin="round"/>
+<circle cx="50" cy="14" r="10.5" fill="url(#{p}Mg)" opacity=".7"/><g class="moon"><path d="M49.45 19.2h1.1v2.4h-1.1z" fill="url(#{p}Au)"/><g transform="{MOON_T}"><path d="{CRES}" fill="url(#{p}Au)"/><path d="{STAR}" fill="#fff" transform="translate(-3.4 3.4)"/></g></g>
 {sparks}
 <rect x="8" y="77.5" width="84" height="7" rx="3.5" fill="url(#{p}Au)"/>
 <rect x="8" y="77.5" width="84" height="1.6" rx=".8" fill="#fff" opacity=".35"/>
 <g clip-path="url(#{p}Cr)"><rect class="sh" x="-30" y="77.5" width="30" height="7" fill="url(#{p}Sh)"/></g>
 <path d="M14 81h72" stroke="#9A6F14" stroke-opacity=".35" stroke-width=".7" stroke-dasharray="1.6 1.6"/>
-<path d="M50 78.7l2 2.2-2 2.2-2-2.2z" fill="#9A6F14" fill-opacity=".45"/>
+<g fill="#9A6F14" fill-opacity=".45"><path d="M50 78.5l2.4 2.5-2.4 2.5-2.4-2.5z"/><path d="M34 79.6l1.5 1.6-1.5 1.6-1.5-1.6z"/><path d="M66 79.6l1.5 1.6-1.5 1.6-1.5-1.6z"/><path d="M20 79.6l1.3 1.4-1.3 1.4-1.3-1.4z"/><path d="M80 79.6l1.3 1.4-1.3 1.4-1.3-1.4z"/></g>
+<g stroke="#D9A33A" stroke-width=".55" stroke-linecap="round"><path d="M10.4 84.6v3.4M12.6 84.6v3.4M14.8 84.6v3.4M85.2 84.6v3.4M87.4 84.6v3.4M89.6 84.6v3.4"/></g>
 <ellipse cx="53" cy="78.7" rx="31" ry="1.3" fill="#6B4300" opacity=".26"/>
 <g transform="{FIG_T}"><g class="fig">{figure(p)}</g></g>
 </g>'''
