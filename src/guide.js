@@ -91,8 +91,14 @@ function blend(pa, pb, kl) {
   const dy = pb.sy - pa.sy, dn = dy > 6, up = dy < -6;
   const [dL, dT, dA, dH] = dn ? [0, 0.05, 0.09, 0.17] : up ? [0.05, 0, 0.03, 0.12] : [0, 0.02, 0, 0.1];
   const [pL, pT, pA] = dn ? [1.12, 1.18, 1.08] : up ? [0.9, 0.9, 0.95] : [1, 1, 1];
-  const kLeg = part(kl, dL, pL), kTo = part(kl, dT, pT, up ? 0.02 : 0), kArm = part(kl, dA, pA), kHd = part(kl, dH, 1, 0.2), kHand = part(kl, dA + 0.08), kFp = ease(ramp(kl, 0.5)), ks = [kLeg, kLeg, kTo, kHd];
+  let kLeg = part(kl, dL, pL), kTo = part(kl, dT, pT, up ? 0.02 : 0), kArm = part(kl, dA, pA), kHd = part(kl, dH, 1, 0.2), kHand = part(kl, dA + 0.08);
+  const kFp = ease(ramp(kl, 0.5)), floor = Math.max(pa.sy, pb.sy) > 90 && Math.abs(dy) > 6; // gerak dari/ke sujud
+  if (floor) { // turun: tangan menapak lantai lebih dulu, badan lalu bersandar pelan; naik: badan terangkat dulu, tangan menyusul. Tanpa overshoot supaya dahi tidak "menjedot" lantai.
+    kLeg = part(kl, 0, 1); kTo = dn ? ease(Math.pow(ramp(kl, 0.06), 0.85)) : ease(Math.pow(ramp(kl, 0), 1.1)); kArm = dn ? ease(ramp(kl, 0, 0.72)) : ease(ramp(kl, 0.18)); kHand = dn ? ease(ramp(kl, 0.05, 0.75)) : ease(ramp(kl, 0.2)); kHd = kTo;
+  }
+  const ks = [kLeg, kLeg, kTo, kHd];
   const ang = ks.map((k, i) => lerp(pa.ang[i], pb.ang[i], k));
+  if (floor) { const rel = (P) => ((P.ang[3] - P.ang[2] + 540) % 360) - 180; ang[3] = ang[2] + lerp(rel(pa), rel(pb), ease(ramp(kl, 0.1, 1))); } // kepala mengikuti badan (sudut relatif), bukan berayun sendiri
   const ant = dn ? clamp01(Math.abs(dy) / 60) * Math.sin(Math.PI * ramp(kl, 0, 0.24)) : 0; // aba-aba: badan & kepala sedikit ke belakang sebelum turun
   ang[2] -= 3.2 * ant; ang[3] -= 5 * ant;
   const dx = pb.T[0] - pa.T[0], dyT = pb.T[1] - pa.T[1], dist = Math.hypot(dx, dyT) || 1; let nx = -dyT / dist, ny = dx / dist;
@@ -272,8 +278,8 @@ function player(steps, onFrame) {
 
 /* ===== Urutan gerak ===== */
 const HOW = [
-  { p: 'q', move: 0, hold: 3600, k: 'po.stand' }, { p: 'r', move: 900, hold: 1100, k: 'po.ruku' }, { p: 'i', move: 800, hold: 600, k: 'po.stand' }, { p: 'k', move: 800, hold: 0, k: 'po.sujud' },
-  { p: 's', move: 700, hold: 1200, k: 'po.sujud' }, { p: 'd', move: 750, hold: 1000, k: 'po.sit' }, { p: 's', move: 650, hold: 1300, k: 'po.sujud' }, { p: 'k', move: 650, hold: 0, k: 'po.sujud' }, { p: 'q', move: 850, hold: 1800, k: 'po.stand' },
+  { p: 'q', move: 0, hold: 3600, k: 'po.stand' }, { p: 'r', move: 900, hold: 1100, k: 'po.ruku' }, { p: 'i', move: 800, hold: 600, k: 'po.stand' }, { p: 'k', move: 900, hold: 0, k: 'po.sujud' },
+  { p: 's', move: 1200, hold: 1200, k: 'po.sujud' }, { p: 'd', move: 750, hold: 1000, k: 'po.sit' }, { p: 's', move: 950, hold: 1300, k: 'po.sujud' }, { p: 'k', move: 650, hold: 0, k: 'po.sujud' }, { p: 'q', move: 850, hold: 1800, k: 'po.stand' },
 ];
 
 /** Adegan "cara pakai" (satu untuk tiap posisi HP): orang + meter kemiringan + tampilan mini aplikasi yang berubah sinkron.
@@ -591,8 +597,8 @@ function flatScene(box) {
 /** Simulasi: orang bergerak (rakaat 1 → rakaat 2 selesai duduk → "lupa" berdiri lagi). Dihitung oleh mesin penghitung yang ASLI (rakaat.js). */
 const SIM = [
   { p: 'q', move: 0, hold: 1500 },
-  { p: 'r', move: 900, hold: 800 }, { p: 'i', move: 800, hold: 400 }, { p: 'k', move: 800, hold: 0 }, { p: 's', move: 700, hold: 800 }, { p: 'd', move: 750, hold: 700 }, { p: 's', move: 650, hold: 800 }, { p: 'k', move: 650, hold: 0 }, { p: 'q', move: 850, hold: 600 },
-  { p: 'r', move: 900, hold: 800 }, { p: 'i', move: 800, hold: 400 }, { p: 'k', move: 800, hold: 0 }, { p: 's', move: 700, hold: 800 }, { p: 'd', move: 750, hold: 700 }, { p: 's', move: 650, hold: 800 }, { p: 'k', move: 650, hold: 0 }, { p: 'd', move: 750, hold: 2600 },
+  { p: 'r', move: 900, hold: 800 }, { p: 'i', move: 800, hold: 400 }, { p: 'k', move: 900, hold: 0 }, { p: 's', move: 1200, hold: 800 }, { p: 'd', move: 750, hold: 700 }, { p: 's', move: 950, hold: 800 }, { p: 'k', move: 650, hold: 0 }, { p: 'q', move: 850, hold: 600 },
+  { p: 'r', move: 900, hold: 800 }, { p: 'i', move: 800, hold: 400 }, { p: 'k', move: 900, hold: 0 }, { p: 's', move: 1200, hold: 800 }, { p: 'd', move: 750, hold: 700 }, { p: 's', move: 950, hold: 800 }, { p: 'k', move: 650, hold: 0 }, { p: 'd', move: 750, hold: 2600 },
   { p: 'q', move: 900, hold: 1800 },
 ];
 const SIM_TARGET = 2, SIM_STEP = 90, F0 = fk(POSE.q, 0);
@@ -694,7 +700,7 @@ function build() {
   hooks.push(() => { if (open) render(); });
   document.addEventListener('visibilitychange', () => { if (open) { players.forEach((p) => p.stop()); players = []; if (!document.hidden) render(); } });
 }
-export function openGuide(k = 'shirt') { if (!root) build(); tab = ['pants', 'shirt', 'flat', 'cam'].includes(k) ? k : 'pants'; open = true; root.classList.add('on'); document.body.classList.add('gd-open'); render(); store.set('rs.gd', 1); }
+export function openGuide(k = 'shirt') { if (!root) build(); tab = ['pants', 'shirt', 'flat', 'cam'].includes(k) ? k : 'pants'; open = true; root.classList.add('on'); document.body.classList.add('gd-open'); render(); store.set('rs.gd', 1); const ng = document.getElementById('navGuide'); if (ng && ng.parentElement.scrollWidth > ng.parentElement.clientWidth) ng.scrollIntoView({ inline: 'center', block: 'nearest' }); }
 export function closeGuide() { open = false; players.forEach((p) => p.stop()); players = []; root?.classList.remove('on'); document.body.classList.remove('gd-open'); document.querySelector('#guideBtn')?.classList.remove('new'); }
 
 /** dipakai halaman Belajar Shalat (belajar.js): gambar orang tampak samping + pose + pencampur gerak */
