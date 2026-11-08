@@ -5,6 +5,8 @@ import { t, hooks } from './i18n.js';
 import { ic } from './icons.js';
 import { store } from './util.js';
 import { createTracker } from './rakaat.js';
+import { engine, makeLayer, v3, meshCmd, MAT, IDENT, prismMesh, project, SV, FLOOR, pill as pillCmd } from './fig3d.js';
+import { buildChar, rigFromF, COL } from './fig3d-char.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -69,6 +71,8 @@ const RAW = {
 // fp = telunjuk terangkat (tahiyat). 'dt' = duduk iftirasy + telunjuk terangkat, dipakai untuk tahiyat awal.
 const PLANT = { q: 0.15, i: 0, u: 0, r: 1, k: 0.2, s: 1, d: 1, w: 1 };
 for (const k in PLANT) RAW[k].pl = PLANT[k];
+const HZ = { q: 0.78, u: 0.05, i: 0, r: 0, k: 0.1, s: 0.3, d: 0.35, w: 0.35 }, HP = { q: 0.7, u: 1, i: 0.1, r: 0.55, k: 0.3, s: 1, d: 0.9, w: 0.9 }; // 3D: tangan menyilang ke tengah (hz) & telapak menghadap (hp)
+for (const k in HZ) { RAW[k].hz = HZ[k]; RAW[k].hp = HP[k]; }
 RAW.r.gr = 0.75; RAW.q.gr = 0.45; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
 // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kanan ditegakkan (jari menghadap kiblat), kaki kiri KELUAR di bawah betis kanan.
 // Tampak dari kanan: lutut kiri di lantai (K2), betis kiri rebah di bawah betis kanan (A2), telapak kiri hampir tertutup (f2s = diperpendek karena menghadap penonton).
@@ -77,7 +81,7 @@ RAW.sa = { ...RAW.w, sa: 1 }; // salam: posisi sama, kepala menoleh kanan lalu k
 RAW.w0 = { ...RAW.w, fp: 0 }; // selesai: telunjuk sudah diturunkan
 const POSE = Object.fromEntries(Object.entries(RAW).map(([k, r]) => {
   const v = [[r.K, r.A], [r.H, r.K], [r.S, r.H], [r.C, r.S]].map(([p, q]) => [p[0] - q[0], p[1] - q[1]]), A2 = r.A2 || r.A, K2 = r.K2 || r.K, toe2 = r.toe2 || r.toe, off = (a, b) => [b[0] - a[0], b[1] - a[1]];
-  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, fs: r.fs ?? 1, fo: r.fo ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0, gr: r.gr ?? 0, fl: r.fl ?? 0, ec: r.ec ?? 0 }];
+  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, fs: r.fs ?? 1, fo: r.fo ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0, gr: r.gr ?? 0, fl: r.fl ?? 0, ec: r.ec ?? 0, hz: r.hz ?? 0, hp: r.hp ?? 0 }];
 }));
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const ramp = (x, a, b = 1) => clamp01((x - a) / (b - a));
@@ -114,7 +118,7 @@ function blend(pa, pb, kl) {
   const bulge = 0.15 * dist * Math.sin(Math.PI * kArm);
   return { A: lerpV(pa.A, pb.A, kLeg), a2: lerpA(pa.a2, pb.a2, kLeg), fa: lerpA(pa.fa, pb.fa, kLeg), fa2: lerpA(pa.fa2, pb.fa2, kLeg), ang, len: ks.map((k, i) => lerp(pa.len[i], pb.len[i], k)),
     T: [lerp(pa.T[0], pb.T[0], kArm) + nx * bulge, Math.min(124.4, lerp(pa.T[1], pb.T[1], kArm) + ny * bulge)], bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), fs: lerp(pa.fs, pb.fs, kArm), fo: lerp(pa.fo, pb.fo, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kHand),
-    ak2: lerpA(pa.ak2, pb.ak2, kLeg), f2s: lerp(pa.f2s, pb.f2s, kLeg), sa: lerp(pa.sa, pb.sa, kHd), sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp), gr: lerp(pa.gr, pb.gr, kHand), fl: lerp(pa.fl, pb.fl, kHand), ec: lerp(pa.ec, pb.ec, ease(ramp(kl, 0.15, 0.9))) };
+    ak2: lerpA(pa.ak2, pb.ak2, kLeg), f2s: lerp(pa.f2s, pb.f2s, kLeg), sa: lerp(pa.sa, pb.sa, kHd), sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp), gr: lerp(pa.gr, pb.gr, kHand), fl: lerp(pa.fl, pb.fl, kHand), ec: lerp(pa.ec, pb.ec, ease(ramp(kl, 0.15, 0.9))), hz: lerp(pa.hz, pb.hz, kArm), hp: lerp(pa.hp, pb.hp, kHand) };
 }
 /** Forward kinematics + "kehidupan" saat menahan pose: napas (dada naik-turun), badan bergoyang pelan memindahkan berat (hanya saat berdiri),
  *  kepala melayang halus, tangan yang tidak menapak ikut bergoyang. Semua suku bernilai 0 saat now = 0, jadi hitungan simulasi (fk(pose, 0)) tidak berubah. */
@@ -124,7 +128,7 @@ function fk(P, now, tl = now) {
   const br = Math.sin(now / 700), g = clamp01((70 - P.sy) / 46), sw = (Math.sin(now / 1900) + 0.6 * Math.sin(now / 3100)) * g, free = 1 - P.pl, an = P.ang.slice();
   an[0] += 0.45 * sw; an[1] -= 0.35 * sw; an[2] += 1.1 * br + 0.5 * sw; an[3] += 1.3 * Math.sin(now / 1100) + Math.sin(now / 2900) - 0.5 * br;
   const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), K2 = pt(H, P.ak2 + (an[1] - P.ang[1]), P.len[1]), A2 = pt(K2, P.a2 + 180, P.len[0]);
-  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, fs: P.fs, fo: P.fo, hw: P.hw, ha: P.ha, fp: P.fp, gr: P.gr, fl: P.fl, ec: P.ec, br, an };
+  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, fs: P.fs, fo: P.fo, hw: P.hw, ha: P.ha, fp: P.fp, gr: P.gr, fl: P.fl, ec: P.ec, hz: P.hz, hp: P.hp, br, an };
 }
 const TH = { shirt: { on: 50, off: 30, hold: 500 }, pants: { on: 25, off: 15, hold: 2500 } }; // sama dengan ambang di counter.js
 /** sudut kemiringan HP dari sendi: Saku Baju = batang badan (pinggul → bahu) vs tegak, Saku Celana = paha (pinggul → lutut) vs tegak ke bawah */
@@ -170,7 +174,7 @@ const blinkAt = (now) => { const f = (x, w) => (x < w ? Math.sin(Math.PI * x / w
 const PK = { shirt: '#1DB86E', shirtF: '#13935A', shirtL: '#3FD08B', shirtS: '#0F9A5B', cuff: '#10A262', pants: '#2C4468', pantsF: '#21345A', pantsL: '#3B5A87', skin: '#F0C09A', skinF: '#CF9A74', skinS: '#E0A47E', peci: '#23262C', hair: '#2B211C' };
 
 /** Gambar orang tampak samping di dalam <svg>. Mengembalikan fungsi draw(pose, nowMs) → sudut kemiringan HP. */
-function sideFigure(svg, kind) {
+function sideFigure2D(svg, kind) {
   const cam = kind === 'cam', plain = kind === 'plain'; // varian kamera: tanpa HP di saku, sejadah lebih panjang supaya HP di depan muat
   svg.setAttribute('viewBox', cam ? '40 -36 240 188' : '54 -4 148 138');
   const g = S('g', {}, svg), gx = cam ? 40 : 52, gw = cam ? 240 : 146;
@@ -273,6 +277,72 @@ function sideFigure(svg, kind) {
   };
   return fn;
 }
+
+/* ===== 3D: sajadah, ruangan, HP, dan figur tampak samping (WebGL) ===== */
+let _carpet = null, _glow = null;
+function carpetTex() {
+  if (_carpet) return _carpet; const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, 0, 256); bg.addColorStop(0, '#2B8A62'); bg.addColorStop(1, '#17624A'); g.fillStyle = bg; g.fillRect(0, 0, 1024, 256);
+  g.strokeStyle = '#E9CB7E'; g.lineWidth = 12; g.strokeRect(8, 8, 1008, 240); g.strokeStyle = '#B38F3E'; g.lineWidth = 3; g.strokeRect(28, 28, 968, 200); g.strokeRect(38, 38, 948, 180);
+  g.fillStyle = 'rgba(233,203,126,.55)'; for (let x = 70; x < 640; x += 46) for (let y = 70; y < 200; y += 46) { g.beginPath(); g.moveTo(x, y - 9); g.lineTo(x + 9, y); g.lineTo(x, y + 9); g.lineTo(x - 9, y); g.closePath(); g.fill(); }
+  g.fillStyle = 'rgba(15,70,50,.55)'; g.beginPath(); g.moveTo(690, 52); g.lineTo(810, 52); g.quadraticCurveTo(930, 52, 984, 128); g.quadraticCurveTo(930, 204, 810, 204); g.lineTo(690, 204); g.closePath(); g.fill();
+  g.strokeStyle = '#F2D687'; g.lineWidth = 6; g.stroke(); g.strokeStyle = 'rgba(242,214,135,.5)'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(710, 76); g.lineTo(810, 76); g.quadraticCurveTo(900, 76, 940, 128); g.quadraticCurveTo(900, 180, 810, 180); g.lineTo(710, 180); g.stroke();
+  return (_carpet = c);
+}
+function glowTex() {
+  if (_glow) return _glow; const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.45, 'rgba(255,255,255,.35)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return (_glow = c);
+}
+const glowCmd = (eng, p, r, col, a) => { const c = meshCmd(eng.meshes.quad, IDENT, [r, r, 1], p, col, { mode: 3, tex: glowTex(), a, sh: false }); c.fx = true; return c; };
+/** sajadah 3D + rumbai, memanjang searah kiblat (x) */
+function carpetCmds(eng, x0, x1, hz = 24) {
+  const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2, out = [meshCmd(eng.meshes.slab, IDENT, [hw, 0.75, hz], [cx, FLOOR + 0.75, 0], [1, 1, 1], { mode: 2, tex: carpetTex(), ground: true, sh: false, ao: 0 })];
+  for (const s of [-1, 1]) out.push(meshCmd(eng.meshes.slab, IDENT, [1.6, 0.35, hz], [cx + s * (hw + 1.5), FLOOR + 0.4, 0], [0.93, 0.88, 0.74], { ground: true, sh: false, ao: 0 }));
+  return out;
+}
+/** ruangan hangat di belakang (dinding, plint, lantai kayu, berkas cahaya jendela, debu melayang) pada <svg> latar */
+function roomBackdrop(back, vb, fy = 118.5) {
+  const id = 'rm' + Math.random().toString(36).slice(2, 7), d = SV('defs', {}, back), X0 = vb[0] - 400, W = vb[2] + 800;
+  const lg = (n, a, b, c) => { const e = SV('linearGradient', { id: id + n, x1: 0, y1: 0, x2: 0, y2: 1 }, d); SV('stop', { offset: 0, 'stop-color': a }, e); SV('stop', { offset: 1, 'stop-color': b }, e); return `url(#${id}${n})`; };
+  SV('rect', { x: X0, y: vb[1] - 300, width: W, height: fy - vb[1] + 300, fill: lg('w', '#FFF9EC', '#F3E6CB') }, back); SV('rect', { x: X0, y: fy - 2.5, width: W, height: 3.5, fill: '#E3CFA6' }, back);
+  const fl = SV('rect', { x: X0, y: fy, width: W, height: 400, fill: lg('f', '#D8B684', '#B98F5A') }, back); for (let y = fy + 4; y < vb[1] + vb[3] + 6; y += 5.2) SV('path', { d: `M${X0} ${y.toFixed(1)}H${X0 + W}`, stroke: '#9A7440', 'stroke-opacity': 0.22, 'stroke-width': 0.5 }, back);
+  const rg = SV('radialGradient', { id: id + 'l', cx: 0.5, cy: 0.5, r: 0.5 }, d); SV('stop', { offset: 0, 'stop-color': '#FFE9A8', 'stop-opacity': 0.55 }, rg); SV('stop', { offset: 1, 'stop-color': '#FFE9A8', 'stop-opacity': 0 }, rg);
+  SV('ellipse', { cx: vb[0] + vb[2] * 0.82, cy: vb[1] + vb[3] * 0.1, rx: vb[2] * 0.5, ry: vb[3] * 0.55, fill: `url(#${id}l)` }, back);
+  const dust = Array.from({ length: 9 }, (_, i) => SV('circle', { r: 0.7 + (i % 3) * 0.35, fill: '#FFF3C4', opacity: 0 }, back));
+  return { tick(now) { dust.forEach((c, i) => { const t = (now / (9000 + i * 900) + i * 0.37) % 1; c.setAttribute('cx', (vb[0] + vb[2] * ((i * 0.131 + 0.1 + 0.08 * Math.sin(now / 1900 + i)) % 1)).toFixed(1)); c.setAttribute('cy', (vb[1] + vb[3] * 0.85 * (1 - t)).toFixed(1)); c.setAttribute('opacity', (0.5 * Math.sin(Math.PI * t)).toFixed(2)); }); } };
+}
+const backG = (svg) => { if (svg.__back) return SV('g', {}, svg.__back); const g = S('g', {}); svg.insertBefore(g, svg.firstChild); return g; };
+const SIDE_CAM = { yaw: 0, s: 1, tx: 0, ty: 0, k: 0.21 };
+
+/** figur 3D tampak samping; antarmuka sama dengan versi SVG: draw(pose, nowMs, tl) → sudut kemiringan HP */
+function sideFigure3D(svg, kind) {
+  const cam = kind === 'cam', plain = kind === 'plain', vb = cam ? [40, -36, 240, 188] : [54, -4, 148, 138];
+  svg.setAttribute('viewBox', vb.join(' ')); const lay = makeLayer(svg, vb); if (!lay) return null;
+  const eng = lay.eng, room = roomBackdrop(lay.back, vb), ground = carpetCmds(eng, cam ? 36 : 50, cam ? 286 : 208), fig = { lay, extras: [], views: [], rig: null, add(fn) { this.extras.push(fn); } };
+  svg.__back = lay.back; svg.__fig = fig; svg.__vb = vb;
+  if (!cam) { const kb = S('g', { transform: 'translate(176 4)' }, svg); S('path', { d: 'M0 4h22M16 0l6 4-6 4', stroke: C.shirtD, 'stroke-width': 1.8, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, kb); S('rect', { x: 8, y: 11, width: 11, height: 11, rx: 1.5, fill: C.dark }, kb); S('path', { d: 'M8 14.5h11', stroke: C.gold, 'stroke-width': 1.2 }, kb); }
+  const fn = (P, now, tm) => {
+    const F = fk(P, now, tm), rig = rigFromF(F, eng.meshes.torus, { blink: blinkAt(now) }), cmds = ground.slice(); buildChar(rig, cmds);
+    let tilt = 0;
+    if (!cam && !plain) {
+      const sh = kind === 'shirt', a = sh ? F.S : F.K, b = F.H, u = sh ? [F.S[0] - F.H[0], F.S[1] - F.H[1]] : [F.K[0] - F.H[0], F.K[1] - F.H[1]], nn = Math.hypot(...u), vx = u[0] / nn, vy = u[1] / nn;
+      const c2 = sh ? [F.S[0] - vx * nn * 0.3 + -vy * 6.2, F.S[1] - vy * nn * 0.3 + vx * 6.2] : [F.H[0] + vx * nn * 0.38 + vy * 2.2, F.H[1] + vy * nn * 0.38 - vx * 2.2], z = sh ? 8.4 : 12.2;
+      tilt = tiltOf(kind, F); const R3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]], ax = v3.nrm([vx * (sh ? 1 : -1), vy * (sh ? 1 : -1), 0]), side = [0, 0, 1], fwd = v3.cross(side, ax);
+      const Rb = [side, ax, fwd]; // x lokal = lebar (z), y = panjang HP, z = tebal
+      cmds.push(meshCmd(eng.meshes.box(6.4, 12.8, 2.0, 0.9), Rb, [1, 1, 1], [c2[0], c2[1], z], [0.09, 0.11, 0.13], { mat: MAT.gloss }));
+      cmds.push(meshCmd(eng.meshes.box(5.2, 11.0, 0.4, 0.2), Rb, [1, 1, 1], [c2[0], c2[1], z + 0.95], [0.45, 0.88, 0.66], { mat: MAT.glass, sh: false }));
+      cmds.push(meshCmd(eng.meshes.torus, [side, [0, 0, 1], [1, 0, 0]], [0.8, 1, 0.8], [c2[0] + (sh ? 0 : 0), c2[1] - ax[1] * 4.6, z + 1.1], [0.2, 0.25, 0.3], { sh: false }));
+      cmds.push(glowCmd(eng, [c2[0], c2[1], z + 6], 12, COL.gold, 0.28 + 0.2 * Math.sin(now / 260)));
+    } else fn.F = F;
+    fig.rig = rig; for (const x of fig.extras) x(cmds, now, F, rig);
+    const views = [{ cam: SIDE_CAM, cmds }]; for (const v of fig.views) { v.cmds = cmds.filter((c) => !c.noPov); views.push(v); }
+    lay.render(views); room.tick(now); return tilt;
+  };
+  fn.fig = fig; return fn;
+}
+const WEBGL3D = () => { try { return !!engine(); } catch (e) { return false; } };
+/** pilih 3D bila WebGL ada; bila tidak, pakai gambar SVG lama */
+function sideFigure(svg, kind) { if (WEBGL3D()) { const f = sideFigure3D(svg, kind); if (f) return f; } return sideFigure2D(svg, kind); }
 
 /** Penjadwal: steps = [{p:'q', move, hold}], tiap langkah bergerak dari pose sebelumnya lalu menahan. */
 function player(steps, onFrame) {
@@ -386,7 +456,7 @@ function makeTrack(KF) {
     return { v, d };
   };
 }
-function placeScene(box, kind, still) {
+function placeScene2D(box, kind, still) {
   const svg = S('svg', { viewBox: '0 0 300 245', 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
   const sh = kind === 'shirt', g = S('g', {}, svg), SHO = [55, 75], SHO2 = [115, 75], cid0 = 'gp' + Math.random().toString(36).slice(2, 7);
   S('ellipse', { cx: 85, cy: 236, rx: 56, ry: 6, fill: '#0E7C4A', opacity: 0.12 }, g);
@@ -518,6 +588,64 @@ function placeScene(box, kind, still) {
   p.start(); return p;
 }
 
+/** Adegan 3D "cara menaruh HP": tokoh tampak DEPAN memasukkan HP ke saku (dada / celana) + kaca pembesar 3D di kanan. */
+function placeScene(box, kind, still) {
+  if (!WEBGL3D()) return placeScene2D(box, kind, still);
+  const svg = S('svg', { viewBox: '0 0 300 245', 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
+  const lay = makeLayer(svg, [0, 0, 300, 245]); if (!lay) { svg.remove(); return placeScene2D(box, kind, still); }
+  const eng = lay.eng, sh = kind === 'shirt', room = roomBackdrop(lay.back, [0, 0, 300, 245], 196), SC = 1.78, K = 0.12;
+  const MAIN = { yaw: -90, s: SC, k: K, tx: 85, ty: 11.5 };
+  const Pk = sh ? [7.7, 35.7, 4.9] : [6.3, 86, 5.6], OFF = [2.6, 7.0, 6.3], PHW = 7.4, PHH = 14.8;
+  const pcam = (() => { const ph = -62 * RAD, c = Math.cos(ph), sn = Math.sin(ph), zs = 3.4; const xp = Pk[0] * c + Pk[2] * sn, zp = -Pk[0] * sn + Pk[2] * c; return { yaw: -62, s: zs, k: K, tx: 229 - zs * xp, ty: 113 - zs * (Pk[1] + K * zp) }; })();
+  S('rect', { x: 166, y: 18, width: 126, height: 190, rx: 20, fill: '#FFFDF6' }, lay.back);
+  S('rect', { x: 166, y: 18, width: 126, height: 190, rx: 20, fill: 'none', stroke: '#D3EBDD', 'stroke-width': 2 }, svg);
+  const pk2 = [85 - SC * Pk[2] + 4, 11.5 + SC * (Pk[1] + K * Pk[0])]; S('path', { d: `M${pk2[0].toFixed(1)} ${pk2[1].toFixed(1)}L166 ${sh ? 90 : 140}`, stroke: C.gold2, 'stroke-width': 1.6, 'stroke-dasharray': '3 3', fill: 'none' }, svg);
+  const tx = (x, y, txt) => { const e = S('text', { x, y, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: C.shirtD, 'font-family': 'Plus Jakarta Sans,Noto Sans Arabic,sans-serif' }, svg); e.textContent = txt; return e; };
+  const up = S('g', { opacity: 0 }, svg); S('path', { d: 'M273 74V50M266 57l7-8 7 8', stroke: C.shirtD, 'stroke-width': 2.4, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, up); up.append(tx(273, 90, t('gd.top'))); tx(229, 196, t('gd.screen'));
+  const ok = S('g', { opacity: 0 }, svg); S('circle', { cx: 150, cy: 30, r: 15, fill: C.shirt }, ok); S('path', { d: 'M143 30l5 5 9-10', stroke: '#fff', 'stroke-width': 3.2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, ok);
+  const T_HOV = 4800, REL = 6000, add3 = v3.add;
+  const W = (pc, g, pat = 0, r = 0, pi = 0) => [pc[0] + OFF[0], pc[1] + OFF[1], pc[2] + OFF[2], g, pat, r, pi];
+  const REST = sh ? [4, 57, 11] : [3.5, 56, 11.5], A1 = [5.5, 51, 11.8], LIFT = [8.5, 38, 9.5], LK = [11, 31, 6.8], HOV = [Pk[0] + 1.6, Pk[1] - (sh ? 15 : 14), Pk[2] + 0.2];
+  const MID = [Pk[0] + 0.6, Pk[1] - (sh ? 9 : 8), Pk[2]], FIN = [Pk[0] - (sh ? 0.5 : 1.9), Pk[1] - (sh ? 4.2 : 0.5), Pk[2]], PIT = sh ? 12 : 18;
+  const HIT = [Pk[0] + 2.4, Pk[1] - 2, Pk[2] + 4.6, 0.1, 1, 0], LOT = [Pk[0] + 1.6, Pk[1] + 2.2, Pk[2] + 3.9, 0.1, 1, 0];
+  const trk = makeTrack([
+    { t: 0, v: W(REST, 0.1), stop: 1 }, { t: 950, v: W([REST[0] + 0.3, REST[1] + 1, REST[2]], 1), tn: 0.5 }, { t: 1450, v: W([REST[0] - 0.5, REST[1] + 2.2, REST[2] + 0.4], 1, 0, 3), tn: 0.3 }, { t: 2100, v: W(A1, 1, 0, -4) },
+    { t: 2850, v: W(LIFT, 1, 0, -6), tn: 0.55 }, { t: 3650, v: W(LK, 1, 0, -5), tn: 0.3 }, { t: 4250, v: W(lerpV(LK, HOV, 0.55), 1, 0, -3) }, { t: T_HOV, v: W(HOV, 1, 0, 0), tn: 0.8 }, { t: 5400, v: W(MID, 1, 0, 0, PIT * 0.5) }, { t: REL, v: W(FIN, 1, 0, 0, PIT), stop: 1 },
+    { t: 6250, v: [...add3(W(FIN, 0).slice(0, 3), [0.8, -1.5, 1.2]), 0.4, 0.3, 0, PIT] }, { t: 6650, v: HIT }, { t: 6920, v: LOT, stop: 1 }, { t: 7220, v: [HIT[0], HIT[1] + 1, HIT[2], 0.1, 1, 0] }, { t: 7480, v: LOT, stop: 1 }, { t: 7850, v: [HIT[0] + 1, HIT[1] - 2, HIT[2] + 1, 0.15, 0.6, 0] },
+    { t: 8650, v: [REST[0] + OFF[0] - 2, REST[1] + OFF[1] - 3, REST[2] + OFF[2] - 1, 0.1, 0, 0] }, { t: FRONT_T, v: W(REST, 0.1), stop: 1 },
+  ]);
+  const col = { phone: [0.09, 0.11, 0.13], frame: [0.88, 0.70, 0.32], screen: [0.40, 0.86, 0.62] };
+  const phoneCmds = (pc, r, a, pi = 0) => {
+    const sp = Math.sin(pi * RAD), cp = Math.cos(pi * RAD), lat = [0, Math.sin(r * RAD), Math.cos(r * RAD)], vert = [-sp, cp * Math.cos(r * RAD), -cp * Math.sin(r * RAD)], dep = [cp, sp, 0], Rb = [lat, vert, dep], at = (dx) => add3(pc, [dx, 0, 0]), op = { a, sh: a > 0.99 };
+    return [meshCmd(eng.meshes.box(PHW + 0.6, PHH + 0.6, 2.0, 0.95), Rb, [1, 1, 1], pc, col.frame, { mat: MAT.gold, ...op }), meshCmd(eng.meshes.box(PHW, PHH, 2.5, 1.15), Rb, [1, 1, 1], at(0.05), col.phone, { mat: MAT.gloss, ...op }),
+      meshCmd(eng.meshes.torus, [dep, vert, lat], [0.55, 1, 0.55], add3(pc, [1.35, -PHH * 0.5 + 2.4, PHW * 0.5 - 2.2]), [0.22, 0.27, 0.32], { sh: false, a })];
+  };
+  let lastPc = FIN;
+  const draw = (ms, now) => {
+    ms %= FRONT_T; const { v } = trk(ms), pit = v[6] || 0, holding = ms <= REL + 5, grip = clamp01(v[3]), pat = clamp01(v[4]), r = v[5], wr = [v[0], v[1], v[2]];
+    const pc = holding ? [wr[0] - OFF[0], wr[1] - OFF[1], wr[2] - OFF[2]] : FIN, tail = 1 - ease(clamp01((ms - (FRONT_T - 650)) / 550)), headIn = ease(clamp01((ms - 250) / 500));
+    const reach = clamp01(Math.hypot(wr[1] - 63, wr[2] - 10) / 40), br = Math.sin(now / 650), ld = ease(clamp01((ms - 1900) / 700)) * (1 - 0.3 * ease(clamp01((ms - 3900) / 700))) * (1 - ease(clamp01((ms - 6900) / 900))), sm = ease(clamp01((ms - 6150) / 500)) * (1 - ease(clamp01((ms - 8300) / 800)));
+    const fU = [0, -1, -0.25], fD = [0, 1, 0.1], f = v3.nrm(v3.mix(v3.mix(fD, fU, grip), [0, -1, 0], pat)), n = v3.nrm(v3.mix(v3.mix([0, 0, -1], [-0.15, 0, -1], grip), [-1, 0, -0.25], pat));
+    const sway = Math.sin(now / 1900), bx = 0.25 * sway;
+    const lh = [0.8 + 0.4 * Math.sin(now / 1700), 62.5 + 0.5 * br, -10.2 - 0.6 * reach];
+    const rig = { H: [bx, 63 + 0.4 * br, 0], S: [bx - 0.5 * reach, 24 + 0.4 * br - 0.8 * reach, 0.6 * reach], br, torus: eng.meshes.torus, shoe: true,
+      legs: [0, 1].map((i) => { const z = i ? -5.4 : 5.4; return { H: [0, 63, z * 0.9], K: [0.4, 95, z], A: [0, 121.5, z * 1.02], toe: [8.5, 123.8, z * 1.06] }; }),
+      arms: [{ sh: [bx - 0.4 * reach, 25.8, 7.9], tg: wr, pole: [-0.7, 0.25, 0.7], l1: 23, l2: 21, sgn: 1, hand: { f, n, gr: grip, fp: 0 } }, { sh: [bx, 25.8, -7.9], tg: lh, pole: [-0.7, 0.25, -0.7], l1: 23, l2: 21, sgn: -1, hand: { f: [0.05, 1, 0.05], n: [0, 0, 1], gr: 0.15 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
+      head: { C: [bx + 0.6 * ld, 12.4 + 0.5 * br + 0.6 * ld, 0.3 * reach], roll: 4 * ld + 6 * sm * 0, yaw: 16 * ld * 0 + (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, 0], smile: 1, open: 0.45 + 0.35 * sm, brow: 0.3 + 0.5 * sm } };
+    rig.arms[0].tg = wr;
+    const cmds = []; buildChar(rig, cmds);
+    if (!sh) { const a = [Pk[0] + 0.1, Pk[1] - 4.5, Pk[2] - 1.2], b = [Pk[0] + 0.4, Pk[1] + 2, Pk[2] + 2.2]; cmds.push(pillCmd(a, b, 0.45, 0.45, COL.pantsD, { ref: [0, 0, 1], sh: false })); }
+    const pa = holding ? headIn : tail; if (pa > 0.01) cmds.push(...phoneCmds(pc, holding ? r : 0, pa, holding ? pit : PIT));
+    const hl = ms > REL + 150 && ms < 7900 ? Math.min(1, (ms - REL - 150) / 300) * Math.min(1, (7900 - ms) / 400) * (0.75 + 0.25 * Math.sin(now / 260)) : 0; if (hl > 0.02) cmds.push(glowCmd(eng, add3(Pk, [6, 0, 2]), 13, COL.gold, 0.5 * hl));
+    const floor = 125.5, base = { floor, shadowDir: [0.3, 1, -0.15], shadowA: 0.26 };
+    lay.render([{ cam: MAIN, cmds, ...base }, { cam: pcam, cmds, rect: [166, 18, 126, 190], clip: 20, ...base, shadow: false }]); room.tick(now);
+    ok.setAttribute('opacity', (ms > REL + 150 ? Math.min(1, (ms - REL - 150) / 300) * Math.min(1, (8100 - ms) / 400) : 0).toFixed(2)); up.setAttribute('opacity', (ease(clamp01((ms - (T_HOV - 900)) / 400)) * tail).toFixed(2));
+  };
+  
+  const p = { raf: 0, t0: 0, off: false, start() { if (still != null) { draw(still, 0); return; } if (reduce()) { draw(6700, 0); return; } const tick = (now) => { if (p.off) return; p.t0 ||= now; draw(now - p.t0, now); p.raf = requestAnimationFrame(tick); }; p.raf = requestAnimationFrame(tick); }, stop() { p.off = true; cancelAnimationFrame(p.raf); } };
+  p.start(); return p;
+}
+
 /* ===== Panduan KAMERA: HP diletakkan di lantai DI DEPAN orang shalat (di atas sejadah), layar hitam saat memantau ===== */
 const FONT = 'Plus Jakarta Sans,Noto Sans Arabic,sans-serif';
 const CAMPT = [253, 108.6]; // titik kamera depan HP (HP bersandar miring 25° dari tegak, layar menghadap orang)
@@ -525,7 +653,7 @@ const tt = (ms, a, b) => Math.min(1, Math.max(0, (ms - a) / (b - a)));
 const label = (p, x, y, txt, size = 7, fill = C.shirtD, anchor = 'start') => { const e = S('text', { x, y, 'font-size': size, 'font-weight': 800, fill, 'text-anchor': anchor, 'font-family': FONT, stroke: '#fff', 'stroke-width': 2.4, 'paint-order': 'stroke', 'stroke-linejoin': 'round' }, p); e.textContent = txt; return e; };
 
 /** Kotak "pandangan kamera" (tampak DEPAN). Yang dibaca AI hanya tinggi vertikal kepala, bahu, dan pinggul. Sendi diambil dari figur tampak samping. */
-function frontPiP(svg, x, y, w, h) {
+function frontPiP2D(svg, x, y, w, h) {
   const g = S('g', { transform: `translate(${x} ${y})` }, svg), cx = w / 2, Y = (v) => 6 + (v + 4) / 134 * (h - 12);
   S('rect', { width: w, height: h, rx: 7, fill: '#0D1F18', stroke: C.gold2, 'stroke-width': 1.1 }, g);
   const legs = S('path', { fill: 'none', stroke: '#2C4468', 'stroke-width': 3.2, 'stroke-linecap': 'round' }, g), torso = S('path', { fill: C.shirt, opacity: 0.92 }, g);
@@ -544,9 +672,28 @@ function frontPiP(svg, x, y, w, h) {
   } };
 }
 
+/** versi 3D: tampilan kamera depan = render 3D sungguhan dari posisi HP (perspektif), titik-titik rangka AI diproyeksikan dari sendi 3D */
+function frontPiP(svg, x, y, w, h) {
+  const fig = svg.__fig; if (!fig) return frontPiP2D(svg, x, y, w, h);
+  const bg = S('rect', { x, y, width: w, height: h, rx: 7, fill: '#102A20' }, svg.__back), g = S('g', {}, svg);
+  S('rect', { x, y, width: w, height: h, rx: 7, fill: 'none', stroke: C.gold2, 'stroke-width': 1.1 }, g);
+  const sk = S('path', { fill: 'none', stroke: '#4ADE80', 'stroke-width': 0.9, 'stroke-linejoin': 'round' }, g), dots = Array.from({ length: 5 }, () => S('circle', { r: 1.8, fill: '#4ADE80', stroke: '#fff', 'stroke-width': 0.5 }, g));
+  const ai = S('text', { x: x + 6, y: y + 12, 'font-size': 7, 'font-weight': 800, fill: '#4ADE80', 'font-family': 'Plus Jakarta Sans,sans-serif' }, g); ai.textContent = 'AI';
+  const view = { rect: [x, y, w, h], clip: 7, alpha: 1, cam: { persp: true, eye: [CAMPT[0] + 8, 106, 0], at: [96, 62, 0], fov: 50 }, light: { L: [0.6, -0.8, 0.4] }, shadow: false, cmds: [] };
+  fig.views.push(view);
+  const set = g.setAttribute.bind(g); g.setAttribute = (k, v) => { set(k, v); if (k === 'opacity') { view.alpha = +v; bg.setAttribute('opacity', v); } };
+  const f1 = (n) => n.toFixed(1);
+  return { g, draw(F, now) {
+    const R = fig.rig, M = view.M; if (!R || !M) return; const pr = (p) => project(M, view.vbUsed, p), pulse = 1.8 + 0.5 * Math.sin(now / 260);
+    const P = [R.head.C, v3.add(R.S, [0, 0, 7.7]), v3.add(R.S, [0, 0, -7.7]), v3.add(R.H, [0, 0, 4.8]), v3.add(R.H, [0, 0, -4.8])].map(pr);
+    dots.forEach((d, i) => { d.setAttribute('cx', f1(P[i][0])); d.setAttribute('cy', f1(P[i][1])); d.setAttribute('r', pulse.toFixed(2)); });
+    sk.setAttribute('d', `M${f1(P[1][0])} ${f1(P[1][1])}L${f1(P[2][0])} ${f1(P[2][1])}L${f1(P[4][0])} ${f1(P[4][1])}L${f1(P[3][0])} ${f1(P[3][1])}Z`);
+  } };
+}
+
 /** HP bersandar di penyangga + kerucut pandangan kamera + garis jarak. Mengembalikan fungsi set({ fall, cone, dim, now, out }). */
 function camRig(svg) {
-  const under = S('g', {}); svg.insertBefore(under, svg.firstChild);
+  const under = backG(svg), fig = svg.__fig, st3 = { fall: 1, out: 1 };
   const id = 'gc' + Math.random().toString(36).slice(2, 7), defs = S('defs', {}, svg), poly = 'M253 108.6L169.5 -36H40V126.5H151.6Z';
   S('path', { d: poly }, S('clipPath', { id }, defs));
   const lg = S('linearGradient', { id: id + 'g', x1: 1, y1: 0, x2: 0, y2: 0 }, defs); S('stop', { offset: 0, 'stop-color': C.gold2, 'stop-opacity': 0.55 }, lg); S('stop', { offset: 1, 'stop-color': C.gold2, 'stop-opacity': 0.08 }, lg);
@@ -556,7 +703,20 @@ function camRig(svg) {
   const ph = S('g', {}, svg); S('rect', { x: -1.8, y: -21, width: 3.6, height: 21, rx: 1.3, fill: C.dark, stroke: C.gold, 'stroke-width': 0.9 }, ph); S('rect', { x: -1.8, y: -19.3, width: 1.2, height: 17.4, rx: 0.5, fill: '#9AD9B8' }, ph); S('circle', { cx: -1.2, cy: -19.2, r: 0.95, fill: '#3C5566' }, ph);
   const dim = S('g', {}, svg); S('path', { d: 'M110 139H244M110 135v8M244 135v8', stroke: C.shirtD, 'stroke-width': 1.3, 'stroke-dasharray': '3 2.5', fill: 'none', 'stroke-linecap': 'round' }, dim);
   S('rect', { x: 150, y: 132.2, width: 54, height: 13.6, rx: 6.8, fill: '#fff', stroke: C.shirtD, 'stroke-width': 0.9 }, dim); const dl = S('text', { x: 177, y: 142, 'font-size': 7.6, 'font-weight': 800, fill: C.shirtD, 'text-anchor': 'middle', 'font-family': FONT }, dim); dl.textContent = t('gd.cm.dist');
+  if (fig) { // 3D: penyangga & HP sungguhan di scene
+    stand.setAttribute('display', 'none'); ph.setAttribute('display', 'none'); const eng = fig.lay.eng, prism = prismMesh([[249, 126.5], [270, 126.5], [257.5, 108]], 12);
+    fig.add((cmds) => {
+      const { fall, out } = st3, a = lerp(75, 25, fall) * RAD, c = Math.cos(a), sn = Math.sin(a), cy = 126.5 - (1 - fall) * 70, op = Math.min(1, fall * 4) * out, so = tt(fall, 0.95, 1) * out;
+      const Rb = [[c, sn, 0], [-sn, c, 0], [0, 0, 1]], at = (lx, ly) => [246 + c * lx - sn * ly, cy + sn * lx + c * ly, 0], fx = (cc) => { cc.noPov = true; return cc; };
+      if (so > 0.01) cmds.push(fx(meshCmd(prism, IDENT, [1, 1, 1], [0, 0, 0], [0.80, 0.66, 0.42], { mat: MAT.matte, a: so, sh: so > 0.99 })));
+      if (op > 0.01) { const o = op < 0.999;
+        cmds.push(fx(meshCmd(eng.meshes.box(3.6, 21, 11.5, 1.5), Rb, [1, 1, 1], at(0, -10.5), [0.09, 0.11, 0.13], { mat: MAT.gloss, a: op, sh: !o })));
+        cmds.push(fx(meshCmd(eng.meshes.box(0.5, 18.6, 9.6, 0.2), Rb, [1, 1, 1], at(-1.75, -10.2), [0.40, 0.86, 0.62], { mat: MAT.glass, a: op, sh: false })));
+        cmds.push(fx(meshCmd(eng.meshes.torus, [[-c, -sn, 0], [0, 0, 1], [-sn, c, 0]], [0.9, 1, 0.9], at(-2.0, -19.2), [0.2, 0.25, 0.3], { a: op, sh: false }))); }
+    });
+  }
   return ({ fall = 1, cone: co = 0, dim: di = 0, now = 0, out = 1 }) => {
+    st3.fall = fall; st3.out = out;
     ph.setAttribute('transform', `translate(246 ${(126.5 - (1 - fall) * 70).toFixed(1)}) rotate(${lerp(75, 25, fall).toFixed(1)})`); ph.setAttribute('opacity', Math.min(1, fall * 4) * out);
     stand.setAttribute('opacity', tt(fall, 0.95, 1) * out); cone.setAttribute('opacity', co * out); dim.setAttribute('opacity', di * out);
     A.forEach((c, i) => { const k = (now / 1500 + i / 3) % 1; c.setAttribute('r', (6 + k * 175).toFixed(1)); c.setAttribute('opacity', (co * (1 - k) * 0.9 * out).toFixed(2)); });
@@ -582,7 +742,7 @@ function camPlaceScene(box) {
  *  Memakai urutan gerak SIM yang sama dengan simulasi Mode Tegak; hitungan: 2 sujud = 1 rakaat. */
 function flatScene(box) {
   const svg = S('svg', { 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
-  const draw = sideFigure(svg, 'cam'), under = S('g', {}); svg.insertBefore(under, svg.firstChild);
+  const draw = sideFigure(svg, 'cam'), under = backG(svg);
   const id = 'gf' + Math.random().toString(36).slice(2, 7), defs = S('defs', {}, svg), lg = S('linearGradient', { id: id + 'g', x1: 0, y1: 1, x2: 0, y2: 0 }, defs);
   S('stop', { offset: 0, 'stop-color': C.gold2, 'stop-opacity': 0.55 }, lg); S('stop', { offset: 1, 'stop-color': C.gold2, 'stop-opacity': 0.04 }, lg);
   const cone = S('path', { d: 'M126 124L14 -36H238Z', fill: `url(#${id}g)` }, under);
@@ -594,6 +754,13 @@ function flatScene(box) {
   S('rect', { x: X, y: Y, width: W, height: H, rx: 9 }, S('clipPath', { id: cid }, defs));
   const inner = S('g', { 'clip-path': `url(#${cid})` }, pip); S('rect', { x: X, y: Y, width: W, height: H, fill: '#F6F1D8' }, inner); S('circle', { cx: X + W / 2, cy: Y + 14, r: 9, fill: '#fff' }, inner); S('circle', { cx: X + W / 2, cy: Y + 14, r: 15, fill: C.gold, opacity: 0.35 }, inner);
   const head = S('ellipse', { cx: X + W / 2, cy: Y + H, rx: 40, ry: 30, fill: C.shirt }, inner), shade = S('rect', { x: X, y: Y, width: W, height: H, fill: '#101820' }, inner);
+  const fig = svg.__fig, st3 = { fall: 1 };
+  if (fig) { // 3D: HP rebah sungguhan + pandangan kamera dari lantai menghadap atas
+    ph.setAttribute('display', 'none'); [...inner.children].forEach((c) => { if (c !== shade) c.setAttribute('display', 'none'); }); S('rect', { x: X, y: Y, width: W, height: H, rx: 9, fill: '#EFE6C8' }, svg.__back);
+    fig.views.push({ rect: [X, Y, W, H], clip: 9, alpha: 1, cam: { persp: true, eye: [126, 123.2, 0], at: [98, 44, 0], fov: 78 }, light: { L: [0.3, -0.9, 0.4] }, shadow: false, cmds: [] });
+    const eng = fig.lay.eng; fig.add((cmds) => { const fl = st3.fall, a = -28 * (1 - fl) * RAD, c = Math.cos(a), sn = Math.sin(a), Rb = [[c, sn, 0], [-sn, c, 0], [0, 0, 1]], y = 126.5 - (1 - fl) * 62 - 1.5, at = (lx, ly) => [126 + c * lx - sn * ly, y + sn * lx + c * ly, 0], op = Math.min(1, fl * 4);
+      if (op < 0.01) return; const m1 = meshCmd(eng.meshes.box(28, 3, 15, 1.3), Rb, [1, 1, 1], at(0, 0), [0.09, 0.11, 0.13], { mat: MAT.gloss, a: op, sh: op > 0.99 }), m2 = meshCmd(eng.meshes.box(23, 0.5, 12, 0.22), Rb, [1, 1, 1], at(0, -1.45), [0.40, 0.86, 0.62], { mat: MAT.glass, a: op, sh: false }); m1.noPov = m2.noPov = true; cmds.push(m1, m2); });
+  }
   S('rect', { x: X, y: Y, width: W, height: H, rx: 9, fill: 'none', stroke: C.shirtD, 'stroke-width': 1.6 }, pip);
   label(pip, X + 5, Y + 9, t('gd.fl.view'), 6, C.shirtD);
   const badge = label(pip, X + W / 2, Y + H + 11, '', 7.2, C.shirtD, 'middle'), cnt = label(pip, X + W / 2, Y + H + 21, '', 6.6, C.pantsD, 'middle');
@@ -602,7 +769,7 @@ function flatScene(box) {
     draw(st.pose, now);
     const cur = st.st.p, prev = SIM[(st.i + SIM.length - 1) % SIM.length].p;
     const dark = cur === 's' ? Math.min(1, st.k * 1.5) : prev === 's' ? Math.max(0, 1 - st.k * 1.6) : 0;
-    const fall = pl.still || st.i > 0 ? 1 : ease(tt(st.local, 0, 900));
+    const fall = pl.still || st.i > 0 ? 1 : ease(tt(st.local, 0, 900)); st3.fall = fall;
     ph.setAttribute('transform', `translate(126 ${(126.5 - (1 - fall) * 62).toFixed(1)}) rotate(${(-28 * (1 - fall)).toFixed(1)})`); ph.setAttribute('opacity', Math.min(1, fall * 4).toFixed(2));
     cone.setAttribute('opacity', (1 - 0.8 * dark).toFixed(2)); mk.setAttribute('opacity', ease(tt(st.local + (st.i ? 9e3 : 0), 700, 1300)).toFixed(2));
     shade.setAttribute('opacity', (dark * 0.93).toFixed(2)); head.setAttribute('transform', `translate(0 ${((1 - dark) * 38).toFixed(1)})`);
@@ -653,7 +820,9 @@ function camAlertScene(box) {
   const ring = (c) => S('rect', { x: PH[0] - 8, y: PH[1] - 8, width: PH[2] + 16, height: PH[3] + 16, rx: 24, fill: 'none', stroke: c, 'stroke-width': 3.5, opacity: 0 }, svg);
   const EV = [{ at: 4600 + 400, c: '#1DB86E', d: 950, n: 1 }, { at: 6800 + 300, c: '#F2B63E', d: 1500, long: 1 }, { at: 9300 + 300, c: '#E5484D', d: 900 }, { at: 9300 + 1000, c: '#E5484D', d: 900 }, { at: 9300 + 1700, c: '#E5484D', d: 900 }];
   const rings = EV.map((e) => ring(e.c));
-  const phg = S('g', {}, svg); S('rect', { x: PH[0], y: PH[1], width: PH[2], height: PH[3], rx: 18, fill: '#000', stroke: '#1B2A35', 'stroke-width': 5 }, phg);
+  const lay = WEBGL3D() ? makeLayer(svg, [0, 0, 300, 178]) : null, phg = S('g', {}, svg), body = S('rect', { x: PH[0], y: PH[1], width: PH[2], height: PH[3], rx: 18, fill: '#000', stroke: '#1B2A35', 'stroke-width': 5 }, phg);
+  const phoneBody = lay && [meshCmd(lay.eng.meshes.box(PH[2] + 12, PH[3] + 12, 16, 14), IDENT, [1, 1, 1], [PH[0] + PH[2] / 2, PH[1] + PH[3] / 2, -8.5], [0.12, 0.17, 0.21], { mat: MAT.gloss, sh: false }), meshCmd(lay.eng.meshes.box(PH[2] + 4, PH[3] + 4, 16.6, 11), IDENT, [1, 1, 1], [PH[0] + PH[2] / 2, PH[1] + PH[3] / 2, -8.2], [0.05, 0.07, 0.09], { mat: MAT.gloss, sh: false })];
+  if (lay) { body.setAttribute('fill', 'none'); body.setAttribute('stroke', 'none'); lay.back.style.background = 'radial-gradient(circle at 50% 40%,#FFF9EC,#F0E4C8)'; }
   const scr = S('rect', { x: PH[0] + 5, y: PH[1] + 5, width: PH[2] - 10, height: PH[3] - 10, rx: 13, fill: '#0F3A28' }, phg), cam = S('circle', { cx: PH[0] + PH[2] / 2, cy: PH[1] + 14, r: 3, fill: '#1DB86E' }, phg);
   const num = S('text', { x: PH[0] + PH[2] / 2, y: PH[1] + 86, 'font-size': 44, 'font-weight': 800, fill: '#7FE0AE', 'text-anchor': 'middle', 'font-family': FONT }, phg);
   const wv = [0, 1, 2].map((i) => S('path', { d: `M${PH[0] + PH[2] + 16 + i * 11} ${PH[1] + 56}q${5 + i * 3} 15 0 30`, stroke: '#E5484D', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round', opacity: 0 }, svg));
@@ -670,6 +839,7 @@ function camAlertScene(box) {
       if (on) { const sc = 1 + 0.07 * u; rings[k].setAttribute('transform', `translate(${PH[0] + PH[2] / 2} ${PH[1] + PH[3] / 2}) scale(${sc.toFixed(3)}) translate(${-(PH[0] + PH[2] / 2)} ${-(PH[1] + PH[3] / 2)})`);
         if (u * e.d < (e.long ? 520 : 170)) shake = Math.sin(ms / 14) * (e.long ? 2.2 : 3); } });
     phg.setAttribute('transform', `translate(${shake.toFixed(2)} 0)`);
+    if (lay) { const m = phoneBody.map((c) => ({ ...c, M: c.M.slice() })); m.forEach((c) => { c.M[12] += shake; }); lay.render([{ cam: { yaw: 0, s: 1, tx: 0, ty: 0, k: 0.3 }, cmds: m, shadow: false }]); }
     const sp = ms >= B[4] ? (ms - B[4]) / (B[5] - B[4]) : -1; wv.forEach((w, k) => w.setAttribute('opacity', sp < 0 ? 0 : (0.25 + 0.6 * Math.abs(Math.sin(ms / 160 - k * 0.7))) * Math.min(1, sp * 6) * (sp > 0.9 ? (1 - sp) * 10 : 1)));
   };
   const p = { still: false, start() { if (reduce()) { frame(B[3] + 600, 0); return; } const tick = (now) => { if (off) return; t0 ||= now; frame((now - t0) % T, now); raf = requestAnimationFrame(tick); }; raf = requestAnimationFrame(tick); }, stop() { off = true; cancelAnimationFrame(raf); } };

@@ -607,3 +607,18 @@ body.watching .toast{display:none!important}
 .rc-labs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.8rem}.rc-labs .pill{width:100%;padding:.8rem .4rem}
 .rc-file{display:block;word-break:break-all;font-size:.75rem;color:var(--mute);margin:.4rem 0}.rc-act{display:grid;gap:.5rem;margin-top:.6rem}
 .rc-card code{background:var(--mint);padding:.1rem .45rem;border-radius:8px}
+
+/* logo 3D (gambar): muncul lembut + melayang pelan di splash & halaman masuk */
+.logo{object-fit:contain;-webkit-user-drag:none;user-select:none}
+.sp .logo,.au-top .logo{animation:lgIn .9s cubic-bezier(.2,.8,.2,1) both,lgFloat 5.5s 1s ease-in-out infinite}
+@keyframes lgIn{from{opacity:0;transform:translateY(14px) scale(.86)}to{opacity:1;transform:none}}
+@keyframes lgFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){.sp .logo,.au-top .logo{animation:none}}
+
+/* animasi 3D (WebGL): [svg latar] [kanvas 3D] [svg depan] bertumpuk di dalam satu kotak */
+.s3d{position:relative;overflow:hidden;border-radius:18px}
+.s3d .s3d-back,.s3d .s3d-cv{position:absolute!important;left:0;top:0;width:100%!important;height:100%!important;max-height:none!important;pointer-events:none}
+.s3d svg.s3d-front{position:relative;z-index:2}
+.stage:has(.s3d){padding:.35rem;background:linear-gradient(#FFF9EC,#F3E6CB)}
+.bs-stage:has(.s3d){background:linear-gradient(180deg,#FFF9EC,#F3E6CB)}
+.bs-mv .s3d{border-radius:14px}
