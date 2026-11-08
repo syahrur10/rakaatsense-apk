@@ -44,8 +44,9 @@ const lerpA = (a, b, k) => a + (((b - a + 540) % 360) - 180) * k; // interpolasi
 // Opsional: A2/toe2 = kaki sebelah kiri (jauh) bila posisinya beda; as = skala panjang lengan (perspektif, siku melebar ke samping); hw/ha = bobot & sudut telapak tangan (ha: 0 = rata menghadap kiblat, 90 = ke bawah).
 // Kaidah yang dijaga: panjang betis 30, paha 32, badan 39, leher 12 (tulang tidak memanjang/memendek).
 const RAW = {
-  // Berdiri bersedekap (tangan kanan di atas kiri, di bawah dada), pandangan ke tempat sujud (kepala sedikit menunduk)
-  q: { A: [96, 125], K: [96, 95], H: [96, 63], S: [96, 24], C: [98.1, 12.2], T: [107, 47], bend: 0.6, toe: [110, 125], hw: 1, ha: 5 },
+  // Berdiri bersedekap (tangan kanan di atas kiri, di bawah dada), pandangan ke tempat sujud (kepala sedikit menunduk).
+  // Tampak samping: lengan atas turun di sisi badan, SIKU menonjol sedikit ke belakang, lengan bawah MENDATAR menyilang di depan perut (fs = lengan bawah tampak memendek karena menyilang ke arah badan); tangan menempel di badan, tidak terjulur ke depan.
+  q: { A: [96, 125], K: [96, 95], H: [96, 63], S: [96, 24], C: [98.1, 12.2], T: [104, 45.5], bend: 1, as: 1, fs: 0.55, toe: [110, 125], hw: 1, ha: 12 },
   // I'tidal: berdiri tegak, kedua tangan dilepas turun di sisi badan
   i: { A: [96, 125], K: [96, 95], H: [96, 63], S: [96, 24], C: [98.1, 12.2], T: [98, 66], bend: 0.15, toe: [110, 125] },
   // Rukuk: kaki lurus (lutut tidak ditekuk), punggung rata sejajar lantai, kepala sejajar punggung, kedua telapak tangan memegang lutut
@@ -67,7 +68,7 @@ const RAW = {
 // fp = telunjuk terangkat (tahiyat). 'dt' = duduk iftirasy + telunjuk terangkat, dipakai untuk tahiyat awal.
 const PLANT = { q: 0.15, i: 0, u: 0, r: 1, k: 0.2, s: 1, d: 1, w: 1 };
 for (const k in PLANT) RAW[k].pl = PLANT[k];
-RAW.r.gr = 0.75; RAW.q.gr = 0.35; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
+RAW.r.gr = 0.75; RAW.q.gr = 0.45; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
 // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kanan ditegakkan (jari menghadap kiblat), kaki kiri KELUAR di bawah betis kanan.
 // Tampak dari kanan: lutut kiri di lantai (K2), betis kiri rebah di bawah betis kanan (A2), telapak kiri hampir tertutup (f2s = diperpendek karena menghadap penonton).
 Object.assign(RAW.w, { A: [88, 114.5], K: [119, 119.5], H: [92, 120], S: [92.5, 81], C: [94.6, 69.2], T: [107, 112.5], K2: [118, 122], A2: [98, 122.8], toe2: [106, 124.3], toe: [93.5, 124.2], f2s: 0.6 });
@@ -75,7 +76,7 @@ RAW.sa = { ...RAW.w, sa: 1 }; // salam: posisi sama, kepala menoleh kanan lalu k
 RAW.w0 = { ...RAW.w, fp: 0 }; // selesai: telunjuk sudah diturunkan
 const POSE = Object.fromEntries(Object.entries(RAW).map(([k, r]) => {
   const v = [[r.K, r.A], [r.H, r.K], [r.S, r.H], [r.C, r.S]].map(([p, q]) => [p[0] - q[0], p[1] - q[1]]), A2 = r.A2 || r.A, K2 = r.K2 || r.K, toe2 = r.toe2 || r.toe, off = (a, b) => [b[0] - a[0], b[1] - a[1]];
-  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0, gr: r.gr ?? 0, fl: r.fl ?? 0, ec: r.ec ?? 0 }];
+  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, fs: r.fs ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0, gr: r.gr ?? 0, fl: r.fl ?? 0, ec: r.ec ?? 0 }];
 }));
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const ramp = (x, a, b = 1) => clamp01((x - a) / (b - a));
@@ -93,21 +94,25 @@ function blend(pa, pb, kl) {
   const dy = pb.sy - pa.sy, dn = dy > 6, up = dy < -6;
   const [dL, dT, dA, dH] = dn ? [0, 0.05, 0.09, 0.17] : up ? [0.05, 0, 0.03, 0.12] : [0, 0.02, 0, 0.1];
   const [pL, pT, pA] = dn ? [1.12, 1.18, 1.08] : up ? [0.9, 0.9, 0.95] : [1, 1, 1];
-  let kLeg = part(kl, dL, pL), kTo = part(kl, dT, pT, up ? 0.02 : 0), kArm = part(kl, dA, pA), kHd = part(kl, dH, 1, 0.2), kHand = part(kl, dA + 0.08);
+  let kLeg = part(kl, dL, pL), kTo = part(kl, dT, pT), kArm = part(kl, dA, pA), kHd = part(kl, dH, 1), kHand = part(kl, dA + 0.08);
   const kFp = ease(ramp(kl, 0.5)), floor = Math.max(pa.sy, pb.sy) > 90 && Math.abs(dy) > 6; // gerak dari/ke sujud
   if (floor) { // turun: tangan menapak lantai lebih dulu, badan lalu bersandar pelan; naik: badan terangkat dulu, tangan menyusul. Tanpa overshoot supaya dahi tidak "menjedot" lantai.
     kLeg = part(kl, 0, 1); kTo = dn ? ease(Math.pow(ramp(kl, 0.06), 0.85)) : ease(Math.pow(ramp(kl, 0), 1.1)); kArm = dn ? ease(ramp(kl, 0, 0.72)) : ease(ramp(kl, 0.18)); kHand = dn ? ease(ramp(kl, 0.05, 0.75)) : ease(ramp(kl, 0.2)); kHd = kTo;
   }
   const ks = [kLeg, kLeg, kTo, kHd];
   const ang = ks.map((k, i) => lerp(pa.ang[i], pb.ang[i], k));
-  if (floor) { const rel = (P) => ((P.ang[3] - P.ang[2] + 540) % 360) - 180; ang[3] = ang[2] + lerp(rel(pa), rel(pb), ease(ramp(kl, 0.1, 1))); } // kepala mengikuti badan (sudut relatif), bukan berayun sendiri
+  { // kepala mengikuti badan (sudut RELATIF terhadap badan), bukan berayun sendiri. Sudut mutlak membuat kepala tertinggal jauh lalu menyambar & memantul di ujung gerak (terasa "kejedot" saat bangkit dari rukuk).
+    // Relatif: kepala ikut terangkat bersama badan, hanya selisih kecil (menunduk/mendongak) yang berubah, mulus dan berhenti tepat di pose akhir tanpa melewati.
+    const rel = (P) => ((P.ang[3] - P.ang[2] + 540) % 360) - 180, lag = floor ? 0.1 : dn ? 0.08 : up ? 0.05 : 0.03;
+    ang[3] = ang[2] + lerp(rel(pa), rel(pb), ease(ramp(kl, lag, 1)));
+  }
   const ant = dn ? clamp01(Math.abs(dy) / 60) * Math.sin(Math.PI * ramp(kl, 0, 0.24)) : 0; // aba-aba: badan & kepala sedikit ke belakang sebelum turun
   ang[2] -= 3.2 * ant; ang[3] -= 5 * ant;
   const dx = pb.T[0] - pa.T[0], dyT = pb.T[1] - pa.T[1], dist = Math.hypot(dx, dyT) || 1; let nx = -dyT / dist, ny = dx / dist;
   if (Math.abs(dx) > Math.abs(dyT) ? ny > 0 : nx < 0) { nx = -nx; ny = -ny; } // gerak mendatar: melengkung ke atas; gerak tegak: melengkung ke depan
   const bulge = 0.15 * dist * Math.sin(Math.PI * kArm);
   return { A: lerpV(pa.A, pb.A, kLeg), a2: lerpA(pa.a2, pb.a2, kLeg), fa: lerpA(pa.fa, pb.fa, kLeg), fa2: lerpA(pa.fa2, pb.fa2, kLeg), ang, len: ks.map((k, i) => lerp(pa.len[i], pb.len[i], k)),
-    T: [lerp(pa.T[0], pb.T[0], kArm) + nx * bulge, Math.min(124.4, lerp(pa.T[1], pb.T[1], kArm) + ny * bulge)], bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kHand),
+    T: [lerp(pa.T[0], pb.T[0], kArm) + nx * bulge, Math.min(124.4, lerp(pa.T[1], pb.T[1], kArm) + ny * bulge)], bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), fs: lerp(pa.fs, pb.fs, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kHand),
     ak2: lerpA(pa.ak2, pb.ak2, kLeg), f2s: lerp(pa.f2s, pb.f2s, kLeg), sa: lerp(pa.sa, pb.sa, kHd), sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp), gr: lerp(pa.gr, pb.gr, kHand), fl: lerp(pa.fl, pb.fl, kHand), ec: lerp(pa.ec, pb.ec, ease(ramp(kl, 0.15, 0.9))) };
 }
 /** Forward kinematics + "kehidupan" saat menahan pose: napas (dada naik-turun), badan bergoyang pelan memindahkan berat (hanya saat berdiri),
@@ -118,7 +123,7 @@ function fk(P, now, tl = now) {
   const br = Math.sin(now / 700), g = clamp01((70 - P.sy) / 46), sw = (Math.sin(now / 1900) + 0.6 * Math.sin(now / 3100)) * g, free = 1 - P.pl, an = P.ang.slice();
   an[0] += 0.45 * sw; an[1] -= 0.35 * sw; an[2] += 1.1 * br + 0.5 * sw; an[3] += 1.3 * Math.sin(now / 1100) + Math.sin(now / 2900) - 0.5 * br;
   const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), K2 = pt(H, P.ak2 + (an[1] - P.ang[1]), P.len[1]), A2 = pt(K2, P.a2 + 180, P.len[0]);
-  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, hw: P.hw, ha: P.ha, fp: P.fp, gr: P.gr, fl: P.fl, ec: P.ec, br, an };
+  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, fs: P.fs, hw: P.hw, ha: P.ha, fp: P.fp, gr: P.gr, fl: P.fl, ec: P.ec, br, an };
 }
 const TH = { shirt: { on: 50, off: 30, hold: 500 }, pants: { on: 25, off: 15, hold: 2500 } }; // sama dengan ambang di counter.js
 /** sudut kemiringan HP dari sendi: Saku Baju = batang badan (pinggul → bahu) vs tegak, Saku Celana = paha (pinggul → lutut) vs tegak ke bawah */
@@ -191,7 +196,7 @@ function sideFigure(svg, kind) {
   const arm = (parent, sl, sk, shd) => {
     const hd = hand(parent, sk, shd), fa = capsule(parent, sl), cf = capsule(parent, PK.cuff), ua = capsule(parent, sl), sh = S('circle', { r: 4.1, fill: sl }, parent);
     return (F) => {
-      const { e, h } = ik(F.S, F.T, L.ua * F.as, L.fa * F.as, F.bend), rot = lerpA(Math.atan2(h[1] - e[1], h[0] - e[0]) / RAD, F.ha, F.hw);
+      const { e, h } = ik(F.S, F.T, L.ua * F.as, L.fa * F.as * F.fs, F.bend), rot = lerpA(Math.atan2(h[1] - e[1], h[0] - e[0]) / RAD, F.ha, F.hw);
       hd.set(h, rot, F.fp, F.gr, F.fl); fa(e, h, 3.7, 3.0); cf(lerpV(e, h, 0.86), h, 3.1, 3.1); ua(lerpV(F.S, F.H, 0.06), e, 4.3, 3.7); { const q = lerpV(F.S, F.H, 0.06); sh.setAttribute('cx', f2(q[0])); sh.setAttribute('cy', f2(q[1])); }
     };
   };
