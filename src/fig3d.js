@@ -129,7 +129,7 @@ uniform vec3 uCol; uniform vec4 uMat; uniform float uMode, uAlpha, uAO, uFloor; 
 void main(){
  if(uMode>3.5){ o=vec4(uShCol*uAlpha,uAlpha); return; }
  vec3 N=normalize(vN); vec3 col=uCol;
- if(uMode>1.5){ vec4 t=texture(uTex,vUV); if(uMode>2.5){ o=vec4(t.rgb*uCol*uAlpha,t.a*uAlpha); return; } col=t.rgb; }
+ if(uMode>1.5){ vec4 t=texture(uTex,vUV); if(uMode>2.5){ o=vec4(t.rgb*uCol*uAlpha*t.a,t.a*uAlpha); return; } col=t.rgb; }
  float h=dot(N,uL)*0.5+0.5; float lit=smoothstep(0.1,0.92,h);
  vec3 sh=col*vec3(0.50,0.58,0.74); vec3 base=mix(sh,col*1.07,lit);
  base+=col*max(dot(N,uL2),0.0)*0.16*vec3(0.95,1.0,1.1);
