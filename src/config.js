@@ -14,6 +14,6 @@ export const LOCAL_ADMIN = {
   email: 'syahrurbaja@gmail.com',
   name: 'Admin',
   role: 'admin',
-  salt: '6fLoZ4zMpvo5MgyUUZjhmA==',
-  hash: 's1n0rF475fD6j2xbZM0qzQE2xWmWKcaWxiezQ7bPTps=',
+  salt: '7B6Vap2HmyQDJC8K7+RK3w==',
+  hash: 'uzilaWNpbY7FBDgR9c2xGanfX2rhnexDabc7oh6h4Ss=',
 };

@@ -2,7 +2,8 @@
 import { $, z, dayKey, store, toast, speak, beep, place, placeName, session, logout, isAdmin, syncStats } from './util.js';
 import { t, lang, setLang, apply, hooks, LANGS } from './i18n.js';
 import { ic, mount, scanDeco } from './icons.js';
-import { createCounter } from './counter.js';
+import { createSmartCounter } from './ml.js';
+import { enter as rcEnter, leave as rcLeave } from './rekam.js';
 import { initWatch } from './watch.js';
 import { openGuide, closeGuide } from './guide.js';
 import { EXTRA, MAXC, customs, isCustom, isX, nameOf, esc, addCustom, renameCustom, removeCustom } from './prayers.js';
@@ -53,7 +54,7 @@ function setDates() {
 /* ---- Navigasi ---- */
 let adm = null; // panel admin dimuat hanya untuk admin
 if (isAdmin()) { $('admBtn').hidden = false; import('./admin.js').then((m) => (adm = m)); }
-function go(id) { if (id === 'adm' && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); if (id === 'ac') acEnter(); const nb = document.querySelector('#nav button.on'); if (nb && $('nav').scrollWidth > $('nav').clientWidth) nb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
+function go(id) { if ((id === 'adm' || id === 'rc') && !isAdmin()) id = 'home'; document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.id === id)); document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.go === id)); scrollTo(0, 0); if (id !== 'rp') focusReport(null); if (id === 'home') renderHome(); if (id === 'adm') adm?.render(); if (id === 'rp') renderReport(); if (id === 'qr') qrEnter(); if (id === 'ac') acEnter(); if (id !== 'rc') rcLeave(); if (id === 'rc') rcEnter(); const nb = document.querySelector('#nav button.on'); if (nb && $('nav').scrollWidth > $('nav').clientWidth) nb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { if (b.closest('#nav')) closeGuide(); go(b.dataset.go); } });
 $('bell').onclick = () => go('al'); // lonceng → halaman Alarm Shalat (izin notifikasi diminta di sana)
 
@@ -130,7 +131,8 @@ function snStep(d) { if (busy() || kind === 'f') return; const c = sGet(); c[pid
 $('snUp').onclick = () => snStep(1); $('snDn').onclick = () => snStep(-1); $('cSnUp').onclick = () => snStep(1); $('cSnDn').onclick = () => snStep(-1);
 $('pockets').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b || counter.on) return; mode = b.dataset.m; store.set('rs.pk', mode); pills(); };
 const setPhase = (k, v) => { $('phase').dataset.i = k; $('phase').textContent = t(k, v); };
-const counter = createCounter({
+const counter = createSmartCounter({
+  onMode: (m) => { if (m === 'ml') toast(t('ml.on'), true); },
   onCal: (s) => { delete $('phase').dataset.i; $('phase').textContent = t('rk.cal', { n: s }); },
   onReady: () => { beep(880); setPhase('rk.ready'); },
   onAngle: (a) => { $('ang').style.width = Math.min(100, a / 90 * 100) + '%'; $('angTxt').textContent = Math.round(a); setPhase(counter.phase()); },

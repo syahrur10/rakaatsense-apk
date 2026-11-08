@@ -1,12 +1,13 @@
 {
   "name": "rakaatsense",
   "private": true,
-  "version": "1.9.1",
+  "version": "1.10.0",
   "description": "RakaatSense: AI prayer assistant (sensor calibration, rakaat counter, camera rakat monitor, qibla, dzikir, Al-Qur'an tajwid berwarna)",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
+    "test:ml": "node tools/tests/ml.sim.mjs",
     "create-admin": "node scripts/create-admin.mjs"
   },
   "dependencies": {

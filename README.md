@@ -33,6 +33,7 @@
 |---|---|
 | **Jadwal salat 5 waktu** | Berdasarkan GPS, metode Kemenag RI, plus pelacak salat & streak harian. Nama lokasi tampil asli (mis. *Genuksari, Genuk, Semarang*). |
 | **Kalibrasi & penghitung rakaat** | Akselerometer HP menghitung **rukuk / sujud / rakaat** otomatis. Kalibrasi 3 detik. Bisa untuk **shalat wajib** maupun **sunnah** (Qabliyah, Ba'diyah, Dhuha, Tahajud, Witir) dengan **rakaat yang bisa diatur 1–4**. Posisi HP dipilih lewat dua kartu bergambar: **Saku Baju** (hijau) dan **Saku Celana** (biru). Layar dijaga menyala selama penghitungan. |
+| **Pengenal Gerakan ML (v1.10)** | Penghitung rakaat opsional berbasis **Machine Learning**: MLP kecil (16 fitur sensor, jendela 2 dtk) mengenali berdiri / rukuk / i'tidal / sujud / duduk / tahiyat langsung di HP, lalu sujud dihitung jadi rakaat. **Aktif otomatis hanya bila ada berkas model** di `public/model/`; tanpa model, aplikasi memakai penghitung ambang lama. Halaman **Akun → Kontribusi Data Penelitian** (**khusus admin**, tidak tampil untuk pengguna biasa) merekam sensor + label (mode dipandu / manual) dan mengekspor CSV untuk melatih model. Kode: `src/ml.js`, `src/rekam.js`, `tools/ml/`. |
 | **Panduan animasi** | Tombol **Panduan** (kalibrasi & beranda) dengan **4 tab berurutan prioritas: Saku Celana, Saku Baju, Mode Datar, Mode Tegak**. Tab Saku berisi cara memasukkan HP ke saku, lalu animasi *cara memakai aplikasi* yang disesuaikan per posisi HP: orang bergerak qiyam–rukuk–sujud–duduk, meter kemiringan HP, dan tampilan mini aplikasi yang menghitung dengan logika yang sama seperti penghitung asli (Saku Baju: 3 gerakan = 1 rakaat; Saku Celana: paha turun ≥ 2,5 detik = 1 rakaat). Tab Mode Datar / Mode Tegak berisi cara meletakkan HP di depan sejadah, simulasi cara kamera menghitung, layar hitam & arti getaran. 4 bahasa. |
 | **Pemantau Rakaat (kamera AI)** | HP diletakkan di lantai **di depan** orang shalat (di atas sejadah, miring menghadap orang). Saat memantau **layar hitam penuh** sehingga tidak mengganggu. Kamera **bukan menilai gerakan**, hanya menghitung rakaat dari naik-turun badan supaya tidak lupa. Pengingat getar / bunyi lembut hanya saat rakaat selesai atau ada yang janggal (rakaat melebihi target, duduk lama sebelum target, badan tidak terlihat). |
 | **Laporan Shalat & Dzikir** | Satu halaman, dua tab (**Shalat** \| **Dzikir**) dengan rentang Hari ini / 7 / 30 hari. **Tab Shalat:** cincin persentase *sesuai*, hitungan sesi (sesuai / kurang / lebih), grafik shalat tertandai per hari, filter Semua / Wajib / Sunnah, dan riwayat per tanggal: **nama shalat, jenis (Wajib / Qabliyah / Ba'diyah / Sunnah), tanggal & jam, rakaat vs target**, sumber (kamera / sensor / tanda manual) dan catatan peringatan. **Tab Dzikir:** total, hari ini, set selesai, hari aktif, grafik (per 3 jam / per hari), rincian per dzikir, dan riwayat harian. Bisa disalin sebagai teks atau dihapus. Tersimpan di perangkat (`rs.rp`, `rs.dz`), tidak dikirim ke server. Yang dinilai hanya hitungan rakaat, **bukan sah/tidaknya shalat**. |
@@ -183,6 +184,15 @@ Di Android 12+ izin *Alarm & pengingat* untuk aplikasi ini harus aktif (Pengatur
 - *Saku Baju*: episode miring >50° selama ≥0,5 dtk. Episode ke-1 = rukuk, ke-2/3 = sujud. 3 episode = 1 rakaat.
 - *Saku Celana*: episode paha >25° selama ≥2,5 dtk = 1 rakaat (rasio rukuk:sujud diestimasi 1:2).
 
+**Pengenal Gerakan ML** (`src/ml.js`, `tools/ml/`): sensor gerak (±60 Hz) dirata-ratakan ke 20 Hz, lalu tiap 0,5 dtk dihitung **16 fitur** dari jendela 2 dtk (statistik sudut terhadap pose berdiri, geseran gravitasi sejajar/tegak lurus, percepatan dinamis, laju rotasi). Fitur tidak bergantung arah HP di saku, tetapi **kalibrasi berdiri 3 dtk tetap dipakai** (sama seperti counter.js). MLP (mis. 32-16 neuron, ekspor JSON) memberi probabilitas 6 kelas gerakan; rata-rata 3 prediksi terakhir + penahan 2 prediksi mencegah kedipan. **Tiap masuk fase sujud dihitung; 2 sujud = 1 rakaat.** Fitur di JS (`ml.js`) dan Python (`tools/ml/features.py`) harus identik; `tools/tests/ml.sim.mjs` memeriksanya (selisih ~1e-11) memakai fixture `ml.golden.json`.
+
+Alur penelitian:
+1. **Kumpulkan data** (masuk sebagai admin): Akun → *Kontribusi Data Penelitian*. Pilih posisi HP (saku baju / celana) dan cara pelabelan: *Dipandu* (aba-aba getar, durasi diacak) atau *Manual* (pendamping menekan gerakan yang sedang dilakukan). Hasilnya CSV `t_ms,ax,ay,az,rx,ry,rz,label,pos,subject,session`. Kode relawan acak; tanpa nama, kamera, suara, atau lokasi; data tidak dikirim otomatis. Target minimal yang disarankan: 10+ relawan × 2 posisi × 3 sesi.
+2. **Latih & evaluasi**: `python3 tools/ml/train.py data/ --pos shirt --out public/model/gerakan-shirt.json` (butuh `numpy scikit-learn`). Mencetak akurasi/macro-F1 lintas-orang (LOSO), matriks konfusi, dan galat hitungan sujud per sesi, dibandingkan dengan pembanding "ambang sudut" (pohon keputusan satu-fitur dari data yang sama). Laporan tersimpan di `*.report.json`.
+3. **Pasang**: `npm run build`; model di `public/model/` ikut ke APK (`npx cap sync`). Uji kode: `node tools/tests/ml.sim.mjs`.
+
+Catatan jujur tentang keterbatasan: (a) **repo ini belum menyertakan model terlatih**, karena belum ada data nyata; `tools/ml/synth.py` hanya untuk menguji alur dan angkanya tidak boleh dilaporkan sebagai hasil penelitian. (b) Pembanding di `train.py` bukan `counter.js`; untuk membandingkan dengan counter.js, rekam sesi nyata dan catat hitungan counter.js. (c) Halaman evaluasi di dalam aplikasi belum ada, evaluasi dijalankan lewat Python. (d) Pemisahan *duduk antara dua sujud* dari *tahiyat* biasanya paling sulit bagi model; periksa matriks konfusi.
+
 **Pemantau Rakaat kamera** (`src/pose.js`, `src/rakaat.js`, `src/watch.js`): kamera depan melihat orang dari DEPAN. MediaPipe Pose hanya dipakai untuk tiga titik (hidung, bahu, pinggul). Setelah kalibrasi berdiri 2,5 detik, tiap bingkai diubah jadi dua angka: `d` (turunnya bahu dari posisi berdiri, satuan jarak hidung→pinggul) dan `tr` (panjang vertikal bahu→pinggul, kecil saat rukuk). `rakaat.js` (mesin keadaan murni, tanpa DOM) mengubahnya menjadi berdiri / rukuk / duduk / sujud dengan histeresis dan penahan waktu. **1 rakaat = 2 sujud (dipisah duduk), dihitung saat bangkit dari sujud ke-2.** Ambang ada di konstanta `TH` (`rakaat.js`). Bila badan hilang dari bingkai saat turun, dianggap sedang sujud. Alur (`watch.js`): pratinjau + uji gerakan → hitung mundur 10 dtk → kalibrasi → layar hitam memantau (sentuh & tahan 2 dtk untuk berhenti) → ringkasan. Otomatis berhenti 90 dtk setelah target tercapai, atau 3 menit tanpa badan terlihat.
 
 | Pengingat (`watch.js`) | Pola |
@@ -225,7 +235,9 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 │  ├─ admin.js             # panel admin
 │  ├─ config.js            # mode online, daftar admin, LOCAL_ADMIN
 │  ├─ firebase.js          # inisialisasi Firebase & Firestore
-│  ├─ counter.js           # penghitung rakaat (sensor)
+│  ├─ counter.js           # penghitung rakaat (sensor, ambang)
+│  ├─ ml.js                # pengenal gerakan ML (fitur, MLP, pelacak urutan, createSmartCounter)
+│  ├─ rekam.js             # halaman Rekam Data (kontribusi data penelitian, ekspor CSV)
 │  ├─ guide.js             # panduan animasi (orang, saku, cara pakai)
 │  ├─ prayers.js           # daftar shalat + sunnah buatan sendiri (nama diketik pengguna)
 │  ├─ report.js            # Laporan Shalat & Dzikir (2 tab: riwayat sesi, grafik, salin/hapus)
@@ -239,10 +251,12 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 │  ├─ pwhash.js · util.js  # hash PBKDF2 · helper
 │  └─ style.css            # tema putih + hijau zamrud
 ├─ public/                 # ikon PWA, manifest
+│  ├─ model/               # (opsional) model ML terlatih: gerakan-shirt.json / gerakan-pants.json / gerakan.json
 │  ├─ quran/               # data Al-Qur'an per surah (tajwid, terjemahan ID/EN) + README sumber & lisensi
 │  └─ fonts/               # Amiri Quran (OFL)
 ├─ android-assets/         # ikon & splash siap pakai untuk Android
 ├─ scripts/create-admin.mjs# buat akun admin di Firebase
+├─ tools/ml/               # features.py (fitur, identik dengan ml.js) · train.py (latih+LOSO+ekspor) · synth.py (data uji sintetis) · make_golden.py
 ├─ tools/logo.py           # generator logo
 ├─ tools/build-quran.py    # bangun ulang public/quran/ dari paket npm sumber
 ├─ firestore.rules         # aturan keamanan Firestore
@@ -255,6 +269,7 @@ Mode pengingat: Getar (bawaan), Getar + suara (juga membacakan peringatan), Seny
 
 | Versi | Perubahan utama |
 |---|---|
+| **v1.10.0** | **Machine Learning**: pengenal gerakan shalat berbasis MLP (`src/ml.js`) yang menggantikan penghitung ambang bila ada model di `public/model/` (otomatis kembali ke `counter.js` bila tidak ada). Halaman **Rekam Data** (Akun → Kontribusi Data Penelitian, khusus admin) untuk mengumpulkan dataset berlabel, pipeline latih & evaluasi lintas-orang `tools/ml/`, uji paritas JS↔Python `tools/tests/ml.sim.mjs`. Belum ada model terlatih di repo |
 | **v1.9.1** | **Animasi memasukkan HP diperbaiki**: tangan kini tampak *punggung tangan*-nya (HP digenggam di belakang tangan, jari melingkar ke sisi HP, ujung ibu jari muncul di sisi seberang). Gerakan memakai spline halus (kecepatan kontinu, tanpa berhenti-jalan), lengan memendek saat mendekati bahu agar siku tidak mencuat, jari melepas bergantian, dan HP miring mengikuti ayunan. Kode: `frontHand`, `makeTrack`, `placeScene` di `src/guide.js`. |
 | **v1.9.0** | **Al-Qur'an Tajwid Berwarna**: tab baru *Qur'an* (114 surah, offline) dengan tajwid berwarna + terjemahan Indonesia/English, legenda warna interaktif, penanda, lanjutkan membaca, lompat ayat, pengaturan huruf. Sumber & lisensi data di `public/quran/README.txt` |
 | **v1.8.1** | **Panduan dirapikan jadi 4 tab** (Saku Celana, Saku Baju, Mode Datar, Mode Tegak). Tab *Cara Pakai* dihapus: animasinya dilebur ke tab Saku dan disesuaikan per posisi HP (hitungan mengikuti `counter.js`), menggantikan adegan *Saat shalat* yang mirip |

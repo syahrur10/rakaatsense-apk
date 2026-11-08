@@ -116,6 +116,7 @@ ${guest ? `<div class="card ac-guest"><b>${esc(t('ac.guest.t'))}</b><p>${esc(t('
   <label class="fld plain"><span>${esc(t('ac.city'))}</span><div class="box"><input id="acCity" type="text" maxlength="${CITY_MAX}" autocomplete="address-level2" placeholder="${esc(t('ac.city.ph'))}" value="${esc(p.city || '')}"></div></label>
   <p class="au-err" id="acErr" role="alert" hidden></p>
   <button class="btn" type="submit">${esc(t('ac.save'))}</button></form>
+${isAdmin() ? `<button type="button" class="btn ghost ac-wide" data-go="rc">${esc(t('rc.entry.t'))}</button>` : ''}
 ${isAdmin() ? `<button type="button" class="btn ghost ac-wide" data-go="adm">${esc(t('ac.admin'))}</button>` : ''}
 <button type="button" class="btn ghost del ac-wide" data-ac="out">${ic('logout', 18)}<span>${esc(t(guest ? 'au.in' : 'au.out'))}</span></button>`;
   bioCount();
