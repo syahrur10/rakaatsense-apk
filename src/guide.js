@@ -630,8 +630,8 @@ function placeScene(box, kind, still) {
     const lh = [0.8 + 0.4 * Math.sin(now / 1700), 62.5 + 0.5 * br, -10.2 - 0.6 * reach];
     const rig = { H: [bx, 63 + 0.4 * br, 0], S: [bx - 0.5 * reach, 24 + 0.4 * br - 0.8 * reach, 0.6 * reach], br, torus: eng.meshes.torus, shoe: true,
       legs: [0, 1].map((i) => { const z = i ? -5.4 : 5.4; return { H: [0, 63, z * 0.9], K: [0.4, 95, z], A: [0, 121.5, z * 1.02], toe: [8.5, 123.8, z * 1.06] }; }),
-      arms: [{ sh: [bx - 0.4 * reach, 25.8, 7.9], tg: wr, pole: [-0.7, 0.25, 0.7], l1: 23, l2: 21, sgn: 1, hand: { f, n, gr: grip, fp: 0 } }, { sh: [bx, 25.8, -7.9], tg: lh, pole: [-0.7, 0.25, -0.7], l1: 23, l2: 21, sgn: -1, hand: { f: [0.05, 1, 0.05], n: [0, 0, 1], gr: 0.15 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
-      head: { C: [bx + 0.6 * ld, 12.4 + 0.5 * br + 0.6 * ld, 0.3 * reach], roll: 4 * ld + 6 * sm * 0, yaw: 16 * ld * 0 + (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, 0], smile: 1, open: 0.45 + 0.35 * sm, brow: 0.3 + 0.5 * sm } };
+      arms: [{ sh: [bx - 0.4 * reach, 25.8, 9.8], tg: wr, pole: [-0.7, 0.25, 0.7], l1: 23, l2: 21, sgn: 1, hand: { f, n, gr: grip, fp: 0 } }, { sh: [bx, 25.8, -9.8], tg: lh, pole: [-0.7, 0.25, -0.7], l1: 23, l2: 21, sgn: -1, hand: { f: [0.05, 1, 0.05], n: [0, 0, 1], gr: 0.15 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
+      head: { C: [bx + 0.6 * ld, 12.4 + 0.5 * br + 0.6 * ld, 0.3 * reach], roll: 4 * ld + 6 * sm * 0, yaw: 16 * ld * 0 + (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, 0], smile: 1, open: 0, brow: 0.3 + 0.5 * sm } };
     rig.arms[0].tg = wr;
     const cmds = []; buildChar(rig, cmds);
     if (!sh) { const a = [Pk[0] + 0.1, Pk[1] - 4.5, Pk[2] - 1.2], b = [Pk[0] + 0.4, Pk[1] + 2, Pk[2] + 2.2]; cmds.push(pillCmd(a, b, 0.45, 0.45, COL.pantsD, { ref: [0, 0, 1], sh: false })); }
@@ -685,7 +685,7 @@ function frontPiP(svg, x, y, w, h) {
   const f1 = (n) => n.toFixed(1);
   return { g, draw(F, now) {
     const R = fig.rig, M = view.M; if (!R || !M) return; const pr = (p) => project(M, view.vbUsed, p), pulse = 1.8 + 0.5 * Math.sin(now / 260);
-    const P = [R.head.C, v3.add(R.S, [0, 0, 7.7]), v3.add(R.S, [0, 0, -7.7]), v3.add(R.H, [0, 0, 4.8]), v3.add(R.H, [0, 0, -4.8])].map(pr);
+    const P = [R.head.C, v3.add(R.S, [0, 0, 9.6]), v3.add(R.S, [0, 0, -9.6]), v3.add(R.H, [0, 0, 4.8]), v3.add(R.H, [0, 0, -4.8])].map(pr);
     dots.forEach((d, i) => { d.setAttribute('cx', f1(P[i][0])); d.setAttribute('cy', f1(P[i][1])); d.setAttribute('r', pulse.toFixed(2)); });
     sk.setAttribute('d', `M${f1(P[1][0])} ${f1(P[1][1])}L${f1(P[2][0])} ${f1(P[2][1])}L${f1(P[4][0])} ${f1(P[4][1])}L${f1(P[3][0])} ${f1(P[3][1])}Z`);
   } };
