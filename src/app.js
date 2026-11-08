@@ -10,6 +10,7 @@ import { addSession, focus as focusReport, render as renderReport } from './repo
 import { enter as qrEnter } from './quran.js';
 import { enter as acEnter } from './akun.js';
 import { setTimes as alarmTimes } from './alarm.js';
+import { hijriDate } from './hijri.js';
 import './belajar.js';
 import './qibla.js';
 import './dzikir.js';
@@ -36,9 +37,11 @@ const HJ = {
 };
 function hijri(d, L) {
   try {
-    const f = new Intl.DateTimeFormat(L + '-u-ca-islamic', { day: 'numeric', month: 'numeric', year: 'numeric' }), P = Object.fromEntries(f.formatToParts(d).map((x) => [x.type, x.value]));
-    if (HJ[L] && +P.month >= 1 && +P.month <= 12) return `${P.day} ${HJ[L][+P.month - 1]} ${P.year} H`;
-    return new Intl.DateTimeFormat(L + '-u-ca-islamic', { dateStyle: 'long' }).format(d);
+    const h = hijriDate(d); // sesuai Kalender Hijriah Indonesia (Kemenag), bukan Intl `islamic` yang bisa selisih 1 hari
+    if (HJ[L]) return `${h.d} ${HJ[L][h.m - 1]} ${h.y} H`;
+    // bahasa lain: nama bulan & urutan penulisan dari Intl; angka hari/tahun tetap dari Kemenag
+    const nf = new Intl.NumberFormat(L, { useGrouping: false }), ref = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 15 - h.d, 12);
+    return new Intl.DateTimeFormat(L + '-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).formatToParts(ref).map((x) => (x.type === 'day' ? nf.format(h.d) : x.type === 'year' ? nf.format(h.y) : x.value)).join('');
   } catch { return ''; }
 }
 function setDates() {
