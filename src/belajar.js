@@ -67,12 +67,22 @@ function recHTML(id, over = {}) {
 const toggles = () => `<div class="bs-tg"><button type="button" class="pill sm ${S.latin ? 'on' : ''}" data-a="latin" aria-pressed="${S.latin}">${esc(t('bs.latin'))}</button><button type="button" class="pill sm ${S.arti ? 'on' : ''}" data-a="arti" aria-pressed="${S.arti}">${esc(t('bs.arti'))}</button></div>`;
 
 /* ---------- gambar gerak ---------- */
+/** Rute antar-pose. Sebelum rukuk, dan saat bangkit dari rukuk, kedua tangan DIANGKAT dulu (pose 'u', sunnah: takbir intiqal / "sami'allahu liman hamidah"),
+ *  baru turun ke rukuk atau dilepas ke i'tidal. Berlaku di mode Ikuti; urutan Gerakan (DEMO) sudah memuatnya secara eksplisit. */
+const VIA = (a, b) => (b === 'r' && a !== 'u' && a !== 'r' ? ['u'] : b === 'i' && a === 'r' ? ['u'] : []);
 function createStage(svg, first) {
-  const draw = sideFigure(svg, 'plain'); let from = POSE[first], to = from, cur = from, t0 = 0, dur = 0, raf = 0;
-  const frame = (now) => { raf = requestAnimationFrame(frame); const k = dur ? Math.min(1, (now - t0) / dur) : 1; cur = k >= 1 ? to : blend(from, to, k); draw(cur, now, now - t0); };
+  const draw = sideFigure(svg, 'plain'); let name = first, cur = POSE[first], segs = [], t0 = 0, raf = 0;
+  /** pose pada waktu `el` (ms sejak mulai): rangkaian ruas {from → to} berurutan (ruas diam: from === to) */
+  const pick = (el) => { let x = el; for (const g of segs) { if (x < g.dur) return g.from === g.to ? g.to : blend(g.from, g.to, x / g.dur); x -= g.dur; } return segs.length ? segs[segs.length - 1].to : cur; };
+  const frame = (now) => { raf = requestAnimationFrame(frame); cur = pick(now - t0); draw(cur, now, now - t0); };
   draw(cur, 0);
   return {
-    to(name, ms = 1100) { from = cur; to = POSE[name]; t0 = performance.now(); dur = ms; if (reduce()) { cur = to; dur = 0; draw(cur, 0); } },
+    to(n, ms = 1100) {
+      const via = ms ? VIA(name, n) : [], end = POSE[n], v = via.length ? POSE[via[0]] : null;
+      segs = v ? [{ from: cur, to: v, dur: ms * 0.62 }, { from: v, to: v, dur: ms * 0.12 }, { from: v, to: end, dur: ms * 0.85 }] : [{ from: cur, to: end, dur: ms }];
+      name = n; t0 = performance.now();
+      if (reduce() || !ms) { segs = []; cur = end; draw(cur, 0); }
+    },
     start() { if (!reduce() && !raf) raf = requestAnimationFrame(frame); },
     stop() { cancelAnimationFrame(raf); raf = 0; },
   };
@@ -116,7 +126,7 @@ function followStep(move = true) {
 function step(delta) { const n = idx + delta; if (n < 0) return; if (n >= steps.length) { idx = 0; } else idx = n; followStep(); }
 
 /* ---------- tab: Gerakan ---------- */
-const DEMO = [['i', 1000, 1100, B2('Berdiri', 'Stand')], ['u', 1000, 1100, B2('Takbiratul ihram', 'Opening takbir')], ['q', 1000, 1500, B2('Sedekap, baca Al-Fatihah', 'Hands folded, recite Al-Fatihah')], ['r', 1000, 1600, B2('Rukuk', 'Ruku')], ['i', 1000, 1200, B2("I'tidal", "I'tidal")],
+const DEMO = [['i', 1000, 1100, B2('Berdiri', 'Stand')], ['u', 1000, 1100, B2('Takbiratul ihram', 'Opening takbir')], ['q', 1000, 1500, B2('Sedekap, baca Al-Fatihah', 'Hands folded, recite Al-Fatihah')], ['u', 800, 250, B2('Angkat tangan, takbir menuju rukuk', 'Raise hands, takbir toward ruku')], ['r', 950, 1600, B2('Rukuk', 'Ruku')], ['u', 950, 250, B2('Bangkit sambil angkat tangan', 'Rise with hands raised')], ['i', 750, 1200, B2("I'tidal: tangan dilepas", "I'tidal: hands lowered")],
   ['k', 1000, 0, B2('Turun untuk sujud', 'Going down')], ['s', 1300, 1800, B2('Sujud', 'Prostration')], ['d', 900, 1400, B2('Duduk di antara dua sujud', 'Sitting between prostrations')], ['s', 1100, 1800, B2('Sujud kedua', 'Second prostration')], ['dt', 900, 1300, B2('Duduk iftirasy (Tahiyat awal)', 'Iftirasy (First tashahhud)')], ['w', 1000, 1700, B2('Duduk tawarruk (Tahiyat akhir)', 'Tawarruk (Final tashahhud)')], ['sa', 500, 6400, B2('Salam: menoleh kanan lalu kiri', 'Salam: turn right, then left')]];
 function B2(id, en) { return { id, en }; }
 function moves() {
