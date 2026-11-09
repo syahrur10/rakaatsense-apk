@@ -595,7 +595,7 @@ function placeScene(box, kind, still) {
   const lay = makeLayer(svg, [0, 0, 300, 245]); if (!lay) { svg.remove(); return placeScene2D(box, kind, still); }
   const eng = lay.eng, sh = kind === 'shirt', room = roomBackdrop(lay.back, [0, 0, 300, 245], 196), SC = 1.62, K = 0.12;
   const MAIN = { yaw: -90, s: SC, k: K, tx: 85, ty: 15 };
-  const Pk = sh ? [8.6, 39.6, 5.7] : [6.0, 84, 7.4], PHW = 7.4, PHH = 14.8, HSC = 1.45, ZSH = 12.4;
+  const Pk = sh ? [8.6, 39.6, 5.7] : [6.0, 84, 7.4], PHW = 7.4, PHH = 14.8, HSC = 1.32, ZSH = 12.4;
   const pcam = (() => { const ph = -62 * RAD, c = Math.cos(ph), sn = Math.sin(ph), zs = 2.7; const xp = Pk[0] * c + Pk[2] * sn, zp = -Pk[0] * sn + Pk[2] * c; return { yaw: -62, s: zs, k: K, tx: 229 - zs * xp, ty: (sh ? 128 : 113) - zs * (Pk[1] + K * zp) }; })();
   S('rect', { x: 166, y: 18, width: 126, height: 190, rx: 20, fill: '#FFFDF6' }, lay.back);
   S('rect', { x: 166, y: 18, width: 126, height: 190, rx: 20, fill: 'none', stroke: '#D3EBDD', 'stroke-width': 2 }, svg);
@@ -611,17 +611,20 @@ function placeScene(box, kind, still) {
     const f = nrm3(add3(mul3(vert, -Math.cos(th)), mul3(dep, Math.sin(th)))); return { wr: sub3(FB, mul3(f, 6.5 * HSC)), f, n: mul3(lat, -1) }; };
   const G2 = sh ? 0.12 : 1, UI = sh ? -1.6 : -4.6, PIT = sh ? 12 : 30;
   const K9 = (pc, g, r = 0, pi = 0, g2 = 0, u = -1) => [pc[0], pc[1], pc[2], g, 0, r, pi, g2, u];
-  const REST = [4.5, 57, 15.5], A1 = [6.5, 50, 16], LIFT = [10, 38, 13.5], LK = [14.5, 31, 9.5], HOV = [Pk[0] + 3.2, Pk[1] - (sh ? 9 : 15), Pk[2]], MID = [Pk[0] + 1.4, Pk[1] - (sh ? 5.5 : 8.5), Pk[2]], FIN = [Pk[0] - (sh ? 1 : 1.2), Pk[1] + (sh ? -3 : 2.2), Pk[2]];
+  /* Titik-titik gerak. Tangan kanan menjuntai santai (REST_WR) → naik ke depan perut (BEL) memegang HP → naik di depan dada (CH) → ke atas saku (HOV) → masuk saku (FIN). */
+  const REST_WR = [3.4, 69.5, 14.9], RDOWN = { f: [0.05, 1, 0.04], n: [0, 0, -1] }, RFWD = { f: [1, 0.15, 0], n: [0, 0, -1] };
+  const BEL = [11.5, 52, 8.6], CH = [13.2, 41, 7.4], LK = [14.2, 33.5, 6.6];
+  const HOV = [Pk[0] + 3.2, Pk[1] - (sh ? 9 : 15), Pk[2]], MID = [Pk[0] + 1.4, Pk[1] - (sh ? 5.5 : 8.5), Pk[2]], FIN = [Pk[0] - (sh ? 1 : 1.2), Pk[1] + (sh ? -3 : 2.2), Pk[2]];
   const trkA = makeTrack([
-    { t: 0, v: K9(REST, 0.1), stop: 1 }, { t: 950, v: K9([REST[0] + 0.3, REST[1] + 0.8, REST[2]], 1), tn: 0.5 }, { t: 1450, v: K9([REST[0] - 0.4, REST[1] + 2, REST[2] + 0.4], 1, 3), tn: 0.3 }, { t: 2100, v: K9(A1, 1, -3) },
-    { t: 2850, v: K9(LIFT, 1, -5), tn: 0.55 }, { t: 3650, v: K9(LK, 1, -5, 0, 0.1), tn: 0.3 }, { t: 4250, v: K9(v3.mix(LK, HOV, 0.55), 1, -2, 6, G2 * 0.7, -2.5) }, { t: T_HOV, v: K9(HOV, 1, 0, 8, G2, UI), tn: 0.8 },
+    { t: 0, v: K9(BEL, 1), stop: 1 }, { t: 1100, v: K9([BEL[0] + 0.4, BEL[1] - 1.5, BEL[2]], 1), tn: 0.4 }, { t: 2000, v: K9(CH, 1, -2, 0, G2 * 0.3), tn: 0.5 }, { t: 3000, v: K9(LK, 1, -2, 0, G2 * 0.3), tn: 0.4 },
+    { t: 4250, v: K9(v3.mix(LK, HOV, 0.6), 1, -1, 5, G2 * 0.7, -2.5) }, { t: T_HOV, v: K9(HOV, 1, 0, 8, G2, UI), tn: 0.8 },
     { t: 5400, v: K9(MID, 1, 0, PIT * 0.6, G2, UI) }, { t: REL, v: K9(FIN, 1, 0, PIT, G2, UI), stop: 1 }]);
-  const H0 = hold(FIN, 0, PIT, G2, UI), HR = hold(REST, 0, 0, 0, -1);
+  const H0 = hold(FIN, 0, PIT, G2, UI), HB = hold(BEL, 0, 0, 0, -1.6);
   const PAT = (dx, dy) => [Pk[0] + dx, Pk[1] + dy, Pk[2] + (sh ? 1 : 0.5)];
   const B9 = (w, g, pat) => [w[0], w[1], w[2], g, pat, 0, PIT, 0, 0];
   const trkB = makeTrack([
-    { t: REL, v: B9(H0.wr, 1, 0), stop: 1 }, { t: 6280, v: B9(add3(H0.wr, [3, -3, 4]), 0.35, 0.3) }, { t: 6650, v: B9(PAT(3.6, -9.5), 0.1, 1) }, { t: 6920, v: B9(PAT(2.8, -5.8), 0.1, 1), stop: 1 }, { t: 7220, v: B9(PAT(3.6, -9), 0.1, 1) }, { t: 7480, v: B9(PAT(2.8, -5.8), 0.1, 1), stop: 1 },
-    { t: 7900, v: B9(PAT(4.5, -11), 0.15, 0.6) }, { t: 8650, v: B9(add3(HR.wr, [0, -4, 3]), 0.1, 0) }, { t: FRONT_T, v: B9(HR.wr, 0.1, 0), stop: 1 }]);
+    { t: REL, v: B9(H0.wr, 1, 0), stop: 1 }, { t: 6280, v: B9(add3(H0.wr, [3, -3, 4]), 0.35, 0.3) }, { t: 6650, v: B9(PAT(3.8, -10), 0.1, 1) }, { t: 6920, v: B9(PAT(2.6, -6.5), 0.1, 1), stop: 1 }, { t: 7220, v: B9(PAT(3.8, -10), 0.1, 1) }, { t: 7480, v: B9(PAT(2.6, -6.5), 0.1, 1), stop: 1 },
+    { t: 7900, v: B9(PAT(5, -11), 0.15, 0.6) }, { t: 8650, v: B9(add3(REST_WR, [1.5, -5, 0.5]), 0.12, 0) }, { t: FRONT_T, v: B9(REST_WR, 0.12, 0), stop: 1 }]);
   const col = { phone: [0.09, 0.11, 0.13], frame: [0.80, 0.64, 0.30], lens: [0.22, 0.27, 0.32] };
   const phoneCmds = (pc, r, a, pi = 0) => {
     const { lat, vert, dep } = frame(r, pi), Rb = [lat, vert, dep], op = { a, sh: a > 0.99 };
@@ -629,22 +632,27 @@ function placeScene(box, kind, still) {
       meshCmd(eng.meshes.torus, [dep, vert, lat], [0.55, 1, 0.55], add3(pc, add3(mul3(dep, 1.35), add3(mul3(vert, -PHH * 0.5 + 2.4), mul3(lat, PHW * 0.5 - 2.2)))), col.lens, { sh: false, a })];
   };
   const pillCmdSlit = (a, b) => pillCmd(a, b, 0.45, 0.45, COL.pantsD, { ref: [0, 0, 1], sh: false });
+  const slerpO = (a, b, k) => ({ f: nrm3(v3.mix(a.f, b.f, k)), n: nrm3(v3.mix(a.n, b.n, k)) });
   const draw = (ms, now) => {
     ms %= FRONT_T; const holdingA = ms <= REL; let wr, f, n, grip, pat = 0, pc, roll = 0, pit = PIT;
-    const fFree = nrm3(v3.mix([0, 1, 0.1], [0, 1, 0.15], 0)), tail = 1 - ease(clamp01((ms - (FRONT_T - 650)) / 550)), headIn = ease(clamp01((ms - 250) / 500));
-    if (holdingA) { const v = trkA(ms).v; pc = [v[0], v[1], v[2]]; grip = v[3]; roll = v[5]; pit = v[6]; const h = hold(pc, roll, pit, v[7], v[8]); wr = h.wr; f = h.f; n = h.n; }
-    else {
-      const v = trkB(ms).v; wr = [v[0], v[1], v[2]]; grip = v[3]; pat = v[4]; pc = FIN; const w0 = 1 - ease(clamp01((ms - REL) / 380)), w1 = ease(clamp01((ms - (FRONT_T - 1000)) / 900));
-      const nFree = nrm3(v3.mix([0, 0, -1], [-1, 0, -0.2], pat)), fF = nrm3(v3.mix(fFree, [0, 1, 0.2], pat));
-      f = nrm3(v3.mix(v3.mix(fF, H0.f, w0), HR.f, w1)); n = nrm3(v3.mix(v3.mix(nFree, H0.n, w0), HR.n, w1));
+    const tail = 1 - ease(clamp01((ms - (FRONT_T - 650)) / 550)), headIn = ease(clamp01((ms - 300) / 450)), up0 = ease(clamp01(ms / 1000));   // up0: tangan naik dari menjuntai ke depan perut
+    if (holdingA) {
+      const v = trkA(ms).v; pc = [v[0], v[1], v[2]]; grip = v[3]; roll = v[5]; pit = v[6]; const h = hold(pc, roll, pit, v[7], v[8]);
+      const rest = v3.mix(REST_WR, h.wr, 1), dl = [(REST_WR[0] - h.wr[0]) * (1 - up0), (REST_WR[1] - h.wr[1]) * (1 - up0) - 6 * Math.sin(Math.PI * up0) * 0, (REST_WR[2] - h.wr[2]) * (1 - up0)];
+      wr = add3(h.wr, dl); pc = add3(pc, dl); grip = 0.12 + (grip - 0.12) * ease(clamp01(ms / 900));
+      const o1 = up0 < 0.5 ? slerpO(RDOWN, RFWD, up0 * 2) : slerpO(RFWD, h, up0 * 2 - 1), o = ms < 1000 ? o1 : h; f = nrm3(o.f); n = nrm3(o.n);
+    } else {
+      const v = trkB(ms).v; wr = [v[0], v[1], v[2]]; grip = v[3]; pat = v[4]; pc = FIN; const w0 = 1 - ease(clamp01((ms - REL) / 380)), w1 = ease(clamp01((ms - (FRONT_T - 1300)) / 1100));
+      const nFree = nrm3(v3.mix([0, 0, -1], [-1, 0, -0.2], pat)), fF = nrm3(v3.mix(RDOWN.f, [0, 1, 0.2], pat));
+      f = nrm3(v3.mix(v3.mix(fF, H0.f, w0), RDOWN.f, w1)); n = nrm3(v3.mix(v3.mix(nFree, H0.n, w0), RDOWN.n, w1));
     }
     const reach = clamp01(Math.hypot(wr[1] - 63, wr[2] - 12) / 40), br = Math.sin(now / 650), ld = ease(clamp01((ms - 1900) / 700)) * (1 - 0.3 * ease(clamp01((ms - 3900) / 700))) * (1 - ease(clamp01((ms - 6900) / 900))), sm = ease(clamp01((ms - 6150) / 500)) * (1 - ease(clamp01((ms - 8300) / 800)));
     const bx = 0.25 * Math.sin(now / 1900), ins = ease(clamp01((ms - 4300) / 1100)) * (1 - ease(clamp01((ms - 6100) / 900))) + 0.3 * ease(clamp01((ms - 1900) / 900)) * (1 - ease(clamp01((ms - 4300) / 600))), flex = (sh ? 2 : 3.4) * ins;
-    const lh = [0.8 + 0.4 * Math.sin(now / 1700), 63 + 0.5 * br, -(ZSH + 4.2) - 0.6 * reach], lean = sh ? 0 : 2.4 * flex;
+    const lh = [0.5 + 0.35 * Math.sin(now / 1700), 70.4 + 0.5 * br, -(ZSH + 2.2) - 0.4 * reach], lean = sh ? 0 : 2.4 * flex;
     const rig = { H: [bx, 63 + 0.4 * br + 1.2 * flex, -0.9 * ins], S: [bx - 0.5 * reach + 1.5 * ins + 0.4 * lean, 24 + 0.4 * br - 0.8 * reach + 1.4 * flex + lean, 0.6 * reach - 1.4 * ins], br, torus: eng.meshes.torus, shoe: true,
-      legs: [0, 1].map((i) => { const z = i ? -6.2 : 6.2, fl = i ? 0.55 * flex : flex, lift = i ? 0.7 * ins : 0; return { H: [0, 63 + 1.2 * flex, z * 0.9 - 0.9 * ins], K: [0.4 + fl * 0.9, 95 + 0.8 * flex, z], A: [0, 121.5 - lift, z * 1.04], toe: [8.8, 123.8 - lift * 1.6, z * 1.1] }; }),
-      arms: [{ sh: [bx - 0.4 * reach + 0.4 * lean, 27.6 + lean + 1.4 * flex, ZSH], tg: wr, pole: [-0.6, 0.3, 0.8], l1: 24, l2: 22, sgn: 1, hand: { f, n, gr: grip, fp: 0 } }, { sh: [bx, 27.6 + 1.4 * flex, -ZSH], tg: lh, pole: [-0.6, 0.3, -0.8], l1: 24, l2: 22, sgn: -1, hand: { f: [0.05, 1, 0.05], n: [0, 0, 1], gr: 0.2 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
-      head: { C: [bx + 0.6 * ld + 1.6 * ins, 12.4 + 0.5 * br + 0.6 * ld + 1.4 * flex + 0.9 * lean, 0.3 * reach - 1.4 * ins], roll: 4 * ld + 5 * ins, yaw: (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, 0], smile: 1, open: 0, brow: 0.3 + 0.5 * sm } };
+      legs: [0, 1].map((i) => { const z = i ? -6.6 : 6.6, fl = i ? 0.55 * flex : flex, lift = i ? 0.7 * ins : 0; return { H: [0, 63 + 1.2 * flex, z * 0.85 - 0.9 * ins], K: [0.4 + fl * 0.9, 95 + 0.8 * flex, z], A: [0, 121.5 - lift, z * 1.08], toe: [8.8, 123.8 - lift * 1.6, z * 1.12] }; }),
+      arms: [{ sh: [bx - 0.4 * reach + 0.4 * lean, 27.6 + lean + 1.4 * flex, ZSH], tg: wr, pole: [-0.3 + 0.3 * pat, 1 - 0.3 * pat, 0.3 + 0.6 * pat], l1: 24, l2: 22, sgn: 1, hand: { f, n, gr: grip, fp: 0, fl: holdingA ? 1 : 0 } }, { sh: [bx, 27.6 + 1.4 * flex, -ZSH], tg: lh, pole: [-1, 0.1, -0.35], l1: 24, l2: 22, sgn: -1, hand: { f: [0.12, 1, 0.06], n: [0, 0, 1], gr: 0.3 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
+      head: { C: [bx + 0.6 * ld + 1.6 * ins, 12.4 + 0.5 * br + 0.6 * ld + 1.4 * flex + 0.9 * lean, 0.3 * reach - 1.4 * ins], roll: 4 * ld + 5 * ins, yaw: (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, -0.7 * ld * (1 - sm)], smile: 1, open: 0, brow: 0.3 + 0.5 * sm } };
     const cmds = []; buildChar(rig, cmds);
     if (!sh) cmds.push(pillCmdSlit([Pk[0] + 0.3, Pk[1] - 2.8, Pk[2] - 3.4], [Pk[0] + 0.5, Pk[1] - 2.2, Pk[2] + 3.6]));
     const pa = holdingA ? headIn : tail; if (pa > 0.01) cmds.push(...phoneCmds(pc, roll, pa, pit));
