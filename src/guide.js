@@ -595,8 +595,8 @@ function placeScene(box, kind, still) {
   const lay = makeLayer(svg, [0, 0, 300, 245]); if (!lay) { svg.remove(); return placeScene2D(box, kind, still); }
   const eng = lay.eng, sh = kind === 'shirt', room = roomBackdrop(lay.back, [0, 0, 300, 245], 196), SC = 1.62, K = 0.12;
   const MAIN = { yaw: -90, s: SC, k: K, tx: 85, ty: 15 };
-  const Pk = sh ? [11.1, 35.7, 6.4] : [8.2, 84, 9.8], PHW = 7.4, PHH = 14.8, HSC = 1.5, ZSH = 13.2;
-  const pcam = (() => { const ph = -62 * RAD, c = Math.cos(ph), sn = Math.sin(ph), zs = 2.7; const xp = Pk[0] * c + Pk[2] * sn, zp = -Pk[0] * sn + Pk[2] * c; return { yaw: -62, s: zs, k: K, tx: 229 - zs * xp, ty: 113 - zs * (Pk[1] + K * zp) }; })();
+  const Pk = sh ? [8.6, 39.6, 5.7] : [6.0, 84, 7.4], PHW = 7.4, PHH = 14.8, HSC = 1.45, ZSH = 12.4;
+  const pcam = (() => { const ph = -62 * RAD, c = Math.cos(ph), sn = Math.sin(ph), zs = 2.7; const xp = Pk[0] * c + Pk[2] * sn, zp = -Pk[0] * sn + Pk[2] * c; return { yaw: -62, s: zs, k: K, tx: 229 - zs * xp, ty: (sh ? 128 : 113) - zs * (Pk[1] + K * zp) }; })();
   S('rect', { x: 166, y: 18, width: 126, height: 190, rx: 20, fill: '#FFFDF6' }, lay.back);
   S('rect', { x: 166, y: 18, width: 126, height: 190, rx: 20, fill: 'none', stroke: '#D3EBDD', 'stroke-width': 2 }, svg);
   const pk2 = [85 - SC * Pk[2] + 4, 15 + SC * (Pk[1] + K * Pk[0])]; S('path', { d: `M${pk2[0].toFixed(1)} ${pk2[1].toFixed(1)}L166 ${sh ? 90 : 140}`, stroke: C.gold2, 'stroke-width': 1.6, 'stroke-dasharray': '3 3', fill: 'none' }, svg);
@@ -609,9 +609,9 @@ function placeScene(box, kind, still) {
   /* genggaman: telapak di sisi luar HP, jari melingkar di punggung HP. g2 = 0 dari bawah (jari ke atas), 1 dari atas (jari ke bawah); u = posisi pegang sepanjang HP */
   const hold = (pc, r, pi, g2, u) => { const { lat, vert, dep } = frame(r, pi), th = g2 * Math.PI, FB = add3(add3(pc, mul3(dep, 3.5)), add3(mul3(lat, 6.4), mul3(vert, u)));
     const f = nrm3(add3(mul3(vert, -Math.cos(th)), mul3(dep, Math.sin(th)))); return { wr: sub3(FB, mul3(f, 6.5 * HSC)), f, n: mul3(lat, -1) }; };
-  const G2 = sh ? 0.12 : 1, UI = sh ? -1.6 : -4.6, PIT = sh ? 12 : 26;
+  const G2 = sh ? 0.12 : 1, UI = sh ? -1.6 : -4.6, PIT = sh ? 12 : 30;
   const K9 = (pc, g, r = 0, pi = 0, g2 = 0, u = -1) => [pc[0], pc[1], pc[2], g, 0, r, pi, g2, u];
-  const REST = [4.5, 57, 15.5], A1 = [6.5, 50, 16], LIFT = [10, 38, 13.5], LK = [14.5, 31, 9.5], HOV = [Pk[0] + 3.2, Pk[1] - (sh ? 9 : 15), Pk[2]], MID = [Pk[0] + 1.4, Pk[1] - (sh ? 5.5 : 8.5), Pk[2]], FIN = [Pk[0] - (sh ? 1 : 2.6), Pk[1] + (sh ? -3 : -4.4), Pk[2]];
+  const REST = [4.5, 57, 15.5], A1 = [6.5, 50, 16], LIFT = [10, 38, 13.5], LK = [14.5, 31, 9.5], HOV = [Pk[0] + 3.2, Pk[1] - (sh ? 9 : 15), Pk[2]], MID = [Pk[0] + 1.4, Pk[1] - (sh ? 5.5 : 8.5), Pk[2]], FIN = [Pk[0] - (sh ? 1 : 1.2), Pk[1] + (sh ? -3 : 2.2), Pk[2]];
   const trkA = makeTrack([
     { t: 0, v: K9(REST, 0.1), stop: 1 }, { t: 950, v: K9([REST[0] + 0.3, REST[1] + 0.8, REST[2]], 1), tn: 0.5 }, { t: 1450, v: K9([REST[0] - 0.4, REST[1] + 2, REST[2] + 0.4], 1, 3), tn: 0.3 }, { t: 2100, v: K9(A1, 1, -3) },
     { t: 2850, v: K9(LIFT, 1, -5), tn: 0.55 }, { t: 3650, v: K9(LK, 1, -5, 0, 0.1), tn: 0.3 }, { t: 4250, v: K9(v3.mix(LK, HOV, 0.55), 1, -2, 6, G2 * 0.7, -2.5) }, { t: T_HOV, v: K9(HOV, 1, 0, 8, G2, UI), tn: 0.8 },
@@ -642,11 +642,11 @@ function placeScene(box, kind, still) {
     const bx = 0.25 * Math.sin(now / 1900), ins = ease(clamp01((ms - 4300) / 1100)) * (1 - ease(clamp01((ms - 6100) / 900))) + 0.3 * ease(clamp01((ms - 1900) / 900)) * (1 - ease(clamp01((ms - 4300) / 600))), flex = (sh ? 2 : 3.4) * ins;
     const lh = [0.8 + 0.4 * Math.sin(now / 1700), 63 + 0.5 * br, -(ZSH + 4.2) - 0.6 * reach], lean = sh ? 0 : 2.4 * flex;
     const rig = { H: [bx, 63 + 0.4 * br + 1.2 * flex, -0.9 * ins], S: [bx - 0.5 * reach + 1.5 * ins + 0.4 * lean, 24 + 0.4 * br - 0.8 * reach + 1.4 * flex + lean, 0.6 * reach - 1.4 * ins], br, torus: eng.meshes.torus, shoe: true,
-      legs: [0, 1].map((i) => { const z = i ? -8.4 : 8.4, fl = i ? 0.55 * flex : flex, lift = i ? 0.7 * ins : 0; return { H: [0, 63 + 1.2 * flex, z * 0.9 - 0.9 * ins], K: [0.4 + fl * 1.7, 95 + 0.8 * flex, z], A: [0, 121.5 - lift, z * 1.04], toe: [8.8, 123.8 - lift * 1.6, z * 1.1] }; }),
-      arms: [{ sh: [bx - 0.4 * reach + 0.4 * lean, 26 + lean + 1.4 * flex, ZSH], tg: wr, pole: [-0.6, 0.3, 0.8], l1: 24, l2: 22, sgn: 1, hand: { f, n, gr: grip, fp: 0 } }, { sh: [bx, 26 + 1.4 * flex, -ZSH], tg: lh, pole: [-0.6, 0.3, -0.8], l1: 24, l2: 22, sgn: -1, hand: { f: [0.05, 1, 0.05], n: [0, 0, 1], gr: 0.2 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
+      legs: [0, 1].map((i) => { const z = i ? -6.2 : 6.2, fl = i ? 0.55 * flex : flex, lift = i ? 0.7 * ins : 0; return { H: [0, 63 + 1.2 * flex, z * 0.9 - 0.9 * ins], K: [0.4 + fl * 0.9, 95 + 0.8 * flex, z], A: [0, 121.5 - lift, z * 1.04], toe: [8.8, 123.8 - lift * 1.6, z * 1.1] }; }),
+      arms: [{ sh: [bx - 0.4 * reach + 0.4 * lean, 27.6 + lean + 1.4 * flex, ZSH], tg: wr, pole: [-0.6, 0.3, 0.8], l1: 24, l2: 22, sgn: 1, hand: { f, n, gr: grip, fp: 0 } }, { sh: [bx, 27.6 + 1.4 * flex, -ZSH], tg: lh, pole: [-0.6, 0.3, -0.8], l1: 24, l2: 22, sgn: -1, hand: { f: [0.05, 1, 0.05], n: [0, 0, 1], gr: 0.2 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
       head: { C: [bx + 0.6 * ld + 1.6 * ins, 12.4 + 0.5 * br + 0.6 * ld + 1.4 * flex + 0.9 * lean, 0.3 * reach - 1.4 * ins], roll: 4 * ld + 5 * ins, yaw: (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, 0], smile: 1, open: 0, brow: 0.3 + 0.5 * sm } };
     const cmds = []; buildChar(rig, cmds);
-    if (!sh) cmds.push(pillCmdSlit([Pk[0] + 0.2, Pk[1] - 3.2, Pk[2] - 3.2], [Pk[0] + 0.5, Pk[1] - 2.4, Pk[2] + 3.4]));
+    if (!sh) cmds.push(pillCmdSlit([Pk[0] + 0.3, Pk[1] - 2.8, Pk[2] - 3.4], [Pk[0] + 0.5, Pk[1] - 2.2, Pk[2] + 3.6]));
     const pa = holdingA ? headIn : tail; if (pa > 0.01) cmds.push(...phoneCmds(pc, roll, pa, pit));
     const hl = ms > REL + 150 && ms < 7900 ? Math.min(1, (ms - REL - 150) / 300) * Math.min(1, (7900 - ms) / 400) * (0.75 + 0.25 * Math.sin(now / 260)) : 0; if (hl > 0.02) cmds.push(glowCmd(eng, add3(Pk, [8, 0, 2]), 10, [1, 0.86, 0.35], 0.7 * hl));
     const base = { floor: 125.5, shadowDir: [0.3, 1, -0.15], shadowA: 0.26 };
@@ -696,7 +696,7 @@ function frontPiP(svg, x, y, w, h) {
   const f1 = (n) => n.toFixed(1);
   return { g, draw(F, now) {
     const R = fig.rig, M = view.M; if (!R || !M) return; const pr = (p) => project(M, view.vbUsed, p), pulse = 1.8 + 0.5 * Math.sin(now / 260);
-    const P = [R.head.C, v3.add(R.S, [0, 0, 13.6]), v3.add(R.S, [0, 0, -13.6]), v3.add(R.H, [0, 0, 7.6]), v3.add(R.H, [0, 0, -7.6])].map(pr);
+    const P = [R.head.C, v3.add(R.S, [0, 0, 12.4]), v3.add(R.S, [0, 0, -12.4]), v3.add(R.H, [0, 0, 6.0]), v3.add(R.H, [0, 0, -6.0])].map(pr);
     dots.forEach((d, i) => { d.setAttribute('cx', f1(P[i][0])); d.setAttribute('cy', f1(P[i][1])); d.setAttribute('r', pulse.toFixed(2)); });
     sk.setAttribute('d', `M${f1(P[1][0])} ${f1(P[1][1])}L${f1(P[2][0])} ${f1(P[2][1])}L${f1(P[4][0])} ${f1(P[4][1])}L${f1(P[3][0])} ${f1(P[3][1])}Z`);
   } };
