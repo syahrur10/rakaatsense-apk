@@ -176,7 +176,7 @@ const PK = { shirt: '#1DB86E', shirtF: '#13935A', shirtL: '#3FD08B', shirtS: '#0
 /** Gambar orang tampak samping di dalam <svg>. Mengembalikan fungsi draw(pose, nowMs) → sudut kemiringan HP. */
 function sideFigure2D(svg, kind) {
   const cam = kind === 'cam', plain = kind === 'plain'; // varian kamera: tanpa HP di saku, sejadah lebih panjang supaya HP di depan muat
-  svg.setAttribute('viewBox', cam ? '40 -36 240 188' : '54 -4 148 138');
+  svg.setAttribute('viewBox', cam ? '40 -36 240 188' : '54 -15 148 149');
   const g = S('g', {}, svg), gx = cam ? 40 : 52, gw = cam ? 240 : 146;
   S('rect', { x: gx, y: 126.5, width: gw, height: 7, rx: 3.5, fill: C.gold }, g); S('rect', { x: gx, y: 126.5, width: gw, height: 1.7, rx: 0.8, fill: '#fff', opacity: 0.4 }, g);
   S('path', { d: `M${gx + 6} 130.2h${gw - 12}`, stroke: C.gold2, 'stroke-width': 0.8, 'stroke-dasharray': '2 2', fill: 'none' }, g);
@@ -316,7 +316,7 @@ const SIDE_CAM = { yaw: 0, s: 1, tx: 0, ty: 0, k: 0.21 };
 
 /** figur 3D tampak samping; antarmuka sama dengan versi SVG: draw(pose, nowMs, tl) → sudut kemiringan HP */
 function sideFigure3D(svg, kind) {
-  const cam = kind === 'cam', plain = kind === 'plain', vb = cam ? [40, -36, 240, 188] : [54, -4, 148, 138];
+  const cam = kind === 'cam', plain = kind === 'plain', vb = cam ? [40, -36, 240, 188] : [54, -15, 148, 149];
   svg.setAttribute('viewBox', vb.join(' ')); const lay = makeLayer(svg, vb); if (!lay) return null;
   const eng = lay.eng, room = roomBackdrop(lay.back, vb), ground = carpetCmds(eng, cam ? 36 : 50, cam ? 286 : 208), fig = { lay, extras: [], views: [], rig: null, add(fn) { this.extras.push(fn); } };
   svg.__back = lay.back; svg.__fig = fig; svg.__vb = vb;
