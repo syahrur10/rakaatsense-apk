@@ -2,7 +2,7 @@
  *  buildChar(rig, out) menyusun primitif dari "rangka" 3D; rigFromF() mengubah sendi tampak-samping (fk() di guide.js) menjadi rangka 3D. */
 import { v3, pill, ell, meshCmd, MAT, basis, IDENT } from './fig3d.js';
 const { add, sub, mul, dot, cross, nrm, mix, len } = v3;
-const RAD = Math.PI / 180, cl = (x, a, b) => Math.max(a, Math.min(b, x));
+const RAD = Math.PI / 180, RAD_ = Math.PI / 180, cl = (x, a, b) => Math.max(a, Math.min(b, x));
 export const COL = {
   shirt: [0.11, 0.58, 0.36], shirtL: [0.26, 0.74, 0.50], shirtD: [0.06, 0.40, 0.25], cuff: [0.09, 0.50, 0.31], pants: [0.17, 0.24, 0.40], pantsD: [0.11, 0.17, 0.29],
   skin: [0.90, 0.66, 0.48], skinD: [0.76, 0.50, 0.36], peci: [0.075, 0.075, 0.09], gold: [0.88, 0.70, 0.32], hair: [0.11, 0.08, 0.07], shoe: [0.07, 0.08, 0.10],
@@ -20,20 +20,32 @@ export function ik3(s, t, l1, l2, pole) {
 
 /** Tangan: telapak + 4 jari (2 ruas) + ibu jari. f = arah jari, n = sisi telapak, o = { gr: menggenggam, fp: telunjuk terangkat, sgn: sisi tubuh (+1 dekat) } */
 function buildHand(W, f, n, o, out) {
-  const HS = 1.32, sk = COL.skin, P = (...a) => out.push(pill(...a)), E = (...a) => out.push(ell(...a));
+  const HS = 1.3, sk = COL.skin, sd = COL.skinD, P = (...a) => out.push(pill(...a)), E = (...a) => out.push(ell(...a));
   let b = cross(n, f); if (dot(b, [0.5, -0.5, -0.8 * (o.sgn || 1)]) < 0) b = mul(b, -1); b = nrm(b);
   const at = (a, bb, c) => add(W, add(mul(f, a * HS), add(mul(b, bb * HS), mul(n, c * HS))));
-  E(at(3.5, 0, 0), [2.9 * HS, 1.55 * HS, 3.7 * HS], [b, n, f], sk, { mat: MAT.skin });
-  const gr = cl(o.gr || 0, 0, 1), fp = cl(o.fp || 0, 0, 1), LEN = [3.5, 3.9, 3.6, 2.8], OFF = [2.0, 0.7, -0.6, -1.9];
+  // pergelangan ramping menyambung manset, lalu telapak yang melebar ke arah jari (tidak bulat gemuk)
+  P(at(-0.6, 0, 0), at(1.6, 0, 0), 2.6 * HS, 2.7 * HS, sk, { mat: MAT.skin, ref: b, k: [1.25, 0.8, 1] });
+  E(at(3.9, 0.1, 0), [2.75 * HS, 1.25 * HS, 3.3 * HS], [b, n, f], sk, { mat: MAT.skin });
+  E(at(5.6, 0, -0.15), [2.8 * HS, 1.0 * HS, 2.0 * HS], [b, n, f], sk, { mat: MAT.skin, sh: false });  // pangkal jari (lebar buku jari)
+  E(at(3.0, 2.0, 0.55), [1.75 * HS, 1.2 * HS, 2.3 * HS], [b, n, f], sk, { mat: MAT.skin, sh: false });  // tonjolan pangkal ibu jari
+  const gr = cl(o.gr || 0, 0, 1), fp = cl(o.fp || 0, 0, 1), fl = cl(o.fl || 0, 0, 1);
+  const LEN = [3.7, 4.1, 3.8, 3.0], OFF = [1.95, 0.65, -0.65, -1.9], SEG = [0.46, 0.33, 0.27], RAD = [0.98, 0.9, 0.8, 0.7];
   for (let i = 0; i < 4; i++) {
-    const point = i === 0 && fp > 0.02, c = point ? 0.06 * (1 - fp) + 0.1 : Math.max(0.1 + gr * 0.82, i > 0 ? fp * 0.97 : 0), sp = point ? fp * 0.12 : 0;
-    const fl = cl(o.fl || 0, 0, 1), t1 = c * 82 * RAD, t2 = t1 + c * 74 * (1 - 0.62 * fl) * RAD, L1 = LEN[i] * HS * 0.56, L2 = LEN[i] * HS * 0.46, base = at(6.5, OFF[i], 0);
-    const d1 = nrm(add(add(mul(f, Math.cos(t1)), mul(n, Math.sin(t1))), mul(b, sp))), d2 = nrm(add(mul(f, Math.cos(t2)), mul(n, Math.sin(t2)))), p2 = add(base, mul(d1, L1)), p3 = add(p2, mul(d2, L2));
-    P(base, p2, 1.0 * HS, 0.92 * HS, sk, { mat: MAT.skin, ref: b }); P(p2, p3, 0.92 * HS, 0.8 * HS, sk, { mat: MAT.skin, ref: b });
+    const point = i === 0 && fp > 0.02;
+    const relax = 0.11 + 0.045 * i + 0.05 * Math.sin(i * 1.7);                                        // jari santai: sedikit melengkung, tiap jari beda
+    let c = point ? 0.03 + 0.05 * (1 - fp) : Math.max(relax + gr * (0.98 - relax), i > 0 ? fp * 0.98 : 0);
+    if (fl > 0.5) c = Math.max(c, 0.6 + 0.05 * i);                                                       // memegang HP: jari melingkari tepi HP
+    const sp = point ? fp * 0.1 : 0.02 * (i - 1.5);                                                      // sedikit renggang
+    const a1 = c * 80 * RAD_, a2 = a1 + c * 92 * RAD_ * (1 - 0.62 * fl), a3 = a2 + c * 48 * RAD_ * (1 - 0.62 * fl);
+    const base = at(7.0, OFF[i], 0), Ls = SEG.map((q) => LEN[i] * HS * q * 1.16);
+    const dir = (t, sx) => nrm(add(add(mul(f, Math.cos(t)), mul(n, Math.sin(t))), mul(b, sx)));
+    const d1 = dir(a1, sp), d2 = dir(a2, sp * 0.5), d3 = dir(a3, 0), p1 = add(base, mul(d1, Ls[0])), p2 = add(p1, mul(d2, Ls[1])), p3 = add(p2, mul(d3, Ls[2]));
+    P(base, p1, RAD[i] * HS, RAD[i] * 0.93 * HS, sk, { mat: MAT.skin, ref: b }); P(p1, p2, RAD[i] * 0.93 * HS, RAD[i] * 0.84 * HS, sk, { mat: MAT.skin, ref: b }); P(p2, p3, RAD[i] * 0.84 * HS, RAD[i] * 0.72 * HS, sk, { mat: MAT.skin, ref: b });
+    E(add(p3, mul(d3, 0.15 * HS)), [0.7 * HS, 0.55 * HS, 0.7 * HS], [b, n, d3], sk, { mat: MAT.skin, sh: false });                               // ujung jari membulat
   }
-  const g2 = Math.max(gr, fp), rest = nrm(add(mul(f, 0.9), mul(b, 0.5))), grip = nrm(add(add(mul(f, 0.35), mul(b, 0.15)), mul(n, 0.95))), td = nrm(mix(rest, grip, g2)), tb = at(2.2, 2.5, 0.2);
-  const t1 = add(tb, mul(td, 2.7 * HS)), td2 = nrm(mix(td, grip, 0.5)), t2 = add(t1, mul(td2, 2.3 * HS));
-  P(tb, t1, 1.15 * HS, 1.0 * HS, sk, { mat: MAT.skin, ref: n }); P(t1, t2, 1.0 * HS, 0.88 * HS, sk, { mat: MAT.skin, ref: n });
+  const g2 = Math.max(gr, fp), rest = nrm(add(add(mul(f, 0.95), mul(b, 0.16)), mul(n, 0.12))), grip = nrm(add(add(mul(f, 0.35), mul(b, 0.15)), mul(n, 0.95))), td = nrm(mix(rest, grip, g2 * 0.6)), tb = at(2.6, 2.0, 0.35);
+  const t1 = add(tb, mul(td, 2.4 * HS)), td2 = nrm(mix(td, grip, 0.45)), t2 = add(t1, mul(td2, 2.1 * HS)), td3 = nrm(mix(td2, grip, 0.3)), t3 = add(t2, mul(td3, 1.4 * HS));
+  P(tb, t1, 1.22 * HS, 1.0 * HS, sk, { mat: MAT.skin, ref: n }); P(t1, t2, 1.0 * HS, 0.88 * HS, sk, { mat: MAT.skin, ref: n }); P(t2, t3, 0.88 * HS, 0.74 * HS, sk, { mat: MAT.skin, ref: n });
 }
 
 /** Kepala + wajah ramah bergaya film animasi 3D: kepala bulat telur yang mulus, mata besar menghadap tegak lurus permukaan wajah (tidak juling),
@@ -56,24 +68,27 @@ function buildHead(Hd, out) {
   for (const s of [8.0, -8.0]) E(hp(-0.6, 2.2, s), [0.8, 2.3, 2.2], COL.hair, { mat: MAT.hair }); // cambang rapi
   for (const s of [8.9, -8.9]) { E(hp(-0.6, -0.8, s), [1.1, 1.6, 2.2], COL.skinD, { mat: MAT.skin }); E(hp(-0.2, -0.8, s * 0.99), [0.5, 0.9, 1.3], [0.78, 0.48, 0.36], { mat: MAT.skin, sh: false }); } // telinga
   const sm = Hd.smile ?? 0.7, bl = cl(Hd.blink || 0, 0, 1), gz = Hd.gaze || [0, 0];
-  for (const sg of [1, -1]) { // mata: lebih kecil & almond, tatapan lurus, kelopak atas menutup sebagian (tampak tenang, bukan melotot)
-    const s = 3.8 * sg, u = -0.1, gx = gz[0] * 0.4 * sg * sg, gy = gz[1] * 0.4, open = 1 - 0.9 * bl;
-    FP(s, u, 2.0, 1.75 * open + 0.15, 1.0, -0.4, COL.white, { mat: MAT.eye });
-    if (bl < 0.85) {
-      FP(s + gx, u + gy - 0.05, 1.45, 1.5 * open + 0.1, 0.5, 0.3, COL.iris, { mat: MAT.eye });
-      FP(s + gx, u + gy - 0.05, 0.78, 0.8 * open + 0.05, 0.35, 0.6, COL.pupil, { mat: MAT.eye });
-      FP(s + gx - 0.45 * sg, u + gy + 0.55, 0.38, 0.38, 0.25, 0.9, COL.white, { mat: MAT.eye, sh: false });
+  for (const sg of [1, -1]) { // mata: bentuk almond bersih, iris besar berwarna cokelat hangat, tanpa kelopak yang menonjol
+    const s = 3.3 * sg, u = -0.1, gx = gz[0] * 0.4 * sg * sg, gy = gz[1] * 0.4, open = 1 - 0.92 * bl;
+    FP(s, u, 2.05, 1.55 * open + 0.12, 0.9, -0.3, COL.white, { mat: MAT.eye });
+    if (bl < 0.8) {
+      FP(s + gx, u + gy, 1.4, 1.45 * open + 0.1, 0.5, 0.25, COL.iris, { mat: MAT.eye });
+      FP(s + gx, u + gy, 0.72, 0.76 * open + 0.05, 0.35, 0.55, COL.pupil, { mat: MAT.eye });
+      FP(s + gx - 0.5 * sg, u + gy + 0.55 * open, 0.36, 0.34, 0.25, 0.85, COL.white, { mat: MAT.eye, sh: false });
     }
-    FP(s, u + 2.1 * open + 0.1, 2.15, 0.55 + 0.3 * bl, 1.0, 0.2, SK, { mat: MAT.skin, sh: false });               // kelopak atas (kulit) menutup sebagian bola mata
-    const top = u + 2.0 * open + 0.1, lash = [-2.1, -1.0, 0, 1.0, 2.1].map((d) => { const uu = top + 0.25 - 0.18 * Math.abs(d) ** 1.3 * 0.5; return hp(surf(s + d, uu) + 0.16, uu, s + d); });
-    for (let i = 0; i < 4; i++) P(lash[i], lash[i + 1], 0.17, 0.17, COL.pupil, { mat: MAT.hair, sh: false });          // garis bulu mata
-    const bu = u + 4.1 + 0.35 * (Hd.brow || 0) - 0.2 * bl, bp = [-2.6, 0, 2.7].map((d, i) => { const ss = s + sg * d, uu = bu + (i === 1 ? 0.45 : (i === 0 ? 0.15 : -0.3)); return hp(surf(ss, uu) - 0.05, uu, ss); });
-    P(bp[0], bp[1], 0.3, 0.34, COL.brow, { mat: MAT.hair, sh: false }); P(bp[1], bp[2], 0.34, 0.24, COL.brow, { mat: MAT.hair, sh: false });  // alis tebal, melengkung lembut
+    if (bl > 0.1) FP(s, u, 2.3, 1.7 * bl + 0.1, 1.1, 0.2, SK, { mat: MAT.skin, sh: false });                      // kelopak menutup saat berkedip / mata terpejam
+    const top = u + 1.65 * open + 0.12, arc = (d) => top + 0.5 * (1 - (d / 2.3) ** 2) - 0.1;
+    const lash = [-2.2, -1.1, 0, 1.1, 2.2].map((d) => { const uu = arc(d); return hp(surf(s + d, uu) + 0.14, uu, s + d); });
+    for (let i = 0; i < 4; i++) P(lash[i], lash[i + 1], 0.2, 0.2, COL.pupil, { mat: MAT.hair, sh: false });          // garis kelopak atas tegas
+    const cr = [-2.0, 0, 2.0].map((d) => { const uu = arc(d) + 0.75; return hp(surf(s + d, uu) + 0.1, uu, s + d); });
+    P(cr[0], cr[1], 0.13, 0.13, COL.skinD, { mat: MAT.skin, sh: false, a: 0.7 }); P(cr[1], cr[2], 0.13, 0.13, COL.skinD, { mat: MAT.skin, sh: false, a: 0.7 }); // lipatan kelopak halus
+    const bu = u + 4.0 + 0.3 * (Hd.brow || 0) - 0.2 * bl, bp = [-2.6, 0, 2.7].map((d, i) => { const ss = s + sg * d, uu = bu + (i === 1 ? 0.45 : (i === 0 ? 0.1 : -0.25)); return hp(surf(ss, uu) - 0.05, uu, ss); });
+    P(bp[0], bp[1], 0.3, 0.32, COL.brow, { mat: MAT.hair, sh: false }); P(bp[1], bp[2], 0.32, 0.22, COL.brow, { mat: MAT.hair, sh: false });
   }
-  FP(0, -2.6, 0.8, 1.5, 1.2, 0.0, SK, { mat: MAT.skin });                                          // batang hidung
-  FP(0, -3.9, 1.25, 0.9, 0.95, 0.15, SK, { mat: MAT.skin });                                        // ujung hidung
+  FP(0, -2.2, 0.62, 1.4, 0.9, -0.05, SK, { mat: MAT.skin });                                          // batang hidung
+  FP(0, -3.7, 1.15, 0.85, 0.9, 0.1, SK, { mat: MAT.skin });                                        // ujung hidung
   for (const sg of [1, -1]) FP(5.6 * sg, -3.7, 1.9, 1.1, 0.5, -0.1, COL.cheek, { mat: MAT.skin, sh: false, a: 0.28 }); // semu pipi tipis
-  { const n = 10, pts = []; for (let i = 0; i <= n; i++) { const t = i / n * 2 - 1, s = t * (2.5 + 0.5 * sm), uu = -6.0 + (0.2 + 0.9 * sm) * t * t - 0.1 * sm; pts.push(hp(surf(s, uu) + 0.14, uu, s)); }
+  { const n = 10, pts = []; for (let i = 0; i <= n; i++) { const t = i / n * 2 - 1, s = t * (2.2 + 0.5 * sm), uu = -6.0 + (0.2 + 0.9 * sm) * t * t - 0.1 * sm; pts.push(hp(surf(s, uu) + 0.14, uu, s)); }
     for (let i = 0; i < n; i++) P(pts[i], pts[i + 1], 0.3, 0.3, COL.lip, { mat: MAT.lip, sh: false }); }
   { const p0 = hp(-0.5, 6.6, 0), p1 = hp(-0.5, 9.6, 0); out.push(pill(p0, p1, 8.1 * M, 7.6 * M, COL.peci, { k: [1, 1.05, 0.2], ref: hv0(0, 0, 1), mat: MAT.hair }));
     out.push(meshCmd(Hd.torus, [hv0(0, 0, 1), hv0(0, 1, 0), hv0(1, 0, 0)], [7.85 * M, 4.4 * M, 8.3 * M], hp(-0.5, 7.2, 0), COL.gold, { mat: MAT.gold })); }
@@ -136,5 +151,5 @@ export function rigFromF(F, torus, o = {}) {
   }
   const legs = [{ H: lz(F.H, ZH), K: lz(F.K, ZH), A: lz(F.A, ZH), toe: lz(F.toe, ZH) }, { H: lz(F.H, -ZH), K: lz(F.K2, -ZH), A: lz(F.A2, -ZH), toe: lz(F.toe2, -ZH) }];
   const roll = F.an[2] + 0.4 * (F.an[3] - F.an[2]);
-  return { H: lz(F.H, 0), S: lz(F.S, 0), legs, arms, br: F.br, torus, shoe: o.shoe, head: { C: lz(F.C, 0), roll, yaw: F.turn * 70 + (o.yaw ?? 40), blink: Math.max(o.blink || 0, F.ec || 0), gaze: o.gaze, smile: o.smile ?? 0.6, brow: -0.15 * (F.ec || 0) } };
+  return { H: lz(F.H, 0), S: lz(F.S, 0), legs, arms, br: F.br, torus, shoe: o.shoe, head: { C: lz(F.C, 0), roll, yaw: F.turn * 70 + (o.yaw ?? 42), blink: Math.max(o.blink || 0, F.ec || 0), gaze: o.gaze, smile: o.smile ?? 0.6, brow: -0.15 * (F.ec || 0) } };
 }
