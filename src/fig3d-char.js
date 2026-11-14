@@ -20,7 +20,7 @@ export function ik3(s, t, l1, l2, pole) {
 
 /** Tangan: telapak + 4 jari (2 ruas) + ibu jari. f = arah jari, n = sisi telapak, o = { gr: menggenggam, fp: telunjuk terangkat, sgn: sisi tubuh (+1 dekat) } */
 function buildHand(W, f, n, o, out) {
-  const HS = 1.3, sk = COL.skin, sd = COL.skinD, P = (...a) => out.push(pill(...a)), E = (...a) => out.push(ell(...a));
+  const HS = 1.12, sk = COL.skin, sd = COL.skinD, P = (...a) => out.push(pill(...a)), E = (...a) => out.push(ell(...a));
   let b = cross(n, f); if (dot(b, [0.5, -0.5, -0.8 * (o.sgn || 1)]) < 0) b = mul(b, -1); b = nrm(b);
   const at = (a, bb, c) => add(W, add(mul(f, a * HS), add(mul(b, bb * HS), mul(n, c * HS))));
   // pergelangan ramping menyambung manset, lalu telapak yang melebar ke arah jari (tidak bulat gemuk)
@@ -54,45 +54,45 @@ function buildHead(Hd, out) {
   const { C } = Hd, th = Hd.roll * RAD, ct = Math.cos(th), st = Math.sin(th), ph = (Hd.yaw || 0) * RAD, cp = Math.cos(ph), sp = Math.sin(ph);
   const M = 1.27, hv0 = (f, u, s) => { const fx = f * cp - s * sp, fz = f * sp + s * cp; return [fx * ct + u * st, fx * st - u * ct, fz]; }, hv = (f, u, s) => mul(hv0(f, u, s), M), hp = (f, u, s) => add(C, hv(f, u, s));
   const ax = [hv0(0, 0, 1), hv0(1, 0, 0), hv0(0, 1, 0)], E = (c, r, col, o) => out.push(ell(c, [r[0] * M, r[1] * M, r[2] * M], ax, col, o)), P = (a, b, r0, r1, ...z) => out.push(pill(a, b, r0 * M, r1 * M, ...z));
-  const SK = COL.skin, HC = [0.3, -1.2], HR = [9.0, 10.2];
-  const surf = (s, u) => HC[0] + 9.0 * Math.sqrt(Math.max(0.02, 1 - (s / 9.0) ** 2 - ((u - HC[1]) / HR[1]) ** 2));
-  const nrmAt = (s, u) => { const f = surf(s, u), n = [(f - HC[0]) / 81, (u - HC[1]) / (HR[1] * HR[1]), s / 81], l = Math.hypot(...n); return hv0(n[0] / l, n[1] / l, n[2] / l); };
+  const SK = COL.skin, HC = [0.3, -1.2], LR = 7.4, FR = 8.5, UR = 10.3;   // kepala lonjong: lebar 7.4 (dulu 9.0) supaya wajah tidak melebar seperti labu
+  const surf = (s, u) => HC[0] + FR * Math.sqrt(Math.max(0.02, 1 - (s / LR) ** 2 - ((u - HC[1]) / UR) ** 2));
+  const nrmAt = (s, u) => { const f = surf(s, u), n = [(f - HC[0]) / (FR * FR), (u - HC[1]) / (UR * UR), s / (LR * LR)], l = Math.hypot(...n); return hv0(n[0] / l, n[1] / l, n[2] / l); };
   /** elipsoid yang menempel di permukaan wajah dan menghadap keluar (tegak lurus) */
   const FP = (s, u, rw, rh, rd, off, col, o) => {
     const n = nrmAt(s, u), upw = hv0(0, 1, 0); let t = sub(upw, mul(n, dot(upw, n))); t = nrm(t); const sd = nrm(cross(t, n));
     out.push(ell(add(hp(surf(s, u), u, s), mul(n, off * M)), [rw * M, rh * M, rd * M], [sd, t, n], col, o));
   };
-  E(hp(HC[0], HC[1], 0), [9.0, 9.0, 10.2], SK, { mat: MAT.skin });                                // tengkorak
-  E(hp(1.7, -6.1, 0), [5.9, 5.8, 4.4], SK, { mat: MAT.skin });                                    // rahang & dagu (garis wajah tegas, tidak bulat polos)
-  E(hp(-2.2, 1.4, 0), [9.35, 8.5, 9.6], COL.hair, { mat: MAT.hair });                              // rambut belakang
-  for (const s of [8.0, -8.0]) E(hp(-0.6, 2.2, s), [0.8, 2.3, 2.2], COL.hair, { mat: MAT.hair }); // cambang rapi
-  for (const s of [8.9, -8.9]) { E(hp(-0.6, -0.8, s), [1.1, 1.6, 2.2], COL.skinD, { mat: MAT.skin }); E(hp(-0.2, -0.8, s * 0.99), [0.5, 0.9, 1.3], [0.78, 0.48, 0.36], { mat: MAT.skin, sh: false }); } // telinga
+  E(hp(HC[0], HC[1], 0), [LR, FR, UR], SK, { mat: MAT.skin });                                // tengkorak
+  E(hp(1.5, -6.3, 0), [4.9, 5.6, 4.4], SK, { mat: MAT.skin });                                    // rahang & dagu (garis wajah tegas, tidak bulat polos)
+  E(hp(-2.2, 1.4, 0), [7.85, 8.1, 9.8], COL.hair, { mat: MAT.hair });                              // rambut belakang
+  for (const s of [6.7, -6.7]) E(hp(-0.6, 2.2, s), [0.8, 2.3, 2.2], COL.hair, { mat: MAT.hair }); // cambang rapi
+  for (const s of [7.3, -7.3]) { E(hp(-0.6, -0.8, s), [0.9, 1.4, 2.0], COL.skinD, { mat: MAT.skin }); E(hp(-0.2, -0.8, s * 0.99), [0.4, 0.8, 1.2], [0.78, 0.48, 0.36], { mat: MAT.skin, sh: false }); } // telinga
   const sm = Hd.smile ?? 0.7, bl = cl(Hd.blink || 0, 0, 1), gz = Hd.gaze || [0, 0];
   for (const sg of [1, -1]) { // mata: bentuk almond bersih, iris besar berwarna cokelat hangat, tanpa kelopak yang menonjol
-    const s = 3.3 * sg, u = -0.1, gx = gz[0] * 0.4 * sg * sg, gy = gz[1] * 0.4, open = 1 - 0.92 * bl;
-    FP(s, u, 2.05, 1.55 * open + 0.12, 0.9, -0.3, COL.white, { mat: MAT.eye });
+    const s = 3.5 * sg, u = -0.1, gx = gz[0] * 0.4 * sg * sg, gy = gz[1] * 0.4, open = 1 - 0.92 * bl;
+    FP(s, u, 1.7, 1.4 * open + 0.12, 0.9, -0.3, COL.white, { mat: MAT.eye });
     if (bl < 0.8) {
-      FP(s + gx, u + gy, 1.4, 1.45 * open + 0.1, 0.5, 0.25, COL.iris, { mat: MAT.eye });
-      FP(s + gx, u + gy, 0.72, 0.76 * open + 0.05, 0.35, 0.55, COL.pupil, { mat: MAT.eye });
+      FP(s + gx, u + gy, 1.2, 1.3 * open + 0.1, 0.5, 0.25, COL.iris, { mat: MAT.eye });
+      FP(s + gx, u + gy, 0.62, 0.68 * open + 0.05, 0.35, 0.55, COL.pupil, { mat: MAT.eye });
       FP(s + gx - 0.5 * sg, u + gy + 0.55 * open, 0.36, 0.34, 0.25, 0.85, COL.white, { mat: MAT.eye, sh: false });
     }
-    if (bl > 0.1) FP(s, u, 2.3, 1.7 * bl + 0.1, 1.1, 0.2, SK, { mat: MAT.skin, sh: false });                      // kelopak menutup saat berkedip / mata terpejam
-    const top = u + 1.65 * open + 0.12, arc = (d) => top + 0.5 * (1 - (d / 2.3) ** 2) - 0.1;
-    const lash = [-2.2, -1.1, 0, 1.1, 2.2].map((d) => { const uu = arc(d); return hp(surf(s + d, uu) + 0.14, uu, s + d); });
+    if (bl > 0.1) FP(s, u, 1.95, 1.5 * bl + 0.1, 1.1, 0.2, SK, { mat: MAT.skin, sh: false });                      // kelopak menutup saat berkedip / mata terpejam
+    const top = u + 1.65 * open + 0.12, arc = (d) => top + 0.5 * (1 - (d / 1.95) ** 2) - 0.1;
+    const lash = [-1.85, -0.9, 0, 0.9, 1.85].map((d) => { const uu = arc(d); return hp(surf(s + d, uu) + 0.14, uu, s + d); });
     for (let i = 0; i < 4; i++) P(lash[i], lash[i + 1], 0.2, 0.2, COL.pupil, { mat: MAT.hair, sh: false });          // garis kelopak atas tegas
-    const cr = [-2.0, 0, 2.0].map((d) => { const uu = arc(d) + 0.75; return hp(surf(s + d, uu) + 0.1, uu, s + d); });
+    const cr = [-1.7, 0, 1.7].map((d) => { const uu = arc(d) + 0.75; return hp(surf(s + d, uu) + 0.1, uu, s + d); });
     P(cr[0], cr[1], 0.13, 0.13, COL.skinD, { mat: MAT.skin, sh: false, a: 0.7 }); P(cr[1], cr[2], 0.13, 0.13, COL.skinD, { mat: MAT.skin, sh: false, a: 0.7 }); // lipatan kelopak halus
-    const bu = u + 4.0 + 0.3 * (Hd.brow || 0) - 0.2 * bl, bp = [-2.6, 0, 2.7].map((d, i) => { const ss = s + sg * d, uu = bu + (i === 1 ? 0.45 : (i === 0 ? 0.1 : -0.25)); return hp(surf(ss, uu) - 0.05, uu, ss); });
+    const bu = u + 4.0 + 0.3 * (Hd.brow || 0) - 0.2 * bl, bp = [-1.9, 0, 2.1].map((d, i) => { const ss = s + sg * d, uu = bu + (i === 1 ? 0.45 : (i === 0 ? 0.1 : -0.25)); return hp(surf(ss, uu) - 0.05, uu, ss); });
     P(bp[0], bp[1], 0.3, 0.32, COL.brow, { mat: MAT.hair, sh: false }); P(bp[1], bp[2], 0.32, 0.22, COL.brow, { mat: MAT.hair, sh: false });
   }
   FP(0, -2.2, 0.62, 1.4, 0.9, -0.05, SK, { mat: MAT.skin });                                          // batang hidung
   FP(0, -3.7, 1.15, 0.85, 0.9, 0.1, SK, { mat: MAT.skin });                                        // ujung hidung
-  for (const sg of [1, -1]) FP(5.6 * sg, -3.7, 1.9, 1.1, 0.5, -0.1, COL.cheek, { mat: MAT.skin, sh: false, a: 0.28 }); // semu pipi tipis
-  { const n = 10, pts = []; for (let i = 0; i <= n; i++) { const t = i / n * 2 - 1, s = t * (2.2 + 0.5 * sm), uu = -6.0 + (0.2 + 0.9 * sm) * t * t - 0.1 * sm; pts.push(hp(surf(s, uu) + 0.14, uu, s)); }
+  for (const sg of [1, -1]) FP(4.6 * sg, -3.7, 1.5, 1.0, 0.5, -0.1, COL.cheek, { mat: MAT.skin, sh: false, a: 0.28 }); // semu pipi tipis
+  { const n = 10, pts = []; for (let i = 0; i <= n; i++) { const t = i / n * 2 - 1, s = t * (1.9 + 0.45 * sm), uu = -6.0 + (0.2 + 0.9 * sm) * t * t - 0.1 * sm; pts.push(hp(surf(s, uu) + 0.14, uu, s)); }
     for (let i = 0; i < n; i++) P(pts[i], pts[i + 1], 0.3, 0.3, COL.lip, { mat: MAT.lip, sh: false }); }
-  { const p0 = hp(-0.5, 6.6, 0), p1 = hp(-0.5, 9.6, 0); out.push(pill(p0, p1, 8.1 * M, 7.6 * M, COL.peci, { k: [1, 1.05, 0.2], ref: hv0(0, 0, 1), mat: MAT.hair }));
-    out.push(meshCmd(Hd.torus, [hv0(0, 0, 1), hv0(0, 1, 0), hv0(1, 0, 0)], [7.85 * M, 4.4 * M, 8.3 * M], hp(-0.5, 7.2, 0), COL.gold, { mat: MAT.gold })); }
-  out.push(pill(add(C, hv(-1.2, -4.5, 0)), Hd.neckBase, 4.9, 5.3, SK, { mat: MAT.skin }));       // leher lebih kokoh
+  { const p0 = hp(-0.5, 6.8, 0), p1 = hp(-0.5, 9.8, 0); out.push(pill(p0, p1, 7.0 * M, 6.6 * M, COL.peci, { k: [1, 1.05, 0.2], ref: hv0(0, 0, 1), mat: MAT.hair }));
+    out.push(meshCmd(Hd.torus, [hv0(0, 0, 1), hv0(0, 1, 0), hv0(1, 0, 0)], [6.8 * M, 4.4 * M, 7.6 * M], hp(-0.5, 7.4, 0), COL.gold, { mat: MAT.gold })); }
+  out.push(pill(add(C, hv(-1.2, -4.5, 0)), Hd.neckBase, 4.4, 4.9, SK, { mat: MAT.skin }));       // leher lebih kokoh
 }
 
 /** rangka → primitif. rig: { H, S, C, legs:[{H,K,A,toe}], arms:[{sh,tg,pole,l1,l2,sgn,hand}], head, br, shoe, twist } */
@@ -112,7 +112,7 @@ export function buildChar(R, out) {
   P(at(0.0), at(0.46), 9.0, 8.5, COL.shirt, { k: [1.45, 1, 1], ref: SIDE, mat: MAT.shirt });           // perut/pinggang sampai ujung baju (satu bentuk mulus, tanpa cincin)
   P(at(0.46), at(0.80), 8.5, 9.5 * br, COL.shirt, { k: [1.56, 1, 1], ref: TREF, mat: MAT.shirt });    // dada
   P(at(0.80), at(0.95), 9.4 * br, 7.6, COL.shirt, { k: [1.6, 1, 1], ref: TREF, mat: MAT.shirt });     // pundak
-  { const K0 = R.legs[0].K, hk = mix(H, [K0[0], K0[1], 0], 0.2); P(at(0.1), hk, 9.2, 9.2, COL.shirt, { k: [1.42, 1, 0.3], ref: SIDE, mat: MAT.shirt }); }  // ujung baju mengikuti paha
+  { const K0 = R.legs[0].K, hk = mix(H, [K0[0], K0[1], 0], 0.2); P(at(0.1), hk, 8.8, 8.8, COL.shirt, { k: [1.4, 1, 0.3], ref: SIDE, mat: MAT.shirt }); }  // ujung baju mengikuti paha
   P(at(0.92, 9.0, 1.0), at(-0.08, 9.9, 1.0), 1.1, 1.1, COL.shirtL, { mat: MAT.shirt });
   for (let i = 0; i < 4; i++) E(at(0.8 - i * 0.19, 9.9 + 0.3 * i, 1.0), [1.0, 1.0, 0.6], [SIDE, fw, ax], COL.white, { mat: MAT.gloss, sh: false });
   { const pt0 = at(0.74, 8.35, 5.6), pt1 = at(0.55, 8.6, 5.6);   // saku dada: tambalan persegi tipis + garis atas
@@ -122,7 +122,7 @@ export function buildChar(R, out) {
   // lengan: lereng bahu (trapezius) menyambung ke lengan, lengan atas berisi, lengan bawah mengecil ke manset
   for (const A of R.arms) {
     const { e, w } = ik3(A.sh, A.tg, A.l1, A.l2, A.pole), dir = nrm(sub(w, e));
-    P(add(Sn, [0, 1.5, 0]), A.sh, 5.2, 5.4, COL.shirt, { mat: MAT.shirt, ref: SIDE });
+    P(add(Sn, [0, 3.2, 0]), A.sh, 4.5, 5.2, COL.shirt, { mat: MAT.shirt, ref: SIDE });
     E(A.sh, [5.2, 5.2, 5.2], IDENT, COL.shirt, { mat: MAT.shirt });
     P(A.sh, e, 5.2, 4.3, COL.shirt, { mat: MAT.shirt }); E(e, [4.3, 4.3, 4.3], IDENT, COL.shirt, { mat: MAT.shirt }); P(e, w, 4.3, 3.4, COL.shirt, { mat: MAT.shirt });
     P(mix(e, w, 0.82), add(w, mul(dir, 0.6)), 3.7, 3.7, COL.cuff, { mat: MAT.shirt });

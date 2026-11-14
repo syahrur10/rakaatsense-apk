@@ -73,7 +73,7 @@ const PLANT = { q: 0.15, i: 0, u: 0, r: 1, k: 0.2, s: 1, d: 1, w: 1 };
 for (const k in PLANT) RAW[k].pl = PLANT[k];
 const HZ = { q: 0.3, u: 0.05, i: 0, r: 0, k: 0.1, s: 0.3, d: 0.35, w: 0.35 }, HP = { q: 0.7, u: 1, i: 0.1, r: 0.55, k: 0.3, s: 1, d: 0.9, w: 0.9 }; // 3D: tangan menyilang ke tengah (hz) & telapak menghadap (hp)
 for (const k in HZ) { RAW[k].hz = HZ[k]; RAW[k].hp = HP[k]; }
-RAW.r.gr = 0.75; RAW.q.gr = 0.45; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
+RAW.r.gr = 0.75; RAW.q.gr = 0.1; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
 // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kanan ditegakkan (jari menghadap kiblat), kaki kiri KELUAR di bawah betis kanan.
 // Tampak dari kanan: lutut kiri di lantai (K2), betis kiri rebah di bawah betis kanan (A2), telapak kiri hampir tertutup (f2s = diperpendek karena menghadap penonton).
 Object.assign(RAW.w, { A: [88, 114.5], K: [119, 119.5], H: [92, 120], S: [92.5, 81], C: [94.6, 69.2], T: [107, 112.5], K2: [118, 122], A2: [98, 122.8], toe2: [106, 124.3], toe: [93.5, 124.2], f2s: 0.6 });
