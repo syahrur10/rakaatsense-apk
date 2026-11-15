@@ -619,7 +619,8 @@ body.watching .toast{display:none!important}
 .s3d{position:relative;overflow:hidden;border-radius:18px}
 .s3d .s3d-back,.s3d .s3d-cv{position:absolute!important;left:0;top:0;width:100%!important;height:100%!important;max-height:none!important;pointer-events:none}
 .s3d svg.s3d-front{position:relative;z-index:2}
-.stage:has(.s3d){padding:.35rem;background:linear-gradient(#FFF9EC,#F3E6CB)}
+.stage:has(.s3d){padding:.55rem}
+.stage:has(.s3d) .s3d{box-shadow:inset 0 0 0 1px rgba(10,92,56,.1)}   /* bingkai sama dengan video Saku Baju/Celana (.stage.pvid) */
 .bs-stage:has(.s3d){background:linear-gradient(180deg,#FFF9EC,#F3E6CB)}
 .bs-mv .s3d{border-radius:14px}
 
