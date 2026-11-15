@@ -1137,6 +1137,12 @@ Object.assign(MS, {
   'qr.copy': 'Salin ayat', 'qr.marked': 'Penanda disimpan', 'qr.unmarked': 'Penanda dibuang', 'qr.del': 'Buang penanda', 'qr.fin': 'Selesai membaca {n}',
   'qr.src': "Teks & tajwid: Quran.com (riwayat Hafs 'an 'Asim). Terjemahan Indonesia: Kemenag RI melalui Tanzil.net. English: Saheeh International. Fon: Amiri Quran. Alat bantu belajar, rujuk guru tajwid untuk kepastian hukum bacaan.",
 });
+/* ---- Panduan: tombol video animasi (ketuk = jeda / putar) ---- */
+Object.assign(ID, { "gd.vid.play": "Putar animasi", "gd.vid.pause": "Jeda animasi" });
+Object.assign(EN, { "gd.vid.play": "Play animation", "gd.vid.pause": "Pause animation" });
+Object.assign(AR, { "gd.vid.play": "تشغيل الرسوم المتحركة", "gd.vid.pause": "إيقاف الرسوم المتحركة مؤقتًا" });
+Object.assign(MS, { "gd.vid.play": "Main animasi", "gd.vid.pause": "Jeda animasi" });
+
 export const LANGS = { id: ['Bahasa Indonesia', ID], en: ['English', EN], ar: ['العربية', AR], ms: ['Bahasa Melayu', MS] };
 const saved = (() => { try { return localStorage.getItem('rs.lang'); } catch { return null; } })();
 let cur = LANGS[saved] ? saved : ({ id: 'id', ms: 'ms', ar: 'ar' }[(navigator.language || 'en').slice(0, 2)] || 'en');

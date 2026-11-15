@@ -622,3 +622,17 @@ body.watching .toast{display:none!important}
 .stage:has(.s3d){padding:.35rem;background:linear-gradient(#FFF9EC,#F3E6CB)}
 .bs-stage:has(.s3d){background:linear-gradient(180deg,#FFF9EC,#F3E6CB)}
 .bs-mv .s3d{border-radius:14px}
+
+/* ---- Video animasi "cara meletakkan HP" (tab Saku Baju / Saku Celana): rasio asli dikunci, tinggi dibatasi layar, sudut senada kartu.
+   Catatan: aturan global `video,#ov{position:absolute;transform:scaleX(-1)}` (cermin kamera depan) mengenai SEMUA <video>, jadi .pv-video menetralkannya. ---- */
+.stage.pvid{padding:.55rem}
+.stage.pvid .sv{position:relative;margin:0 auto;aspect-ratio:var(--ar);width:min(100%,calc(min(62vh,var(--mh,460px))*var(--arn,.75)));border-radius:18px;overflow:hidden;background:#E9DCC4 center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(10,92,56,.1);isolation:isolate}
+.pv-video{position:relative;inset:auto;transform:none;display:block;width:100%;height:100%;object-fit:cover;opacity:1;transition:opacity .38s ease;background:transparent;-webkit-user-select:none;user-select:none;pointer-events:none}
+.pv-video.fade{opacity:0}
+.stage.pvid.broken .pv-video{display:none}
+.pv-btn{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pv-btn[hidden]{display:none}
+.pv-btn i{width:58px;height:58px;border-radius:50%;background:rgba(10,92,56,.84);box-shadow:0 6px 18px rgba(10,92,56,.35);display:grid;place-items:center;opacity:0;transform:scale(.85);transition:opacity .2s,transform .2s;pointer-events:none}
+.pv-btn i::before{content:"";margin-inline-start:4px;border-style:solid;border-width:10px 0 10px 17px;border-color:transparent transparent transparent #fff}
+.stage.pvid.paused .pv-btn i{opacity:1;transform:none}
+.pv-btn:focus-visible{outline:3px solid var(--g1);outline-offset:-3px;border-radius:18px}
