@@ -282,7 +282,7 @@ function sideFigure2D(svg, kind) {
 let _carpet = null, _glow = null;
 function carpetTex() {
   if (_carpet) return _carpet; const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
-  const bg = g.createLinearGradient(0, 0, 0, 256); bg.addColorStop(0, '#2B8A62'); bg.addColorStop(1, '#17624A'); g.fillStyle = bg; g.fillRect(0, 0, 1024, 256);
+  const bg = g.createLinearGradient(0, 0, 0, 256); bg.addColorStop(0, '#1F7655'); bg.addColorStop(1, '#0F4B38'); g.fillStyle = bg; g.fillRect(0, 0, 1024, 256);
   g.strokeStyle = '#E9CB7E'; g.lineWidth = 12; g.strokeRect(8, 8, 1008, 240); g.strokeStyle = '#B38F3E'; g.lineWidth = 3; g.strokeRect(28, 28, 968, 200); g.strokeRect(38, 38, 948, 180);
   g.fillStyle = 'rgba(233,203,126,.55)'; for (let x = 70; x < 640; x += 46) for (let y = 70; y < 200; y += 46) { g.beginPath(); g.moveTo(x, y - 9); g.lineTo(x + 9, y); g.lineTo(x, y + 9); g.lineTo(x - 9, y); g.closePath(); g.fill(); }
   g.fillStyle = 'rgba(15,70,50,.55)'; g.beginPath(); g.moveTo(690, 52); g.lineTo(810, 52); g.quadraticCurveTo(930, 52, 984, 128); g.quadraticCurveTo(930, 204, 810, 204); g.lineTo(690, 204); g.closePath(); g.fill();
@@ -300,16 +300,41 @@ function carpetCmds(eng, x0, x1, hz = 24) {
   for (const s of [-1, 1]) out.push(meshCmd(eng.meshes.slab, IDENT, [1.6, 0.35, hz], [cx + s * (hw + 1.5), FLOOR + 0.4, 0], [0.93, 0.88, 0.74], { ground: true, sh: false, ao: 0 }));
   return out;
 }
-/** ruangan hangat di belakang (dinding, plint, lantai kayu, berkas cahaya jendela, debu melayang) pada <svg> latar */
+/** Interior masjid hangat (senada video Saku Baju/Saku Celana): dinding krem berlapis cahaya, jendela di kiri dengan berkas cahaya jatuh ke lantai kayu, mihrab berukir emas, plint, vinyet lembut, debu melayang. */
 function roomBackdrop(back, vb, fy = 118.5) {
-  const id = 'rm' + Math.random().toString(36).slice(2, 7), d = SV('defs', {}, back), X0 = vb[0] - 400, W = vb[2] + 800;
-  const lg = (n, a, b, c) => { const e = SV('linearGradient', { id: id + n, x1: 0, y1: 0, x2: 0, y2: 1 }, d); SV('stop', { offset: 0, 'stop-color': a }, e); SV('stop', { offset: 1, 'stop-color': b }, e); return `url(#${id}${n})`; };
-  SV('rect', { x: X0, y: vb[1] - 300, width: W, height: fy - vb[1] + 300, fill: lg('w', '#FFF9EC', '#F3E6CB') }, back); SV('rect', { x: X0, y: fy - 2.5, width: W, height: 3.5, fill: '#E3CFA6' }, back);
-  const fl = SV('rect', { x: X0, y: fy, width: W, height: 400, fill: lg('f', '#D8B684', '#B98F5A') }, back); for (let y = fy + 4; y < vb[1] + vb[3] + 6; y += 5.2) SV('path', { d: `M${X0} ${y.toFixed(1)}H${X0 + W}`, stroke: '#9A7440', 'stroke-opacity': 0.22, 'stroke-width': 0.5 }, back);
-  const rg = SV('radialGradient', { id: id + 'l', cx: 0.5, cy: 0.5, r: 0.5 }, d); SV('stop', { offset: 0, 'stop-color': '#FFE9A8', 'stop-opacity': 0.55 }, rg); SV('stop', { offset: 1, 'stop-color': '#FFE9A8', 'stop-opacity': 0 }, rg);
-  SV('ellipse', { cx: vb[0] + vb[2] * 0.82, cy: vb[1] + vb[3] * 0.1, rx: vb[2] * 0.5, ry: vb[3] * 0.55, fill: `url(#${id}l)` }, back);
-  const dust = Array.from({ length: 9 }, (_, i) => SV('circle', { r: 0.7 + (i % 3) * 0.35, fill: '#FFF3C4', opacity: 0 }, back));
-  return { tick(now) { dust.forEach((c, i) => { const t = (now / (9000 + i * 900) + i * 0.37) % 1; c.setAttribute('cx', (vb[0] + vb[2] * ((i * 0.131 + 0.1 + 0.08 * Math.sin(now / 1900 + i)) % 1)).toFixed(1)); c.setAttribute('cy', (vb[1] + vb[3] * 0.85 * (1 - t)).toFixed(1)); c.setAttribute('opacity', (0.5 * Math.sin(Math.PI * t)).toFixed(2)); }); } };
+  const id = 'rm' + Math.random().toString(36).slice(2, 7), d = SV('defs', {}, back), X0 = vb[0] - 400, W = vb[2] + 800, [vx, vy, vw, vh] = vb, top = vy - 300;
+  const lg = (n, stops, x2 = 0, y2 = 1) => { const e = SV('linearGradient', { id: id + n, x1: 0, y1: 0, x2, y2 }, d); stops.forEach(([o, c, a]) => SV('stop', { offset: o, 'stop-color': c, 'stop-opacity': a ?? 1 }, e)); return `url(#${id}${n})`; };
+  const rg = (n, stops, o = {}) => { const e = SV('radialGradient', { id: id + n, cx: 0.5, cy: 0.5, r: 0.5, ...o }, d); stops.forEach(([of, c, a]) => SV('stop', { offset: of, 'stop-color': c, 'stop-opacity': a }, e)); return `url(#${id}${n})`; };
+  const bl = SV('filter', { id: id + 'b', x: '-30%', y: '-30%', width: '160%', height: '160%' }, d); SV('feGaussianBlur', { stdDeviation: 5 }, bl);
+  const bl2 = SV('filter', { id: id + 'c', x: '-30%', y: '-30%', width: '160%', height: '160%' }, d); SV('feGaussianBlur', { stdDeviation: 1.6 }, bl2);
+  // dinding + plint
+  SV('rect', { x: X0, y: top, width: W, height: fy - top, fill: lg('w', [[0, '#EFDDBD'], [0.55, '#E7D0A8'], [1, '#DDBF92']]) }, back);
+  SV('rect', { x: X0, y: fy - 7, width: W, height: 7.5, fill: lg('p', [[0, '#F3E6CC'], [1, '#D9BE92']]) }, back); SV('rect', { x: X0, y: fy - 7.4, width: W, height: 0.9, fill: '#FFF7E4', opacity: 0.8 }, back);
+  // mihrab (relung berlengkung lancip, bingkai kayu + pita emas)
+  const mx = vx + vw * 0.5, mw = 27, mt = vy + vh * 0.04, mb = fy - 7;
+  const arch = (hw, t, b) => `M${mx - hw} ${b}V${t + 34}C${mx - hw} ${t + 14} ${mx - hw * 0.35} ${t + 8} ${mx} ${t}C${mx + hw * 0.35} ${t + 8} ${mx + hw} ${t + 14} ${mx + hw} ${t + 34}V${b}Z`;
+  SV('path', { d: arch(mw + 7, mt - 6, mb), fill: lg('m1', [[0, '#C79B63'], [1, '#A47843']]) }, back);
+  SV('path', { d: arch(mw + 7, mt - 6, mb), fill: 'none', stroke: '#E8CA86', 'stroke-width': 1.4 }, back);
+  SV('path', { d: arch(mw, mt, mb), fill: lg('m2', [[0, '#7E5A36'], [0.5, '#9B7447'], [1, '#B58A55']]) }, back);
+  SV('path', { d: arch(mw - 7, mt + 8, mb), fill: lg('m3', [[0, '#6F4F30'], [1, '#A47A4B']]), opacity: 0.85 }, back);
+  SV('path', { d: arch(mw - 3.5, mt + 4, mb), fill: 'none', stroke: '#E8CA86', 'stroke-width': 0.9, opacity: 0.9 }, back);
+  for (let i = -3; i <= 3; i++) SV('circle', { cx: mx + i * 5.2, cy: mt + 12 + Math.abs(i) * 3.4 - (i === 0 ? 3 : 0), r: i === 0 ? 1.7 : 1, fill: '#F2D78F', opacity: 0.85 }, back);
+  SV('rect', { x: mx - mw - 9, y: mb - 3, width: (mw + 9) * 2, height: 3.5, rx: 1, fill: '#8A6338' }, back);
+  // jendela kiri + silau
+  const wx = vx - 4, ww = vw * 0.17, wt = vy + vh * 0.06, wb = fy - 18;
+  SV('ellipse', { cx: wx + ww * 0.6, cy: (wt + wb) / 2, rx: ww * 1.5, ry: (wb - wt) * 0.75, fill: rg('g', [[0, '#FFFFFF', 0.75], [1, '#FFF3D2', 0]]) }, back);
+  SV('rect', { x: wx, y: wt, width: ww, height: wb - wt, rx: 2, fill: lg('wn', [[0, '#FFFFFF'], [1, '#FFF1CF']]) }, back);
+  SV('path', { d: `M${wx + ww / 2} ${wt}V${wb}M${wx} ${(wt + wb) / 2}H${wx + ww}`, stroke: '#D9B986', 'stroke-width': 1.6 }, back);
+  SV('rect', { x: wx, y: wt, width: ww, height: wb - wt, rx: 2, fill: 'none', stroke: '#E6CFA3', 'stroke-width': 2 }, back);
+  // lantai kayu + papan
+  SV('rect', { x: X0, y: fy, width: W, height: 400, fill: lg('f', [[0, '#DDBC8B'], [0.5, '#C99F68'], [1, '#B58750']]) }, back);
+  for (let y = fy + 4, k = 0; y < vy + vh + 6; y += 5.2 + k * 0.5, k++) SV('path', { d: `M${X0} ${y.toFixed(1)}H${X0 + W}`, stroke: '#8E6535', 'stroke-opacity': 0.2, 'stroke-width': 0.5 }, back);
+  SV('path', { d: `M${wx - 4} ${fy}L${wx + ww + 6} ${fy}L${wx + ww + vw * 0.55} ${vy + vh + 8}L${wx + vw * 0.12} ${vy + vh + 8}Z`, fill: '#FFF8E2', opacity: 0.34, filter: `url(#${id}b)` }, back);   // bercak cahaya jendela di lantai
+  SV('path', { d: `M${wx + ww} ${wt + 4}L${wx + ww + vw * 0.62} ${fy - 3}L${wx + ww + vw * 0.36} ${fy - 3}L${wx + ww} ${wb - 6}Z`, fill: '#FFFBEA', opacity: 0.2, filter: `url(#${id}b)` }, back);   // berkas cahaya
+  SV('ellipse', { cx: vx + vw * 0.5, cy: fy + 2, rx: vw * 0.42, ry: 5, fill: '#000', opacity: 0.08, filter: `url(#${id}c)` }, back);
+  SV('rect', { x: vx - 40, y: vy - 40, width: vw + 80, height: vh + 80, fill: rg('v', [[0.62, '#6B4423', 0], [1, '#6B4423', 0.2]], { r: 0.75 }), 'pointer-events': 'none' }, back);   // vinyet lembut
+  const dust = Array.from({ length: 10 }, (_, i) => SV('circle', { r: 0.6 + (i % 3) * 0.3, fill: '#FFF6D6', opacity: 0 }, back));
+  return { tick(now) { dust.forEach((c, i) => { const t = (now / (9000 + i * 900) + i * 0.37) % 1; c.setAttribute('cx', (vb[0] + vb[2] * (0.08 + ((i * 0.097 + 0.06 * Math.sin(now / 1900 + i)) % 0.5))).toFixed(1)); c.setAttribute('cy', (vb[1] + vb[3] * 0.85 * (1 - t)).toFixed(1)); c.setAttribute('opacity', (0.55 * Math.sin(Math.PI * t)).toFixed(2)); }); } };
 }
 const backG = (svg) => { if (svg.__back) return SV('g', {}, svg.__back); const g = S('g', {}); svg.insertBefore(g, svg.firstChild); return g; };
 const SIDE_CAM = { yaw: 0, s: 1, tx: 0, ty: 0, k: 0.21 };
@@ -413,7 +438,11 @@ function howScene(box, kind) {
 const PLACE_VID = {
   shirt: { src: '/guide/saku-baju.mp4', poster: '/guide/saku-baju.jpg', w: 368, h: 496, mh: 460 },
   pants: { src: '/guide/saku-celana.mp4', poster: '/guide/saku-celana.jpg', w: 368, h: 384, mh: 380 },
+  flat: { src: '/guide/datar.mp4', poster: '/guide/datar.jpg', w: 368, h: 496, mh: 460, auto: true },   // opsional: bila file ada dipakai, bila tidak → animasi 3D
+  cam: { src: '/guide/tegak.mp4', poster: '/guide/tegak.jpg', w: 368, h: 496, mh: 460, auto: true },
 };
+const VID_OK = {};   // hasil cek keberadaan video opsional: true / false / undefined (belum dicek)
+const probeVid = (k) => fetch(PLACE_VID[k].src, { method: 'HEAD', cache: 'no-cache' }).then((r) => r.ok && /video|octet/i.test(r.headers.get('content-type') || '')).catch(() => false);
 const VID_HOLD = 1100, VID_FADE = 380;
 function placeScene(box, kind) {
   const k = PLACE_VID[kind] ? kind : 'pants', V = PLACE_VID[k], holder = box.querySelector('.sv'), rm = reduce();
@@ -424,6 +453,7 @@ function placeScene(box, kind) {
   Object.assign(v, { muted: true, defaultMuted: true, playsInline: true, preload: 'auto', loop: false, disablePictureInPicture: true, disableRemotePlayback: true, poster: V.poster });
   v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', ''); v.setAttribute('aria-hidden', 'true'); v.setAttribute('controlsList', 'nodownload noremoteplayback');
   v.className = 'pv-video';
+  if (V.auto) v.addEventListener('loadedmetadata', () => { if (v.videoWidth && v.videoHeight) { holder.style.setProperty('--ar', `${v.videoWidth} / ${v.videoHeight}`); holder.style.setProperty('--arn', (v.videoWidth / v.videoHeight).toFixed(4)); } });
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'pv-btn'; btn.innerHTML = '<i></i>';
   holder.append(v, btn);
   let timer = 0, off = false, userPaused = rm, stalled = false, visible = true, io = null;
@@ -504,8 +534,8 @@ function camRig(svg) {
   const under = backG(svg), fig = svg.__fig, st3 = { fall: 1, out: 1 };
   const id = 'gc' + Math.random().toString(36).slice(2, 7), defs = S('defs', {}, svg), poly = 'M253 108.6L169.5 -36H40V126.5H151.6Z';
   S('path', { d: poly }, S('clipPath', { id }, defs));
-  const lg = S('linearGradient', { id: id + 'g', x1: 1, y1: 0, x2: 0, y2: 0 }, defs); S('stop', { offset: 0, 'stop-color': C.gold2, 'stop-opacity': 0.55 }, lg); S('stop', { offset: 1, 'stop-color': C.gold2, 'stop-opacity': 0.08 }, lg);
-  const cone = S('path', { d: poly, fill: `url(#${id}g)` }, under), arcs = S('g', { 'clip-path': `url(#${id})`, fill: 'none', stroke: C.gold, 'stroke-width': 1.4 }, under);
+  const lg = S('linearGradient', { id: id + 'g', x1: 1, y1: 0, x2: 0, y2: 0 }, defs); S('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0.5 }, lg); S('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 0.04 }, lg);
+  const cone = S('path', { d: poly, fill: `url(#${id}g)` }, under), arcs = S('g', { 'clip-path': `url(#${id})`, fill: 'none', stroke: '#FFFFFF', 'stroke-width': 1.2 }, under);
   const A = [0, 1, 2].map(() => S('circle', { cx: CAMPT[0], cy: CAMPT[1] }, arcs));
   const stand = S('path', { d: 'M249 126.5H270L257.5 108Z', fill: '#C9A86A', stroke: '#9A7A3E', 'stroke-width': 0.8, 'stroke-linejoin': 'round' }, svg);
   const ph = S('g', {}, svg); S('rect', { x: -1.8, y: -21, width: 3.6, height: 21, rx: 1.3, fill: C.dark, stroke: C.gold, 'stroke-width': 0.9 }, ph); S('rect', { x: -1.8, y: -19.3, width: 1.2, height: 17.4, rx: 0.5, fill: '#9AD9B8' }, ph); S('circle', { cx: -1.2, cy: -19.2, r: 0.95, fill: '#3C5566' }, ph);
@@ -552,7 +582,7 @@ function flatScene(box) {
   const svg = S('svg', { 'aria-hidden': 'true' }); box.querySelector('.sv').append(svg);
   const draw = sideFigure(svg, 'cam'), under = backG(svg);
   const id = 'gf' + Math.random().toString(36).slice(2, 7), defs = S('defs', {}, svg), lg = S('linearGradient', { id: id + 'g', x1: 0, y1: 1, x2: 0, y2: 0 }, defs);
-  S('stop', { offset: 0, 'stop-color': C.gold2, 'stop-opacity': 0.55 }, lg); S('stop', { offset: 1, 'stop-color': C.gold2, 'stop-opacity': 0.04 }, lg);
+  S('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0.5 }, lg); S('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 0.04 }, lg);
   const cone = S('path', { d: 'M126 124L14 -36H238Z', fill: `url(#${id}g)` }, under);
   const mk = S('g', {}, svg); // penanda posisi dada (sejajar HP)
   S('path', { d: 'M126 131V140', stroke: C.shirtD, 'stroke-width': 1.2, 'stroke-dasharray': '3 2.5', fill: 'none', 'stroke-linecap': 'round' }, mk);
@@ -630,7 +660,7 @@ function camAlertScene(box) {
   const rings = EV.map((e) => ring(e.c));
   const lay = WEBGL3D() ? makeLayer(svg, [0, 0, 300, 178]) : null, phg = S('g', {}, svg), body = S('rect', { x: PH[0], y: PH[1], width: PH[2], height: PH[3], rx: 18, fill: '#000', stroke: '#1B2A35', 'stroke-width': 5 }, phg);
   const phoneBody = lay && [meshCmd(lay.eng.meshes.box(PH[2] + 12, PH[3] + 12, 16, 14), IDENT, [1, 1, 1], [PH[0] + PH[2] / 2, PH[1] + PH[3] / 2, -8.5], [0.12, 0.17, 0.21], { mat: MAT.gloss, sh: false }), meshCmd(lay.eng.meshes.box(PH[2] + 4, PH[3] + 4, 16.6, 11), IDENT, [1, 1, 1], [PH[0] + PH[2] / 2, PH[1] + PH[3] / 2, -8.2], [0.05, 0.07, 0.09], { mat: MAT.gloss, sh: false })];
-  if (lay) { body.setAttribute('fill', 'none'); body.setAttribute('stroke', 'none'); lay.back.style.background = 'radial-gradient(circle at 50% 40%,#FFF9EC,#F0E4C8)'; }
+  if (lay) { body.setAttribute('fill', 'none'); body.setAttribute('stroke', 'none'); lay.back.style.background = 'radial-gradient(ellipse at 16% 8%,rgba(255,255,255,.95),rgba(255,255,255,0) 52%),radial-gradient(ellipse at 50% 50%,rgba(107,68,35,0) 58%,rgba(107,68,35,.2)),linear-gradient(180deg,#EFDDBD,#DDBF92)'; }
   const scr = S('rect', { x: PH[0] + 5, y: PH[1] + 5, width: PH[2] - 10, height: PH[3] - 10, rx: 13, fill: '#0F3A28' }, phg), cam = S('circle', { cx: PH[0] + PH[2] / 2, cy: PH[1] + 14, r: 3, fill: '#1DB86E' }, phg);
   const num = S('text', { x: PH[0] + PH[2] / 2, y: PH[1] + 86, 'font-size': 44, 'font-weight': 800, fill: '#7FE0AE', 'text-anchor': 'middle', 'font-family': FONT }, phg);
   const wv = [0, 1, 2].map((i) => S('path', { d: `M${PH[0] + PH[2] + 16 + i * 11} ${PH[1] + 56}q${5 + i * 3} 15 0 30`, stroke: '#E5484D', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round', opacity: 0 }, svg));
@@ -681,8 +711,9 @@ function render() {
     <div class="gd-tabs" role="tablist">${tabs.map(([k, l, i]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}" class="${k === tab ? 'on' : ''}">${ic(i, 22)}<span>${t(l)}</span></button>`).join('')}</div>
     <div class="gd-wrap">${body}</div>`;
   const q = (c) => root.querySelector(c);
-  if (tab === 'flat') players.push(flatScene(q('.stage.fplace')), camAlertScene(q('.stage.calert')));
-  else if (tab === 'cam') players.push(camPlaceScene(q('.stage.cplace')), camHowScene(q('.stage.chow')), camAlertScene(q('.stage.calert')));
+  if (tab === 'flat' || tab === 'cam') { const k = tab; if (VID_OK[k] === undefined) { VID_OK[k] = false; probeVid(k).then((ok) => { VID_OK[k] = ok; if (ok && open && tab === k) render(); }); } }
+  if (tab === 'flat') players.push(VID_OK.flat ? placeScene(q('.stage.fplace'), 'flat') : flatScene(q('.stage.fplace')), camAlertScene(q('.stage.calert')));
+  else if (tab === 'cam') players.push(VID_OK.cam ? placeScene(q('.stage.cplace'), 'cam') : camPlaceScene(q('.stage.cplace')), camHowScene(q('.stage.chow')), camAlertScene(q('.stage.calert')));
   else {
     players.push(placeScene(q('.stage.place'), tab)); const hw = q('.stage.how'); hw.querySelector('.tilt .tl').textContent = t('gd.tilt'); players.push(howScene(hw, tab));
   }

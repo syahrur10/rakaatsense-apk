@@ -110,7 +110,7 @@ export function buildChar(R, out) {
   const at = (t, w = 0, z = 0) => add(add(mix(H, S, t), mul(fw, w)), [0, 0, z]);
   // kaki + celana (paha berisi, betis agak membulat, kaki celana lurus dengan lipatan di bawah, sepatu hitam mengilap)
   for (const L of R.legs) {
-    P(L.H, L.K, V2 ? 7.1 : 8.0, V2 ? 6.2 : 6.6, COL.pants, { ref: SIDE }); P(L.K, V2 ? sub(L.A, mul(nrm(sub(L.A, L.K)), 2.8)) : L.A, 6.7, V2 ? 4.6 : 4.4, COL.pants, { ref: SIDE });
+    P(L.H, L.K, V2 ? 7.1 : 8.0, V2 ? 6.3 : 6.6, COL.pants, { ref: SIDE }); P(L.K, V2 ? sub(L.A, mul(nrm(sub(L.A, L.K)), 2.8)) : L.A, V2 ? 6.3 : 6.7, V2 ? 4.6 : 4.4, COL.pants, { ref: SIDE });
     const d = nrm(sub(L.A, L.K));
     if (V2) { P(sub(L.A, mul(d, 6.4)), sub(L.A, mul(d, 2.6)), 5.0, 4.9, COL.pantsD, { ref: SIDE }); P(sub(L.A, mul(d, 5.0)), add(L.A, mul(d, 0.8)), 3.2, 3.3, COL.skin, { ref: SIDE, mat: MAT.skin }); }   // celana digulung, pergelangan kaki terlihat
     else P(sub(L.A, mul(d, 4.6)), add(L.A, mul(d, 0.4)), 4.6, 4.6, COL.pantsD, { ref: SIDE });
@@ -123,7 +123,7 @@ export function buildChar(R, out) {
   P(at(0.0), at(0.46), 9.0, 8.5, COL.shirt, { k: [1.45, 1, 1], ref: SIDE, mat: MAT.shirt });           // perut/pinggang sampai ujung baju (satu bentuk mulus, tanpa cincin)
   P(at(0.46), at(0.80), 8.5, 9.5 * br, COL.shirt, { k: [1.56, 1, 1], ref: TREF, mat: MAT.shirt });    // dada
   P(at(0.80), at(0.95), 9.4 * br, 7.6, COL.shirt, { k: [1.6, 1, 1], ref: TREF, mat: MAT.shirt });     // pundak
-  { const K0 = R.legs[0].K, hk = mix(H, [K0[0], K0[1], 0], V2 ? 0.17 : 0.2); P(at(0.1), hk, V2 ? 8.6 : 8.8, V2 ? 8.6 : 8.8, COL.shirt, { k: [1.4, 1, 0.3], ref: SIDE, mat: MAT.shirt }); }  // ujung baju mengikuti paha
+  { const K0 = R.legs[0].K, hk = mix(H, [K0[0], K0[1], 0], V2 ? 0.24 : 0.2); P(at(0.1), hk, V2 ? 8.6 : 8.8, V2 ? 8.6 : 8.8, COL.shirt, { k: V2 ? [1.34, 1, 0.95] : [1.4, 1, 0.3], ref: SIDE, mat: MAT.shirt }); }  // ujung baju mengikuti paha
   if (V2) P(at(0.93, 8.2, 1.0), at(0.66, 9.4, 1.0), 0.8, 0.8, COL.shirtD, { mat: MAT.shirt, sh: false });   // plaket pendek berujung bulat (seperti referensi)
   else P(at(0.92, 9.0, 1.0), at(-0.08, 9.9, 1.0), 1.1, 1.1, COL.shirtL, { mat: MAT.shirt });
   if (!V2) for (let i = 0; i < 4; i++) E(at(0.8 - i * 0.19, 9.9 + 0.3 * i, 1.0), [1.0, 1.0, 0.6], [SIDE, fw, ax], COL.white, { mat: MAT.gloss, sh: false });
@@ -164,5 +164,5 @@ export function rigFromF(F, torus, o = {}) {
   }
   const legs = [{ H: lz(F.H, ZH), K: lz(F.K, ZH), A: lz(F.A, ZH), toe: lz(F.toe, ZH) }, { H: lz(F.H, -ZH), K: lz(F.K2, -ZH), A: lz(F.A2, -ZH), toe: lz(F.toe2, -ZH) }];
   const roll = F.an[2] + 0.4 * (F.an[3] - F.an[2]);
-  return { H: lz(F.H, 0), S: lz(F.S, 0), legs, arms, br: F.br, torus, shoe: o.shoe, head: { C: lz(F.C, 0), roll, yaw: F.turn * 70 + (o.yaw ?? 42), blink: Math.max(o.blink || 0, F.ec || 0), gaze: o.gaze, smile: o.smile ?? 0.6, brow: -0.15 * (F.ec || 0) } };
+  return { H: lz(F.H, 0), S: lz(F.S, 0), legs, arms, br: F.br, torus, shoe: o.shoe, v2: o.v2 !== false, head: { C: lz(F.C, 0), roll, yaw: F.turn * 70 + (o.yaw ?? 42), blink: Math.max(o.blink || 0, F.ec || 0), gaze: o.gaze, smile: o.smile ?? 0.6, brow: -0.15 * (F.ec || 0) } };
 }
