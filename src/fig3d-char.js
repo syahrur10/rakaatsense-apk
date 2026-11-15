@@ -116,7 +116,8 @@ export function buildChar(R, out) {
     else P(sub(L.A, mul(d, 4.6)), add(L.A, mul(d, 0.4)), 4.6, 4.6, COL.pantsD, { ref: SIDE });
     const td = nrm(sub(L.toe, L.A));
     if (R.shoe && !V2) { P(sub(L.A, mul(td, 1.4)), add(L.toe, mul(td, 2.6)), 4.7, 4.0, COL.shoe, { k: [1.08, 0.84, 1], ref: SIDE, mat: MAT.gloss }); P(sub(L.A, mul(td, 0.9)), add(L.toe, mul(td, 1.8)), 4.5, 3.9, [0.78, 0.76, 0.72], { k: [1.06, 0.2, 1], ref: SIDE, sh: false }); }
-    else { P(sub(L.A, mul(td, 0.6)), L.toe, 3.7, 2.7, COL.skin, { k: [1.1, 0.8, 1], ref: SIDE, mat: MAT.skin }); E(add(L.toe, mul(td, 0.3)), [2.7, 2.0, 2.5], [SIDE, [0, -1, 0], td], COL.skinD, { mat: MAT.skin }); }
+    else { P(sub(L.A, mul(td, 0.6)), L.toe, 3.7, 2.7, COL.skin, { k: [1.1, 0.8, 1], ref: SIDE, mat: MAT.skin }); E(add(L.toe, mul(td, 0.3)), [2.7, 2.0, 2.5], [SIDE, [0, -1, 0], td], COL.skinD, { mat: MAT.skin });
+      if (V2) { const inn = L.A[2] > 0 ? -1 : 1; [[2.3, 1.15], [1.05, 0.95], [-0.05, 0.86], [-1.0, 0.78], [-1.9, 0.7]].forEach(([dz, r], i) => E(add(add(L.toe, mul(td, 1.2 - i * 0.12)), [0, 0.7, inn * dz]), [r, r * 0.85, r * 1.15], [SIDE, [0, -1, 0], td], COL.skin, { mat: MAT.skin })); } }  // jari kaki
   }
   // baju koko: bahu lebar dan miring → dada bidang → pinggang sedikit mengecil → ujung baju lurus menutup pinggul
   P(at(0.0), at(0.46), 9.0, 8.5, COL.shirt, { k: [1.45, 1, 1], ref: SIDE, mat: MAT.shirt });           // perut/pinggang sampai ujung baju (satu bentuk mulus, tanpa cincin)
@@ -133,10 +134,11 @@ export function buildChar(R, out) {
   // lengan: lereng bahu (trapezius) menyambung ke lengan, lengan atas berisi, lengan bawah mengecil ke manset
   for (const A of R.arms) {
     const { e, w } = ik3(A.sh, A.tg, A.l1, A.l2, A.pole), dir = nrm(sub(w, e));
-    P(add(Sn, [0, 3.2, 0]), A.sh, 4.5, 5.2, COL.shirt, { mat: MAT.shirt, ref: SIDE });
-    E(A.sh, [5.2, 5.2, 5.2], IDENT, COL.shirt, { mat: MAT.shirt });
-    P(A.sh, e, 5.2, 4.3, COL.shirt, { mat: MAT.shirt }); E(e, [4.3, 4.3, 4.3], IDENT, COL.shirt, { mat: MAT.shirt }); P(e, w, 4.3, 3.4, COL.shirt, { mat: MAT.shirt });
-    P(mix(e, w, 0.82), add(w, mul(dir, 0.6)), 3.7, 3.7, COL.cuff, { mat: MAT.shirt });
+    const ra = V2 ? [4.4, 4.7, 3.9, 3.8, 3.05, 3.45] : [4.5, 5.2, 4.3, 4.3, 3.4, 3.7];
+    P(add(Sn, [0, 3.2, 0]), A.sh, ra[0], ra[1], COL.shirt, { mat: MAT.shirt, ref: SIDE });
+    E(A.sh, [ra[1], ra[1], ra[1]], IDENT, COL.shirt, { mat: MAT.shirt });
+    P(A.sh, e, ra[1], ra[2], COL.shirt, { mat: MAT.shirt }); E(e, [ra[3], ra[3], ra[3]], IDENT, COL.shirt, { mat: MAT.shirt }); P(e, w, ra[3], ra[4], COL.shirt, { mat: MAT.shirt });
+    P(mix(e, w, 0.82), add(w, mul(dir, 0.6)), ra[5], ra[5], COL.cuff, { mat: MAT.shirt });
     let f, n; const h = A.hand;
     if (h.f) { f = nrm(h.f); n = nrm(h.n); } else {
       const a2 = Math.atan2(w[1] - e[1], w[0] - e[0]) / RAD, d = ((h.ha - a2 + 540) % 360) - 180, rot = (a2 + d * (h.hw || 0)) * RAD; f = [Math.cos(rot), Math.sin(rot), 0];

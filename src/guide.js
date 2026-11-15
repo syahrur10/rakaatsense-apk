@@ -633,7 +633,14 @@ function placeScene(box, kind, still) {
   };
   const pillCmdSlit = (a, b) => pillCmd(a, b, 0.45, 0.45, COL.pantsD, { ref: [0, 0, 1], sh: false });
   const slerpO = (a, b, k) => ({ f: nrm3(v3.mix(a.f, b.f, k)), n: nrm3(v3.mix(a.n, b.n, k)) });
+  /* pegas orde-2 (momentum + overshoot kecil) agar gerak mengalir & saling menyusul, bukan berhenti-jalan kaku */
+  const SPR = {}; let lastNow = -1;
+  const spr = (k, tgt, dt, hz, z) => { let s = SPR[k]; if (!s || s.x.length !== tgt.length) s = SPR[k] = { x: tgt.slice(), v: tgt.map(() => 0) };
+    const w = 2 * Math.PI * hz, n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n;
+    for (let i = 0; i < n; i++) for (let j = 0; j < tgt.length; j++) { const a = w * w * (tgt[j] - s.x[j]) - 2 * z * w * s.v[j]; s.v[j] += a * h; s.x[j] += s.v[j] * h; }
+    return s.x.slice(); };
   const draw = (ms, now) => {
+    const dt = lastNow < 0 ? 0 : Math.min(0.05, Math.max(0, (now - lastNow) / 1000)); lastNow = now; const LF = sh ? 0 : 1;
     ms %= FRONT_T; const holdingA = ms <= REL; let wr, f, n, grip, pat = 0, pc, roll = 0, pit = PIT;
     const tail = 1 - ease(clamp01((ms - (FRONT_T - 650)) / 550)), headIn = ease(clamp01((ms - 300) / 450)), up0 = ease(clamp01(ms / 1000));   // up0: tangan naik dari menjuntai ke depan perut
     if (holdingA) {
@@ -646,13 +653,19 @@ function placeScene(box, kind, still) {
       const nFree = nrm3(v3.mix([0, 0, -1], [-1, 0, -0.2], pat)), fF = nrm3(v3.mix(RDOWN.f, [0, 1, 0.2], pat));
       f = nrm3(v3.mix(v3.mix(fF, H0.f, w0), RDOWN.f, w1)); n = nrm3(v3.mix(v3.mix(nFree, H0.n, w0), RDOWN.n, w1));
     }
+    if (LF) { const w2 = spr('wr', wr, dt, 4.4, 0.62), d = [w2[0] - wr[0], w2[1] - wr[1], w2[2] - wr[2]]; wr = w2; if (holdingA) pc = add3(pc, d);
+      f = nrm3(spr('f', f, dt, 4, 0.7)); n = nrm3(spr('n', n, dt, 4, 0.7)); grip = spr('g', [grip], dt, 5, 0.8)[0]; }
     const reach = clamp01(Math.hypot(wr[1] - 63, wr[2] - 12) / 40), br = Math.sin(now / 650), ld = ease(clamp01((ms - 1900) / 700)) * (1 - 0.3 * ease(clamp01((ms - 3900) / 700))) * (1 - ease(clamp01((ms - 6900) / 900))), sm = ease(clamp01((ms - 6150) / 500)) * (1 - ease(clamp01((ms - 8300) / 800)));
     const bx = 0.25 * Math.sin(now / 1900), ins = ease(clamp01((ms - 4300) / 1100)) * (1 - ease(clamp01((ms - 6100) / 900))) + 0.3 * ease(clamp01((ms - 1900) / 900)) * (1 - ease(clamp01((ms - 4300) / 600))), flex = (sh ? 2 : 3.4) * ins;
-    const lh = [0.5 + 0.35 * Math.sin(now / 1700), 70.4 + 0.5 * br, -(ZSH + 2.2) - 0.4 * reach], lean = sh ? 0 : 2.4 * flex;
-    const rig = { H: [bx, 63 + 0.4 * br + 1.2 * flex, -0.9 * ins], S: [bx - 0.5 * reach + 1.5 * ins + 0.4 * lean, 24 + 0.4 * br - 0.8 * reach + 1.4 * flex + lean, 0.6 * reach - 1.4 * ins], br, torus: eng.meshes.torus, shoe: true, v2: !sh,
-      legs: [0, 1].map((i) => { const zz = sh ? 6.6 : 5.7, z = i ? -zz : zz, fl = i ? 0.55 * flex : flex, lift = i ? 0.7 * ins : 0; return { H: [0, 63 + 1.2 * flex, z * 0.85 - 0.9 * ins], K: [0.4 + fl * 0.9, 95 + 0.8 * flex, z], A: [0, 121.5 - lift, z * 1.08], toe: [8.8, 123.8 - lift * 1.6, z * 1.12] }; }),
-      arms: [{ sh: [bx - 0.4 * reach + 0.4 * lean, 27.6 + lean + 1.4 * flex, ZSH], tg: wr, pole: [-0.3 + 0.3 * pat, 1 - 0.3 * pat, 0.3 + 0.6 * pat], l1: 24, l2: 22, sgn: 1, hand: { f, n, gr: grip, fp: 0, fl: holdingA ? 1 : 0 } }, { sh: [bx, 27.6 + 1.4 * flex, -ZSH], tg: lh, pole: [-1, 0.1, -0.35], l1: 24, l2: 22, sgn: -1, hand: { f: [0.12, 1, 0.06], n: [0, 0, 1], gr: 0.3 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
-      head: { C: [bx + 0.6 * ld + 1.6 * ins, 12.4 + 0.5 * br + 0.6 * ld + 1.4 * flex + 0.9 * lean, 0.3 * reach - 1.4 * ins], roll: 4 * ld + 5 * ins, yaw: (wr[2] > 6 ? 14 * ld : 0) - 6 * sm, blink: blinkAt(now), gaze: [0, -0.7 * ld * (1 - sm)], smile: 1, open: 0, brow: 0.3 + 0.5 * sm } };
+    const sw = Math.sin(now / 2600) * LF, sd = 1.6 * ins * LF;   // sw: goyang berat badan pelan; sd: bahu kanan turun saat tangan masuk saku
+    const lh = [0.5 + 0.35 * Math.sin(now / 1700) - 1.0 * ins * LF, 70.4 + 0.5 * br - 0.9 * ins * LF, -(ZSH + 2.2) - 0.4 * reach - 0.2 * ins * LF], lean = sh ? 0 : 2.4 * flex;
+    const hdT = [bx + 0.6 * ld + 1.6 * ins, 12.4 + 0.5 * br + 0.6 * ld + 1.4 * flex + 0.9 * lean, 0.3 * reach - 1.4 * ins + 1.6 * ins * LF - 0.5 * sw, 4 * ld + 5 * ins - 1.2 * sw, (wr[2] > 6 ? 14 * ld : 0) - 6 * sm + 2 * sw];
+    const hdS = LF ? spr('hd', hdT, dt, 3.2, 0.78) : hdT;   // kepala menyusul badan sedikit terlambat (follow-through)
+    const Sz = (1.4 * ins - 0.5 * sw) * LF;   // pergeseran samping torso: bahu ikut bergeser
+    const rig = { H: [bx, 63 + 0.4 * br + 1.2 * flex, -0.9 * ins - 0.8 * ins * LF + 0.4 * sw], S: [bx - 0.5 * reach + 1.5 * ins + 0.4 * lean, 24 + 0.4 * br - 0.8 * reach + 1.4 * flex + lean, 0.6 * reach - 1.4 * ins + Sz], br, torus: eng.meshes.torus, shoe: true, v2: !sh,
+      legs: [0, 1].map((i) => { const zz = sh ? 6.6 : 5.7, z = i ? -zz : zz, fl = i ? 0.55 * flex : flex, lift = i ? 0.7 * ins : 0.45 * ins * LF; return { H: [0, 63 + 1.2 * flex, z * 0.85 - 0.9 * ins], K: [0.4 + fl * 0.9, 95 + 0.8 * flex, z], A: [0, 121.5 - lift, z * 1.08], toe: [8.8, 123.8 - lift * 1.6, z * 1.12] }; }),
+      arms: [{ sh: [bx - 0.4 * reach + 0.4 * lean, 27.6 + lean + 1.4 * flex + sd, ZSH + Sz], tg: wr, pole: [-0.3 + 0.3 * pat, 1 - 0.3 * pat, 0.3 + 0.6 * pat], l1: 24, l2: 22, sgn: 1, hand: { f, n, gr: grip, fp: 0, fl: holdingA ? 1 : 0 } }, { sh: [bx, 27.6 + 1.4 * flex - 0.8 * sd, -ZSH + Sz], tg: lh, pole: [-1, 0.1, -0.35], l1: 24, l2: 22, sgn: -1, hand: { f: [0.12, 1, 0.06], n: [0, 0, 1], gr: 0.3 + 0.05 * Math.sin(now / 2100), fp: 0 } }],
+      head: { C: hdS.slice(0, 3), roll: hdS[3], yaw: hdS[4], blink: blinkAt(now), gaze: [0.25 * Math.sin(now / 3300) * LF + 0.3 * ld * LF * (wr[2] > 6 ? 1 : 0), -0.7 * ld * (1 - sm)], smile: 1, open: 0, brow: 0.3 + 0.5 * sm } };
     const cmds = []; buildChar(rig, cmds);
     if (!sh) cmds.push(pillCmdSlit([Pk[0] + 0.3, Pk[1] - 2.8, Pk[2] - 3.4], [Pk[0] + 0.5, Pk[1] - 2.2, Pk[2] + 3.6]));
     const pa = holdingA ? headIn : tail; if (pa > 0.01) cmds.push(...phoneCmds(pc, roll, pa, pit));
