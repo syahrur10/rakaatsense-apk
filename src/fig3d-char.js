@@ -159,8 +159,8 @@ const L_UA = 24, L_FA = 22, ZH = 6.0, ZS = 12.4;
 /** Sedekap (bersedekap di bawah dada): kedua lengan bawah MENYILANG mendatar di depan perut, siku turun di samping badan, tangan kanan (sisi dekat) di atas tangan kiri.
  *  d = jarak ke depan dari sumbu badan, u = naik dari titik perut, z = lateral (dekat = +). */
 const SED = {
-  1: { d: 14.0, u: 2.9, z: -6, pole: [-0.4, 0.8, 1.8], f: [0.1, 0.1, -1], n: [-1, 0.3, 0], gr: 0.3 },     // kanan (dekat, di atas): lengan bawah menyilang, tangan menutupi tangan kiri
-  '-1': { d: 14.8, u: -2.5, z: 7, pole: [0, 0.8, -1], f: [0.05, 0.45, 0.9], n: [-1, 0.2, 0], gr: 0.55 },   // kiri (jauh, di bawah): lengan bawah di bawah lengan kanan, jari agak menunduk
+  1: { d: 10.8, u: 2.4, z: -4.5, pole: [-0.6, 0.5, 1.7], f: [0.05, 0.1, -1], n: [-1, 0.3, 0], gr: 0.3 },     // kanan (dekat, di atas): lengan atas turun lurus, lengan bawah miring naik menempel dada, tangan di atas lengan kiri
+  '-1': { d: 10.6, u: -2.4, z: 4, pole: [-0.6, 0.5, -1.9], f: [0.05, 0.45, 0.9], n: [-1, 0.2, 0], gr: 0.55 },  // kiri (jauh, di bawah): tertutup lengan & tangan kanan
 };
 export function rigFromF(F, torus, o = {}) {
   const lz = (p, z) => [p[0], p[1], z], arms = [], sd = F.sd || 0;
