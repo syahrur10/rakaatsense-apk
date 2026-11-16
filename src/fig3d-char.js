@@ -145,6 +145,7 @@ export function buildChar(R, out) {
       const nIn = [0, 0, -A.sgn], nPl = [-f[1], f[0], 0]; n = nrm(mix(nIn, nPl, cl(h.hp ?? 0, 0, 1)));
       if (dot(n, nPl) < 0 && (h.hp ?? 0) > 0.9) n = mul(n, -1);
     }
+    if (h.sd > 0.001) { f = nrm(mix(f, h.f2, h.sd)); n = nrm(sub(mix(n, h.n2, h.sd), mul(f, dot(mix(n, h.n2, h.sd), f)))); }   // sedekap: jari mengarah menyilang perut, telapak menempel ke badan
     buildHand(add(w, mul(dir, 0.3)), f, n, { gr: h.gr, fp: h.fp, fl: h.fl, sgn: A.sgn }, out);
     A.out = { e, w, f, n };
   }
@@ -155,12 +156,25 @@ export function buildChar(R, out) {
 
 /* ===== rangka dari sendi tampak samping (fk) ===== */
 const L_UA = 24, L_FA = 22, ZH = 6.0, ZS = 12.4;
+/** Sedekap (bersedekap di bawah dada): kedua lengan bawah MENYILANG mendatar di depan perut, siku turun di samping badan, tangan kanan (sisi dekat) di atas tangan kiri.
+ *  d = jarak ke depan dari sumbu badan, u = naik dari titik perut, z = lateral (dekat = +). */
+const SED = {
+  1: { d: 14.0, u: 2.9, z: -6, pole: [-0.4, 0.8, 1.8], f: [0.1, 0.1, -1], n: [-1, 0.3, 0], gr: 0.3 },     // kanan (dekat, di atas): lengan bawah menyilang, tangan menutupi tangan kiri
+  '-1': { d: 14.8, u: -2.5, z: 7, pole: [0, 0.8, -1], f: [0.05, 0.45, 0.9], n: [-1, 0.2, 0], gr: 0.55 },   // kiri (jauh, di bawah): lengan bawah di bawah lengan kanan, jari agak menunduk
+};
 export function rigFromF(F, torus, o = {}) {
-  const lz = (p, z) => [p[0], p[1], z], arms = [];
+  const lz = (p, z) => [p[0], p[1], z], arms = [], sd = F.sd || 0;
+  const a2 = [F.S[0] - F.H[0], F.S[1] - F.H[1]], al = Math.hypot(a2[0], a2[1]) || 1, ax2 = [a2[0] / al, a2[1] / al], fw2 = [-ax2[1], ax2[0]], B2 = [F.S[0] + (F.H[0] - F.S[0]) * 0.55, F.S[1] + (F.H[1] - F.S[1]) * 0.55];
   for (const sgn of [1, -1]) { // sisi dekat (+z) lalu jauh (-z)
-    const sh = lz(mix(F.S, F.H, 0.1), sgn * ZS), hz = F.hz || 0, tg = [F.T[0], F.T[1], sgn * ZS * (1 - hz)];
+    const sh = lz(mix(F.S, F.H, 0.1), sgn * ZS), hz = F.hz || 0; let tg = [F.T[0], F.T[1], sgn * ZS * (1 - hz)];
     const d = [tg[0] - sh[0], tg[1] - sh[1]], dl = Math.hypot(d[0], d[1]) || 1, perp = [-d[1] / dl, d[0] / dl], bs = F.bend >= 0 ? 1 : -1;
-    arms.push({ sh, tg, pole: [perp[0] * bs, perp[1] * bs, sgn * 0.5], l1: L_UA * F.as, l2: L_FA * F.as * F.fs, sgn, hand: { ha: F.ha, hw: F.hw, hp: F.hp || 0, gr: F.gr, fp: F.fp } });
+    let pole = [perp[0] * bs, perp[1] * bs, sgn * 0.5], l2 = L_FA * F.as * F.fs, hand = { ha: F.ha, hw: F.hw, hp: F.hp || 0, gr: F.gr, fp: F.fp };
+    if (sd > 0.001) {
+      const c = SED[sgn], bob = 0.35 * (F.br || 0), pw = [B2[0] + fw2[0] * c.d + ax2[0] * c.u, B2[1] + fw2[1] * c.d + ax2[1] * c.u + bob, c.z];
+      tg = mix(tg, pw, sd); pole = mix(pole, c.pole, sd); l2 = L_FA * F.as * (F.fs + (1 - F.fs) * sd);
+      hand = { ...hand, sd, gr: Math.max(F.gr || 0, c.gr * sd), f2: nrm([c.f[0] * fw2[0] - c.f[1] * ax2[0], c.f[0] * fw2[1] - c.f[1] * ax2[1], c.f[2]]), n2: nrm([c.n[0] * fw2[0] - c.n[1] * ax2[0], c.n[0] * fw2[1] - c.n[1] * ax2[1], c.n[2]]) };
+    }
+    arms.push({ sh, tg, pole, l1: L_UA * F.as, l2, sgn, hand });
   }
   const legs = [{ H: lz(F.H, ZH), K: lz(F.K, ZH), A: lz(F.A, ZH), toe: lz(F.toe, ZH) }, { H: lz(F.H, -ZH), K: lz(F.K2, -ZH), A: lz(F.A2, -ZH), toe: lz(F.toe2, -ZH) }];
   const roll = F.an[2] + 0.4 * (F.an[3] - F.an[2]);

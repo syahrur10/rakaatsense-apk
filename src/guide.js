@@ -73,7 +73,8 @@ const PLANT = { q: 0.15, i: 0, u: 0, r: 1, k: 0.2, s: 1, d: 1, w: 1 };
 for (const k in PLANT) RAW[k].pl = PLANT[k];
 const HZ = { q: 0.3, u: 0.05, i: 0, r: 0, k: 0.1, s: 0.3, d: 0.35, w: 0.35 }, HP = { q: 0.7, u: 1, i: 0.1, r: 0.55, k: 0.3, s: 1, d: 0.9, w: 0.9 }; // 3D: tangan menyilang ke tengah (hz) & telapak menghadap (hp)
 for (const k in HZ) { RAW[k].hz = HZ[k]; RAW[k].hp = HP[k]; }
-RAW.r.gr = 0.75; RAW.q.gr = 0.1; RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
+RAW.r.gr = 0.75; RAW.q.gr = 0.1; RAW.q.sd = 1; // sd = bobot sedekap 3D: kedua lengan bawah menyilang di depan perut, tangan kanan di atas tangan kiri (tidak terjulur ke depan)
+ RAW.w.fp = 1; RAW.dt = { ...RAW.d, fp: 1 };
 // Duduk tawarruk (tahiyat akhir): pantat menyentuh lantai, kaki kanan ditegakkan (jari menghadap kiblat), kaki kiri KELUAR di bawah betis kanan.
 // Tampak dari kanan: lutut kiri di lantai (K2), betis kiri rebah di bawah betis kanan (A2), telapak kiri hampir tertutup (f2s = diperpendek karena menghadap penonton).
 Object.assign(RAW.w, { A: [88, 114.5], K: [119, 119.5], H: [92, 120], S: [92.5, 81], C: [94.6, 69.2], T: [107, 112.5], K2: [118, 122], A2: [98, 122.8], toe2: [106, 124.3], toe: [93.5, 124.2], f2s: 0.6 });
@@ -81,7 +82,7 @@ RAW.sa = { ...RAW.w, sa: 1 }; // salam: posisi sama, kepala menoleh kanan lalu k
 RAW.w0 = { ...RAW.w, fp: 0 }; // selesai: telunjuk sudah diturunkan
 const POSE = Object.fromEntries(Object.entries(RAW).map(([k, r]) => {
   const v = [[r.K, r.A], [r.H, r.K], [r.S, r.H], [r.C, r.S]].map(([p, q]) => [p[0] - q[0], p[1] - q[1]]), A2 = r.A2 || r.A, K2 = r.K2 || r.K, toe2 = r.toe2 || r.toe, off = (a, b) => [b[0] - a[0], b[1] - a[1]];
-  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, fs: r.fs ?? 1, fo: r.fo ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0, gr: r.gr ?? 0, fl: r.fl ?? 0, ec: r.ec ?? 0, hz: r.hz ?? 0, hp: r.hp ?? 0 }];
+  return [k, { A: r.A, ang: v.map(angOf), len: v.map((x) => Math.hypot(...x)), T: r.T, bend: r.bend, a2: angOf(off(A2, K2)), ak2: angOf(off(r.H, K2)), f2s: r.f2s ?? 1, sa: r.sa ?? 0, fa: angOf(off(r.A, r.toe)), fa2: angOf(off(A2, toe2)), as: r.as ?? 1, fs: r.fs ?? 1, fo: r.fo ?? 1, hw: r.hw ?? 0, ha: r.ha ?? 0, sy: r.S[1], pl: r.pl ?? 0, fp: r.fp ?? 0, gr: r.gr ?? 0, fl: r.fl ?? 0, ec: r.ec ?? 0, hz: r.hz ?? 0, hp: r.hp ?? 0, sd: r.sd ?? 0 }];
 }));
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const ramp = (x, a, b = 1) => clamp01((x - a) / (b - a));
@@ -118,7 +119,7 @@ function blend(pa, pb, kl) {
   const bulge = 0.15 * dist * Math.sin(Math.PI * kArm);
   return { A: lerpV(pa.A, pb.A, kLeg), a2: lerpA(pa.a2, pb.a2, kLeg), fa: lerpA(pa.fa, pb.fa, kLeg), fa2: lerpA(pa.fa2, pb.fa2, kLeg), ang, len: ks.map((k, i) => lerp(pa.len[i], pb.len[i], k)),
     T: [lerp(pa.T[0], pb.T[0], kArm) + nx * bulge, Math.min(124.4, lerp(pa.T[1], pb.T[1], kArm) + ny * bulge)], bend: lerp(pa.bend, pb.bend, kArm), as: lerp(pa.as, pb.as, kArm), fs: lerp(pa.fs, pb.fs, kArm), fo: lerp(pa.fo, pb.fo, kArm), hw: lerp(pa.hw, pb.hw, kArm), ha: lerpA(pa.ha, pb.ha, kHand),
-    ak2: lerpA(pa.ak2, pb.ak2, kLeg), f2s: lerp(pa.f2s, pb.f2s, kLeg), sa: lerp(pa.sa, pb.sa, kHd), sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp), gr: lerp(pa.gr, pb.gr, kHand), fl: lerp(pa.fl, pb.fl, kHand), ec: lerp(pa.ec, pb.ec, ease(ramp(kl, 0.15, 0.9))), hz: lerp(pa.hz, pb.hz, kArm), hp: lerp(pa.hp, pb.hp, kHand) };
+    ak2: lerpA(pa.ak2, pb.ak2, kLeg), f2s: lerp(pa.f2s, pb.f2s, kLeg), sa: lerp(pa.sa, pb.sa, kHd), sy: lerp(pa.sy, pb.sy, kTo), pl: lerp(pa.pl, pb.pl, kArm), fp: lerp(pa.fp, pb.fp, kFp), gr: lerp(pa.gr, pb.gr, kHand), fl: lerp(pa.fl, pb.fl, kHand), ec: lerp(pa.ec, pb.ec, ease(ramp(kl, 0.15, 0.9))), hz: lerp(pa.hz, pb.hz, kArm), hp: lerp(pa.hp, pb.hp, kHand), sd: lerp(pa.sd, pb.sd, kArm) };
 }
 /** Forward kinematics + "kehidupan" saat menahan pose: napas (dada naik-turun), badan bergoyang pelan memindahkan berat (hanya saat berdiri),
  *  kepala melayang halus, tangan yang tidak menapak ikut bergoyang. Semua suku bernilai 0 saat now = 0, jadi hitungan simulasi (fk(pose, 0)) tidak berubah. */
@@ -128,7 +129,7 @@ function fk(P, now, tl = now) {
   const br = Math.sin(now / 700), g = clamp01((70 - P.sy) / 46), sw = (Math.sin(now / 1900) + 0.6 * Math.sin(now / 3100)) * g, free = 1 - P.pl, an = P.ang.slice();
   an[0] += 0.45 * sw; an[1] -= 0.35 * sw; an[2] += 1.1 * br + 0.5 * sw; an[3] += 1.3 * Math.sin(now / 1100) + Math.sin(now / 2900) - 0.5 * br;
   const K = pt(P.A, an[0], P.len[0]), H = pt(K, an[1], P.len[1]), Sh = pt(H, an[2], P.len[2]), Cc = pt(Sh, an[3], P.len[3]), K2 = pt(H, P.ak2 + (an[1] - P.ang[1]), P.len[1]), A2 = pt(K2, P.a2 + 180, P.len[0]);
-  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, fs: P.fs, fo: P.fo, hw: P.hw, ha: P.ha, fp: P.fp, gr: P.gr, fl: P.fl, ec: P.ec, hz: P.hz, hp: P.hp, br, an };
+  return { A: P.A, K, H, S: Sh, C: Cc, K2, A2, toe: pt(P.A, P.fa, FL), toe2: pt(A2, P.fa2, FL * P.f2s), turn: P.sa * salamTurn(tl), T: [P.T[0] + free * 0.5 * Math.sin(now / 1300), P.T[1] + free * (0.5 * br + 0.4 * Math.sin(now / 1700))], bend: P.bend, as: P.as, fs: P.fs, fo: P.fo, hw: P.hw, ha: P.ha, fp: P.fp, gr: P.gr, fl: P.fl, ec: P.ec, hz: P.hz, hp: P.hp, sd: P.sd, br, an };
 }
 const TH = { shirt: { on: 50, off: 30, hold: 500 }, pants: { on: 25, off: 15, hold: 2500 } }; // sama dengan ambang di counter.js
 /** sudut kemiringan HP dari sendi: Saku Baju = batang badan (pinggul → bahu) vs tegak, Saku Celana = paha (pinggul → lutut) vs tegak ke bawah */
@@ -347,7 +348,7 @@ function sideFigure3D(svg, kind) {
   svg.__back = lay.back; svg.__fig = fig; svg.__vb = vb;
   if (!cam) { const kb = S('g', { transform: 'translate(176 4)' }, svg); S('path', { d: 'M0 4h22M16 0l6 4-6 4', stroke: C.shirtD, 'stroke-width': 1.8, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, kb); S('rect', { x: 8, y: 11, width: 11, height: 11, rx: 1.5, fill: C.dark }, kb); S('path', { d: 'M8 14.5h11', stroke: C.gold, 'stroke-width': 1.2 }, kb); }
   const fn = (P, now, tm) => {
-    const F = fk(P, now, tm), rig = rigFromF(F, eng.meshes.torus, { blink: blinkAt(now) }), cmds = ground.slice(); buildChar(rig, cmds);
+    const F = fk(P, now, tm), rig = rigFromF(F, eng.meshes.torus, { blink: blinkAt(now) }), cmds = ground.slice(), g0 = cmds.length; buildChar(rig, cmds); const g1 = cmds.length;
     let tilt = 0;
     if (!cam && !plain) {
       const sh = kind === 'shirt', a = sh ? F.S : F.K, b = F.H, u = sh ? [F.S[0] - F.H[0], F.S[1] - F.H[1]] : [F.K[0] - F.H[0], F.K[1] - F.H[1]], nn = Math.hypot(...u), vx = u[0] / nn, vy = u[1] / nn;
@@ -360,7 +361,11 @@ function sideFigure3D(svg, kind) {
       cmds.push(glowCmd(eng, [c2[0], c2[1], z + 6], 12, COL.gold, 0.28 + 0.2 * Math.sin(now / 260)));
     } else fn.F = F;
     fig.rig = rig; for (const x of fig.extras) x(cmds, now, F, rig);
-    const views = [{ cam: SIDE_CAM, cmds }]; for (const v of fig.views) { v.cmds = cmds.filter((c) => !c.noPov); views.push(v); }
+    /* Pandangan kamera & pandangan AI (tampak DEPAN dari HP): kepala menghadap lurus ke kamera (yaw 0), tidak menoleh ke samping seperti di tampak samping (yaw 42).
+       Badan/tangan sama; hanya kepala yang dibangun ulang dengan yaw 0. */
+    const views = [{ cam: SIDE_CAM, cmds }];
+    if (fig.views.length) { const povChar = []; buildChar(rigFromF(F, eng.meshes.torus, { blink: blinkAt(now), yaw: 0 }), povChar); fig.povCmds = [...cmds.slice(0, g0), ...povChar, ...cmds.slice(g1)].filter((c) => !c.noPov); }
+    for (const v of fig.views) { v.cmds = fig.povCmds; views.push(v); }
     lay.render(views); room.tick(now); return tilt;
   };
   fn.fig = fig; return fn;
