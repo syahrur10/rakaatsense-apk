@@ -1,0 +1,23 @@
+LOGO BARU RAKAATSENSE (siluet sujud)
+
+Cara pakai
+1. Ekstrak zip ini ke root project (folder rakaatsense-apk), pilih "Timpa / Replace All".
+2. Jalankan:  npm run build
+   (public/* otomatis disalin ke dist/. Folder dist ikut ter-ignore oleh git.)
+3. Untuk APK:
+   cp -r android-assets/res/* android/app/src/main/res/
+   npx cap sync
+   Hapus APK lama dari HP sebelum memasang yang baru (launcher sering menyimpan ikon lama).
+
+Isi (semua nama file sama dengan yang lama, jadi langsung menimpa)
+- android-assets/assets/   icon-background, icon-foreground, icon-only, splash, splash-dark
+- android-assets/res/      mipmap mdpi..xxxhdpi: ic_launcher, ic_launcher_round,
+                           ic_launcher_background/foreground/monochrome (+ xml adaptif v26, tidak berubah)
+- public/                  logo.png (logo di dalam aplikasi), icon-192, icon-512,
+                           icon-maskable-512, icon.svg (favicon)
+- tools/logo-siluet-sujud.svg   sumber vektor logo (bisa dibuka di Figma/Inkscape)
+
+Catatan
+- Jangan jalankan tools/logo-from-image.py atau tools/logo.py: keduanya akan mengembalikan logo lama.
+- src/icons.js tidak perlu diubah, karena logo() sudah memakai /logo.png.
+- Ikon monokrom Android 13+ berupa siluet putih (mihrab + sosok sujud).

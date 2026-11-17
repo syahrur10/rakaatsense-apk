@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#127F4F"/><stop offset="1" stop-color="#0A5A36"/></linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7DC8A"/><stop offset=".5" stop-color="#D9A93C"/><stop offset="1" stop-color="#B5821F"/></linearGradient>
+<radialGradient id="glow" cx=".5" cy=".62" r=".7"><stop offset="0" stop-color="#FFF4C4"/><stop offset=".55" stop-color="#F3CE6A"/><stop offset="1" stop-color="#D9A93C"/></radialGradient>
+<mask id="cres"><rect width="1024" height="1024" fill="#fff"/><circle cx="534" cy="250" r="50" fill="#000"/></mask>
+</defs>
+<rect width="1024" height="1024" fill="url(#bg)"/><g id="art"><path id="crescent" fill="url(#gold)" d="M522.48 202.99 A56 56 0 1 0 558.44 289.29 A47 47 0 1 1 522.48 202.99 Z"/>
+<!-- bulan sabit + bintang -->
+
+<polygon id="star" fill="url(#gold)" points="558,226 564,243 582,243 568,254 573,271 558,261 543,271 548,254 534,243 552,243"/>
+<!-- mihrab -->
+<path d="M322 742 L322 520 C322 438 436 400 512 310 C588 400 702 438 702 520 L702 742 Z" fill="url(#gold)"/>
+<path d="M352 742 L352 526 C352 458 452 424 512 358 C572 424 672 458 672 526 L672 742 Z" fill="url(#glow)"/>
+<path d="M352 742 L352 526 C352 458 452 424 512 358 C572 424 672 458 672 526 L672 742" fill="none" stroke="#B5821F" stroke-width="5" opacity=".55"/>
+<!-- sajadah -->
+<path d="M268 700 L756 700 L722 776 L302 776 Z" fill="#F7E6B0"/>
+<path d="M268 700 L756 700 L750 716 L274 716 Z" fill="url(#gold)"/>
+<path d="M312 748 L712 748 L706 762 L318 762 Z" fill="#127F4F" opacity=".35"/>
+<path d="M352 726 L672 726" stroke="#B5821F" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+</g>
+<g id="fig" transform="translate(373 700) scale(1.25) translate(-56 -145)">
+ <path fill-rule="evenodd" fill="#083D26" d="M56 145 L56 108 C58 103 64 100 70 96 C74 94 78 98 84 100 C94 103 108 106 117 106 C108 92 98 76 96 58 C95 40 108 28 128 26 C150 24 178 32 206 46 C228 58 244 68 249 84 C252 90 262 90 270 92 C277 94 280 100 280 108 L280 130 C280 136 274 138 268 138 L262 138 C262 142 268 145 272 145 L212 145 C198 131 180 110 164 99 C170 103 175 113 175 126 L175 145 Z M212 111 L222 113 C225 118 223 123 218 122 L212 118 Z"/>
+</g></svg>
